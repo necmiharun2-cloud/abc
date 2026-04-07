@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The unique identifier of the user"
+        },
+        "username": {
+          "type": "string",
+          "description": "The display name of the user"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The email address of the user"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the user was created"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user"],
+          "description": "The role of the user"
+        }
+      },
+      "required": ["uid", "username", "email", "createdAt", "role"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user profiles"
+    }
+  }
+}

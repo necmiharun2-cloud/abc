@@ -1,11 +1,26 @@
-import { Search, User } from 'lucide-react';
+import { Search, User, LogOut } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
+import toast from 'react-hot-toast';
 
 export default function Header() {
   const [lang, setLang] = useState<'TR' | 'EN'>('TR');
+  const { user } = useAuth();
 
   const toggleLang = () => {
     setLang(prev => prev === 'TR' ? 'EN' : 'TR');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast.success('Çıkış yapıldı.');
+    } catch (error) {
+      toast.error('Çıkış yapılırken bir hata oluştu.');
+    }
   };
 
   return (
@@ -18,10 +33,10 @@ export default function Header() {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center gap-6">
-            <a href="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <img src="https://picsum.photos/seed/logo/40/40" alt="Logo" className="w-10 h-10 rounded-full" />
               <span className="text-white font-bold text-2xl tracking-tight">itemsatış</span>
-            </a>
+            </Link>
             
             <button 
               onClick={toggleLang}
@@ -52,15 +67,36 @@ export default function Header() {
 
           {/* User Actions */}
           <div className="flex items-center gap-4">
-            <button className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors">
-              <div className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center border border-white/10">
-                <User className="h-5 w-5 text-gray-400" />
+            {user ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors cursor-pointer">
+                  <div className="w-10 h-10 rounded-full bg-[#5b68f6] flex items-center justify-center border border-white/10 text-white font-bold">
+                    {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex flex-col items-start text-sm">
+                    <span className="font-medium text-white">{user.displayName || 'Kullanıcı'}</span>
+                    <span className="text-emerald-400 text-xs">0.00 ₺</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleLogout}
+                  className="w-10 h-10 rounded-full bg-[#2b3142] hover:bg-red-500/20 flex items-center justify-center border border-white/10 text-gray-400 hover:text-red-500 transition-colors"
+                  title="Çıkış Yap"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
               </div>
-              <div className="flex flex-col items-start text-sm">
-                <span className="font-medium text-white">Giriş Yap</span>
-                <span className="text-gray-400 text-xs">veya üye ol</span>
-              </div>
-            </button>
+            ) : (
+              <Link to="/login" className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors">
+                <div className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center border border-white/10">
+                  <User className="h-5 w-5 text-gray-400" />
+                </div>
+                <div className="flex flex-col items-start text-sm">
+                  <span className="font-medium text-white">Giriş Yap</span>
+                  <span className="text-gray-400 text-xs">veya üye ol</span>
+                </div>
+              </Link>
+            )}
           </div>
         </div>
       </div>
