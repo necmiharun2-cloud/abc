@@ -1,9 +1,14 @@
 import { ClipboardList } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function Favorites() {
   const { user, loading } = useAuth();
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -30,7 +35,10 @@ export default function Favorites() {
           Favorilerinize eklediğiniz hiçbir ilan bulunamadı.<br/>
           İlanları yakından takip edebilmek için hemen bir kaç tane ilanı favorilerinize ekleyin.
         </p>
-        <button className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 border border-white/10 px-6 py-3 rounded-lg text-sm font-medium transition-colors">
+        <button 
+          onClick={() => handleComingSoon('Favori Sistemi Bilgi')}
+          className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 border border-white/10 px-6 py-3 rounded-lg text-sm font-medium transition-colors"
+        >
           Favori sistemi hakkında detaylı bilgi için tıklayınız.
         </button>
       </div>

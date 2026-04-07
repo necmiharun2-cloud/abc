@@ -1,5 +1,5 @@
 import { Search, User, LogOut, Sliders, ShoppingCart, ShoppingBag, List, Heart, Wallet, LifeBuoy, MessageSquare, ChevronDown, ShieldCheck, PlusCircle, Bell, Package, Tag, Star } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -16,9 +16,22 @@ export default function Header() {
 
   const { user } = useAuth();
   const { cartCount } = useCart();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleLang = () => {
     setLang(prev => prev === 'TR' ? 'EN' : 'TR');
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      toast.success(`"${searchQuery}" için arama sonuçları yakında eklenecek!`);
+    }
+  };
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+    setIsDropdownOpen(false);
   };
 
   const handleLogout = async () => {
@@ -77,16 +90,18 @@ export default function Header() {
 
           {/* Search Bar */}
           <div className="flex-1 max-w-2xl mx-8">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-4 pr-12 py-3 bg-[#2b3142] border border-white/10 rounded-full text-sm text-white placeholder-gray-400 focus:outline-none focus:border-[#5b68f6] transition-colors"
                 placeholder="Google Hediye Kartı"
               />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+              <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
                 <Search className="h-5 w-5" />
               </button>
-            </div>
+            </form>
           </div>
 
           {/* User Actions */}
@@ -186,11 +201,17 @@ export default function Header() {
                       </div>
                       
                       <div className="space-y-2">
-                        <button className="w-full flex items-center justify-center gap-2 bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-[#60a5fa] py-2 rounded-lg text-sm font-medium transition-colors border border-[#3b82f6]/30">
+                        <button 
+                          onClick={() => handleComingSoon('Bakiye Yükle')}
+                          className="w-full flex items-center justify-center gap-2 bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-[#60a5fa] py-2 rounded-lg text-sm font-medium transition-colors border border-[#3b82f6]/30"
+                        >
                           <PlusCircle className="w-4 h-4" />
                           Bakiye Yükle
                         </button>
-                        <button className="w-full flex items-center justify-center gap-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 py-2 rounded-lg text-sm font-medium transition-colors border border-emerald-500/30">
+                        <button 
+                          onClick={() => handleComingSoon('Güvenli Hesaba Yükselt')}
+                          className="w-full flex items-center justify-center gap-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 py-2 rounded-lg text-sm font-medium transition-colors border border-emerald-500/30"
+                        >
                           <ShieldCheck className="w-4 h-4" />
                           Güvenli Hesaba Yükselt
                         </button>

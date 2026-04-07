@@ -2,10 +2,15 @@ import { HelpCircle, Rocket, FileText } from 'lucide-react';
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function MyListings() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<'active' | 'passive'>('active');
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -35,11 +40,17 @@ export default function MyListings() {
           </button>
         </div>
         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full md:w-auto">
-          <button className="w-full sm:w-auto bg-[#5b68f6]/20 hover:bg-[#5b68f6]/30 text-[#60a5fa] border border-[#5b68f6]/30 px-4 py-2 rounded-full font-medium transition-colors flex items-center justify-center gap-2 text-sm">
+          <button 
+            onClick={() => handleComingSoon('İlan Yukarı Taşıma')}
+            className="w-full sm:w-auto bg-[#5b68f6]/20 hover:bg-[#5b68f6]/30 text-[#60a5fa] border border-[#5b68f6]/30 px-4 py-2 rounded-full font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+          >
             <HelpCircle className="w-4 h-4" />
             İlan Yukarı Taşıma Nedir?
           </button>
-          <button className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-full font-medium transition-colors flex items-center justify-center gap-2 text-sm shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+          <button 
+            onClick={() => handleComingSoon('Otomatik İlan Yukarı Taşıma')}
+            className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-full font-medium transition-colors flex items-center justify-center gap-2 text-sm shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+          >
             <Rocket className="w-4 h-4" />
             Otomatik İlan Yukarı Taşıma
           </button>

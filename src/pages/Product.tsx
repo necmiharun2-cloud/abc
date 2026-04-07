@@ -4,8 +4,13 @@ import SellerCard from '../components/Product/SellerCard';
 import PurchaseCard from '../components/Product/PurchaseCard';
 import ProductDetails from '../components/Product/ProductDetails';
 import SimilarProducts from '../components/Product/SimilarProducts';
+import toast from 'react-hot-toast';
 
 export default function Product() {
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
   return (
     <div className="max-w-[1200px] mx-auto">
       <Breadcrumb />
@@ -28,10 +33,16 @@ export default function Product() {
               ?
             </div>
             <h3 className="text-white font-bold mb-2">Yardıma mı ihtiyacınız var?</h3>
-            <p className="text-gray-400 text-xs mb-6 underline cursor-pointer hover:text-white">
+            <p 
+              onClick={() => handleComingSoon('Yardım Merkezi')}
+              className="text-gray-400 text-xs mb-6 underline cursor-pointer hover:text-white"
+            >
               Buraya tıklayarak yardım merkezi sayfamıza ulaşabilirsiniz.
             </p>
-            <button className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 font-medium py-2.5 rounded text-sm transition-colors border border-red-500/20">
+            <button 
+              onClick={() => handleComingSoon('Akıllı Sorun Bildir')}
+              className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 font-medium py-2.5 rounded text-sm transition-colors border border-red-500/20"
+            >
               Akıllı Sorun Bildir (Ses/Ekran Kaydı)
             </button>
           </div>

@@ -1,9 +1,14 @@
 import { RefreshCw, Filter, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function SoldListings() {
   const { user, loading } = useAuth();
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -29,11 +34,17 @@ export default function SoldListings() {
 
       {/* Controls */}
       <div className="flex justify-end gap-3">
-        <button className="bg-[#232736] hover:bg-white/5 border border-white/5 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+        <button 
+          onClick={() => handleComingSoon('Sayfa Yenileme')}
+          className="bg-[#232736] hover:bg-white/5 border border-white/5 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+        >
           <RefreshCw className="w-4 h-4" />
           Sayfayı Yenile
         </button>
-        <button className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(91,104,246,0.3)]">
+        <button 
+          onClick={() => handleComingSoon('Filtreleme')}
+          className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(91,104,246,0.3)]"
+        >
           <Filter className="w-4 h-4" />
           Gelişmiş Filtre
         </button>

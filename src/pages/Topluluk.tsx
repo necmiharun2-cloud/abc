@@ -24,7 +24,10 @@ export default function Topluluk() {
             <MessageSquare className="w-5 h-5 text-[#5b68f6]" />
             Topluluk Akışı
           </h1>
-          <button className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors">
+          <button 
+            onClick={() => handleTagClick('Konu Aç')}
+            className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
+          >
             <Plus className="w-4 h-4" />
             Konu Aç
           </button>
@@ -99,7 +102,10 @@ export default function Topluluk() {
                   <div className="text-sm font-bold text-white">Grup Adı {i}</div>
                   <div className="text-xs text-gray-400">{i * 1200} Üye</div>
                 </div>
-                <button className="ml-auto bg-[#2b3142] hover:bg-[#32394d] text-white text-xs px-3 py-1.5 rounded transition-colors">
+                <button 
+                  onClick={() => handleTagClick('Gruba Katıl')}
+                  className="ml-auto bg-[#2b3142] hover:bg-[#32394d] text-white text-xs px-3 py-1.5 rounded transition-colors"
+                >
                   Katıl
                 </button>
               </div>

@@ -2,9 +2,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import ProfileWarningModal from '../components/ProfileWarningModal';
 import { Package, Star, Trophy, Users, UserPlus, Edit3 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Profile() {
   const { user, loading } = useAuth();
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
 
   if (loading) {
     return <div className="text-center py-20 text-white">Yükleniyor...</div>;
@@ -49,7 +54,10 @@ export default function Profile() {
                 <span className="text-xs font-bold text-white">2</span>
               </div>
             </div>
-            <button className="mt-4 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+            <button 
+              onClick={() => handleComingSoon('Profil Düzenleme')}
+              className="mt-4 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
               <Edit3 className="w-4 h-4" />
               Profilini Düzenle
             </button>
@@ -77,21 +85,33 @@ export default function Profile() {
           İlanlar
           <span className="bg-[#5b68f6]/20 text-[#5b68f6] px-2 py-0.5 rounded-full text-xs">0</span>
         </button>
-        <button className="flex items-center gap-2 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+        <button 
+          onClick={() => handleComingSoon('Değerlendirmeler')}
+          className="flex items-center gap-2 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+        >
           <Star className="w-4 h-4" />
           Değerlendirmeler
           <span className="bg-white/10 text-gray-400 px-2 py-0.5 rounded-full text-xs">0</span>
         </button>
-        <button className="flex items-center gap-2 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+        <button 
+          onClick={() => handleComingSoon('Başarımlar')}
+          className="flex items-center gap-2 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+        >
           <Trophy className="w-4 h-4" />
           Başarımlar
         </button>
-        <button className="flex items-center gap-2 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+        <button 
+          onClick={() => handleComingSoon('Takipçiler')}
+          className="flex items-center gap-2 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+        >
           <Users className="w-4 h-4" />
           Takipçiler
           <span className="bg-white/10 text-gray-400 px-2 py-0.5 rounded-full text-xs">0</span>
         </button>
-        <button className="flex items-center gap-2 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+        <button 
+          onClick={() => handleComingSoon('Takip Ettikleri')}
+          className="flex items-center gap-2 px-6 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+        >
           <UserPlus className="w-4 h-4" />
           Takip Ettikleri
         </button>

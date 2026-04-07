@@ -2,10 +2,15 @@ import { HelpCircle, PlusCircle, CreditCard, Wallet, Bitcoin, ChevronDown } from
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function Withdraw() {
   const { user, loading } = useAuth();
   const [method, setMethod] = useState<'bank' | 'tosla' | 'binance'>('bank');
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -19,11 +24,17 @@ export default function Withdraw() {
           <p className="text-gray-400 text-sm">Lütfen çekim yapmak istediğiniz hesap türünü seçin.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+          <button 
+            onClick={() => handleComingSoon('Yardım')}
+            className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          >
             <HelpCircle className="w-4 h-4" />
             Sorun mu yaşıyorsunuz?
           </button>
-          <button className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+          <button 
+            onClick={() => handleComingSoon('Banka Hesabı Ekle')}
+            className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          >
             <PlusCircle className="w-4 h-4" />
             Banka Hesabı Ekle
           </button>
@@ -98,7 +109,10 @@ export default function Withdraw() {
             </span>
           </label>
 
-          <button className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-4 rounded-xl transition-colors shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+          <button 
+            onClick={() => handleComingSoon('Para Çekme Talebi')}
+            className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-4 rounded-xl transition-colors shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+          >
             Talebi Gönder
           </button>
         </div>

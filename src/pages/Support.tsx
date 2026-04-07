@@ -3,10 +3,15 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import SupportAssistant from '../components/SupportAssistant';
+import toast from 'react-hot-toast';
 
 export default function Support() {
   const { user, loading } = useAuth();
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -39,14 +44,20 @@ export default function Support() {
           </div>
         </div>
 
-        <button className="w-full bg-[#10b981] hover:bg-[#059669] text-white p-6 rounded-2xl flex flex-col items-center gap-3 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:-translate-y-1">
+        <button 
+          onClick={() => handleComingSoon('Destek Talebi Oluştur')}
+          className="w-full bg-[#10b981] hover:bg-[#059669] text-white p-6 rounded-2xl flex flex-col items-center gap-3 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:-translate-y-1"
+        >
           <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
             <PlusCircle className="w-6 h-6" />
           </div>
           <span className="font-bold text-lg">Destek Talebi Oluştur</span>
         </button>
 
-        <button className="w-full bg-[#374151] hover:bg-[#4b5563] text-white p-6 rounded-2xl flex flex-col items-center gap-3 transition-all border border-white/5 hover:-translate-y-1">
+        <button 
+          onClick={() => handleComingSoon('Canlı Destek')}
+          className="w-full bg-[#374151] hover:bg-[#4b5563] text-white p-6 rounded-2xl flex flex-col items-center gap-3 transition-all border border-white/5 hover:-translate-y-1"
+        >
           <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
             <Headphones className="w-6 h-6" />
           </div>

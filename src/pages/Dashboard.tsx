@@ -29,7 +29,10 @@ export default function Dashboard() {
           <p className="text-emerald-400 font-semibold text-lg mt-1">0.00 ₺</p>
           
           <div className="flex gap-2 w-full mt-4">
-            <button className="flex-1 bg-[#3b82f6] hover:bg-[#2563eb] text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+            <button 
+              onClick={() => handleComingSoon('Bakiye Yükle')}
+              className="flex-1 bg-[#3b82f6] hover:bg-[#2563eb] text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            >
               <Wallet className="w-4 h-4" />
               Bakiye Yükle
             </button>
@@ -44,7 +47,10 @@ export default function Dashboard() {
           <div className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden">
             {/* Hesap Section */}
             <div>
-              <button className="w-full flex items-center justify-between p-4 bg-white/5 text-white hover:bg-white/10 transition-colors">
+              <button 
+                onClick={() => handleComingSoon('Hesap')}
+                className="w-full flex items-center justify-between p-4 bg-white/5 text-white hover:bg-white/10 transition-colors"
+              >
                 <div className="flex items-center gap-3 font-medium">
                   <User className="w-5 h-5 text-gray-400" />
                   Hesap
@@ -81,7 +87,10 @@ export default function Dashboard() {
 
             {/* Profil & Görünüm Section */}
             <div>
-              <button className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5">
+              <button 
+                onClick={() => handleComingSoon('Profil & Görünüm')}
+                className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5"
+              >
                 <div className="flex items-center gap-3 font-medium">
                   <User className="w-5 h-5" />
                   Profil & Görünüm
@@ -106,7 +115,10 @@ export default function Dashboard() {
 
             {/* Güvenlik Section */}
             <div>
-              <button className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5">
+              <button 
+                onClick={() => handleComingSoon('Güvenlik')}
+                className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5"
+              >
                 <div className="flex items-center gap-3 font-medium">
                   <Shield className="w-5 h-5" />
                   Güvenlik
@@ -134,7 +146,10 @@ export default function Dashboard() {
 
             {/* Banka & Bakiye Section */}
             <div>
-              <button className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5">
+              <button 
+                onClick={() => handleComingSoon('Banka & Bakiye')}
+                className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5"
+              >
                 <div className="flex items-center gap-3 font-medium">
                   <CreditCard className="w-5 h-5" />
                   Banka & Bakiye
@@ -171,7 +186,10 @@ export default function Dashboard() {
             </div>
 
             {/* Kullanıcı İzinleri Section */}
-            <button className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5">
+            <button 
+              onClick={() => handleComingSoon('Kullanıcı İzinleri')}
+              className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5"
+            >
               <div className="flex items-center gap-3 font-medium">
                 <Settings className="w-5 h-5" />
                 Kullanıcı İzinleri

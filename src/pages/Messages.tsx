@@ -1,9 +1,14 @@
 import { Search, AlertTriangle, MessageSquarePlus, Filter, CheckCircle2, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function Messages() {
   const { user, loading } = useAuth();
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -22,19 +27,26 @@ export default function Messages() {
       <div className="flex flex-col md:flex-row gap-6 h-[700px]">
         {/* Sidebar */}
         <div className="w-full md:w-[350px] flex flex-col gap-4">
-          <button className="w-full bg-[#5b68f6]/20 hover:bg-[#5b68f6]/30 text-[#60a5fa] py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors border border-[#5b68f6]/30">
+          <button 
+            onClick={() => handleComingSoon('Yeni Sohbet')}
+            className="w-full bg-[#5b68f6]/20 hover:bg-[#5b68f6]/30 text-[#60a5fa] py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors border border-[#5b68f6]/30"
+          >
             <MessageSquarePlus className="w-5 h-5" />
             YENİ SOHBET OLUŞTUR
           </button>
 
           <div className="flex gap-2">
-            <button className="bg-[#5b68f6] p-3 rounded-lg text-white hover:bg-[#4a55d6] transition-colors">
+            <button 
+              onClick={() => handleComingSoon('Filtreleme')}
+              className="bg-[#5b68f6] p-3 rounded-lg text-white hover:bg-[#4a55d6] transition-colors"
+            >
               <Filter className="w-5 h-5" />
             </button>
             <div className="relative flex-1">
               <input 
                 type="text" 
                 placeholder="Sohbet ara.." 
+                onKeyDown={(e) => e.key === 'Enter' && handleComingSoon('Sohbet Arama')}
                 className="w-full bg-[#232736] border border-white/5 rounded-lg pl-4 pr-10 py-3 text-sm text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
               />
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

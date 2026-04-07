@@ -1,6 +1,11 @@
 import { RefreshCw } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function ProductDetails() {
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
   return (
     <div className="space-y-4">
       {/* Price History & Alternatives */}
@@ -30,14 +35,20 @@ export default function ProductDetails() {
             Akıllı Alternatif Önerileri
           </div>
           <div className="space-y-3">
-            <div className="bg-[#2b3142] rounded p-3 flex justify-between items-center cursor-pointer hover:bg-[#32394d] transition-colors">
+            <div 
+              onClick={() => handleComingSoon('Alternatif Ürün')}
+              className="bg-[#2b3142] rounded p-3 flex justify-between items-center cursor-pointer hover:bg-[#32394d] transition-colors"
+            >
               <div>
                 <div className="text-xs text-white font-medium">Daha Hızlı Teslimat Yapan Satıcı</div>
                 <div className="text-[10px] text-gray-400">Ort. Yanıt: 2dk • FastSeller</div>
               </div>
               <div className="text-emerald-500 font-bold text-sm">65,00 ₺</div>
             </div>
-            <div className="bg-[#2b3142] rounded p-3 flex justify-between items-center cursor-pointer hover:bg-[#32394d] transition-colors">
+            <div 
+              onClick={() => handleComingSoon('Alternatif Ürün')}
+              className="bg-[#2b3142] rounded p-3 flex justify-between items-center cursor-pointer hover:bg-[#32394d] transition-colors"
+            >
               <div>
                 <div className="text-xs text-white font-medium">Daha Güvenilir Satıcı (Risk: 0)</div>
                 <div className="text-[10px] text-gray-400">10.000+ İşlem • ProSeller</div>
@@ -54,13 +65,22 @@ export default function ProductDetails() {
           <button className="flex-1 py-4 text-sm font-medium bg-[#5b68f6] text-white">
             Açıklama
           </button>
-          <button className="flex-1 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2b3142] transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Değerlendirmeler')}
+            className="flex-1 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2b3142] transition-colors"
+          >
             Değerlendirme
           </button>
-          <button className="flex-1 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2b3142] transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Güvenli Ticaret')}
+            className="flex-1 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2b3142] transition-colors"
+          >
             Güvenli Ticaret
           </button>
-          <button className="flex-1 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2b3142] transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Soru & Cevap')}
+            className="flex-1 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2b3142] transition-colors"
+          >
             Soru & Cevap
           </button>
         </div>
@@ -115,7 +135,10 @@ export default function ProductDetails() {
           </div>
           <h3 className="text-xl font-bold text-white mb-2">Duyurular ve sohbet için hemen Discord sunucumuza katılın!</h3>
           <p className="text-gray-400 text-sm mb-6">En yeni ilan duyuruları, özel kampanyalar ve 7/24 destek için mağaza Discord kanalımızda olun.</p>
-          <button className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-2 rounded-full text-sm font-medium transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Discord Sunucusuna Katıl')}
+            className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-2 rounded-full text-sm font-medium transition-colors"
+          >
             Hemen Katıl!
           </button>
         </div>

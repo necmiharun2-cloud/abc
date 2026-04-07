@@ -1,12 +1,20 @@
 import { Shield, Smartphone, MessageSquare, ShoppingCart } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function SellerCard() {
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
   return (
     <div className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/5">
         <span className="text-xs font-bold text-gray-400">SATICI BİLGİLERİ</span>
-        <button className="text-xs text-[#5b68f6] hover:text-white transition-colors flex items-center gap-1">
+        <button 
+          onClick={() => handleComingSoon('Takip Et')}
+          className="text-xs text-[#5b68f6] hover:text-white transition-colors flex items-center gap-1"
+        >
           Takip Et
         </button>
       </div>
@@ -35,13 +43,22 @@ export default function SellerCard() {
 
         {/* Action Buttons */}
         <div className="flex gap-2 mb-6">
-          <button className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-2">
+          <button 
+            onClick={() => handleComingSoon('Satıcı Profili')}
+            className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
+          >
             Satıcı Profili
           </button>
-          <button className="w-10 bg-[#2b3142] hover:bg-[#32394d] text-white rounded flex items-center justify-center transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Sepete Ekle')}
+            className="w-10 bg-[#2b3142] hover:bg-[#32394d] text-white rounded flex items-center justify-center transition-colors"
+          >
             <ShoppingCart className="w-4 h-4" />
           </button>
-          <button className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-2">
+          <button 
+            onClick={() => handleComingSoon('SMS Gönder')}
+            className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
+          >
             <MessageSquare className="w-4 h-4" />
             SMS
           </button>
