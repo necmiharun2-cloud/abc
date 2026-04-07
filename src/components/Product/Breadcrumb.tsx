@@ -7,11 +7,11 @@ export default function Breadcrumb() {
       <div className="flex items-center gap-2">
         <Link to="/" className="hover:text-white transition-colors">Anasayfa</Link>
         <ChevronRight className="w-3 h-3" />
-        <Link to="#" className="hover:text-white transition-colors">Tüm Kategoriler</Link>
+        <span className="text-gray-500">Tüm Kategoriler</span>
         <ChevronRight className="w-3 h-3" />
-        <Link to="#" className="hover:text-white transition-colors">Sosyal Medya</Link>
+        <span className="text-gray-500">Sosyal Medya</span>
         <ChevronRight className="w-3 h-3" />
-        <Link to="#" className="hover:text-white transition-colors">VALORANT</Link>
+        <span className="text-gray-500">VALORANT</span>
         <ChevronRight className="w-3 h-3" />
         <span className="text-yellow-500 font-medium">Valorant Random Hesap (10-100 Skin)</span>
       </div>

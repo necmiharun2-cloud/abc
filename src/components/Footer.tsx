@@ -44,10 +44,10 @@ export default function Footer() {
             <ul className="space-y-3">
               <li><Link to="/hakkimizda" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Hakkımızda</Link></li>
               <li><Link to="/kullanici-sozlesmesi" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Kullanıcı Sözleşmesi</Link></li>
-              <li><a href="#" onClick={(e) => handleComingSoon(e, 'Gizlilik Politikası')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Gizlilik Politikası</a></li>
-              <li><a href="#" onClick={(e) => handleComingSoon(e, 'Mesafeli Satış Sözleşmesi')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Mesafeli Satış Sözleşmesi</a></li>
-              <li><a href="#" onClick={(e) => handleComingSoon(e, 'İade Politikası')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">İade Politikası</a></li>
-              <li><a href="#" onClick={(e) => handleComingSoon(e, 'Sıkça Sorulan Sorular')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Sıkça Sorulan Sorular</a></li>
+              <li><button onClick={(e) => handleComingSoon(e, 'Gizlilik Politikası')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm text-left">Gizlilik Politikası</button></li>
+              <li><button onClick={(e) => handleComingSoon(e, 'Mesafeli Satış Sözleşmesi')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm text-left">Mesafeli Satış Sözleşmesi</button></li>
+              <li><button onClick={(e) => handleComingSoon(e, 'İade Politikası')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm text-left">İade Politikası</button></li>
+              <li><button onClick={(e) => handleComingSoon(e, 'Sıkça Sorulan Sorular')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm text-left">Sıkça Sorulan Sorular</button></li>
             </ul>
           </div>
 

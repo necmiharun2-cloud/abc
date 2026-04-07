@@ -32,6 +32,9 @@ import ForgotPassword from './pages/ForgotPassword';
 import NotFound from './pages/NotFound';
 import About from './pages/About';
 import Terms from './pages/Terms';
+import Deals from './pages/Deals';
+import Blog from './pages/Blog';
+import Streamers from './pages/Streamers';
 
 export default function App() {
   return (
@@ -59,6 +62,9 @@ export default function App() {
               <Route path="sifremi-unuttum" element={<ForgotPassword />} />
               <Route path="hakkimizda" element={<About />} />
               <Route path="kullanici-sozlesmesi" element={<Terms />} />
+              <Route path="firsatlar" element={<Deals />} />
+              <Route path="blog" element={<Blog />} />
+              <Route path="yayincilar" element={<Streamers />} />
               <Route path="profile" element={<Profile />} />
               <Route path="mesajlarim" element={<Messages />} />
               <Route path="kontrol-merkezi" element={<Dashboard />} />
