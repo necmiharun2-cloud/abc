@@ -54,6 +54,10 @@ export default function PurchaseCard() {
     ), { duration: 5000, position: 'top-right' });
   };
 
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
   return (
     <div className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden">
       <div className="p-4">
@@ -105,7 +109,10 @@ export default function PurchaseCard() {
 
         {/* Actions */}
         <div className="space-y-3 mb-6">
-          <button className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-3.5 rounded flex items-center justify-center gap-2 transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Hemen Satın Al')}
+            className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-3.5 rounded flex items-center justify-center gap-2 transition-colors"
+          >
             <ShoppingCart className="w-5 h-5" />
             Hemen Satın Al
           </button>
@@ -113,12 +120,11 @@ export default function PurchaseCard() {
           <div className="flex gap-2">
             <button 
               onClick={handleAddToCart}
-              className="flex-[2] bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3.5 rounded flex items-center justify-center gap-2 transition-colors"
+              className="flex-1 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3.5 rounded flex items-center justify-center gap-2 transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
               Sepete Ekle
             </button>
-            <button className="flex-1 bg-[#5b68f6] hover:bg-[#4a55d6] rounded transition-colors"></button>
           </div>
         </div>
 
@@ -131,16 +137,28 @@ export default function PurchaseCard() {
 
         {/* Secondary Actions */}
         <div className="grid grid-cols-2 gap-2 mb-6">
-          <button className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Favori')}
+            className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors"
+          >
             <Heart className="w-4 h-4" /> Favori
           </button>
-          <button className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Paylaş')}
+            className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors"
+          >
             <Share2 className="w-4 h-4" /> Paylaş
           </button>
-          <button className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Fiyat Alarmı')}
+            className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors"
+          >
             <Bell className="w-4 h-4" /> Fiyat Alarmı
           </button>
-          <button className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors">
+          <button 
+            onClick={() => handleComingSoon('Stok Alarmı')}
+            className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors"
+          >
             <AlertTriangle className="w-4 h-4" /> Stok Alarmı
           </button>
         </div>

@@ -105,7 +105,10 @@ export default function Support() {
                   3 yıl önce
                 </td>
                 <td className="px-6 py-4">
-                  <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                  <button 
+                    onClick={() => handleComingSoon('Talep Detay')}
+                    className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                  >
                     <Eye className="w-3.5 h-3.5" />
                     Talebi Gör
                   </button>

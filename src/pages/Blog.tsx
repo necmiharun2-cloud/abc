@@ -1,6 +1,11 @@
 import { Newspaper, Clock, User, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Blog() {
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
   const posts = [
     { id: 1, title: 'Valorant Yeni Ajan Rehberi: Tüm Yetenekler ve Stratejiler', excerpt: 'Yeni gelen ajan ile metayı nasıl domine edebilirsiniz? En iyi yetenek kombinasyonları ve harita bazlı stratejiler...', date: '2 saat önce', author: 'GamerX', image: 'https://picsum.photos/seed/b1/800/400' },
     { id: 2, title: 'CS2 FPS Artırma Yöntemleri: 2026 Güncel Rehber', excerpt: 'Counter Strike 2\'de daha yüksek FPS almak için yapmanız gereken tüm ayarlar. Başlatma seçeneklerinden NVIDIA ayarlarına kadar her şey...', date: '5 saat önce', author: 'ProPlayer', image: 'https://picsum.photos/seed/b2/800/400' },
@@ -35,7 +40,10 @@ export default function Blog() {
                 <h2 className="text-xl font-bold text-white mb-3 group-hover:text-[#5b68f6] transition-colors">{post.title}</h2>
                 <p className="text-gray-400 text-sm leading-relaxed mb-6">{post.excerpt}</p>
               </div>
-              <button className="flex items-center gap-2 text-[#5b68f6] hover:text-[#4a55d6] font-bold text-sm transition-colors group/btn">
+              <button 
+                onClick={() => handleComingSoon('Blog Detay')}
+                className="flex items-center gap-2 text-[#5b68f6] hover:text-[#4a55d6] font-bold text-sm transition-colors group/btn"
+              >
                 Devamını Oku
                 <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
               </button>
@@ -45,7 +53,10 @@ export default function Blog() {
       </div>
 
       <div className="flex justify-center pt-8">
-        <button className="bg-[#2b3142] hover:bg-[#32394d] text-white px-8 py-3 rounded-xl font-bold transition-colors border border-white/10">
+        <button 
+          onClick={() => handleComingSoon('Daha Fazla Blog')}
+          className="bg-[#2b3142] hover:bg-[#32394d] text-white px-8 py-3 rounded-xl font-bold transition-colors border border-white/10"
+        >
           Daha Fazla Yükle
         </button>
       </div>

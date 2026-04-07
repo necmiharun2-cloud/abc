@@ -1,6 +1,22 @@
 import { Percent, Flame, Clock, Tag } from 'lucide-react';
+import { useCart } from '../contexts/CartContext';
+import toast from 'react-hot-toast';
 
 export default function Deals() {
+  const { addToCart } = useCart();
+
+  const handleAddToCart = (deal: any) => {
+    addToCart({
+      id: `deal-${deal.id}`,
+      title: deal.title,
+      price: parseFloat(deal.newPrice.replace(' ₺', '')),
+      originalPrice: parseFloat(deal.oldPrice.replace(' ₺', '')),
+      seller: 'İtemSatış Fırsat',
+      image: deal.image
+    });
+    toast.success(`${deal.title} sepete eklendi!`);
+  };
+
   const deals = [
     { id: 1, title: 'Valorant 1200 VP', oldPrice: '250 ₺', newPrice: '225 ₺', discount: '%10', image: 'https://picsum.photos/seed/v1/300/200' },
     { id: 2, title: 'PUBG Mobile 660 UC', oldPrice: '300 ₺', newPrice: '270 ₺', discount: '%10', image: 'https://picsum.photos/seed/p1/300/200' },
@@ -37,7 +53,10 @@ export default function Deals() {
                   <p className="text-gray-500 text-xs line-through">{deal.oldPrice}</p>
                   <p className="text-[#5b68f6] font-bold text-lg">{deal.newPrice}</p>
                 </div>
-                <button className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <button 
+                  onClick={() => handleAddToCart(deal)}
+                  className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
                   Satın Al
                 </button>
               </div>

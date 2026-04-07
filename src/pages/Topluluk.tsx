@@ -2,8 +2,12 @@ import { MessageSquare, TrendingUp, Users, Plus, Heart, Share2 } from 'lucide-re
 import toast from 'react-hot-toast';
 
 export default function Topluluk() {
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
   const handleTagClick = (tag: string) => {
-    toast.success(`${tag} etiketli konular yakında listelenecek!`);
+    handleComingSoon(tag);
   };
   const posts = [
     { id: 1, author: 'GamerX', avatar: 'https://picsum.photos/seed/u1/40/40', time: '2 saat önce', title: 'Valorant yeni ajan hakkında ne düşünüyorsunuz?', content: 'Sizce yeni gelen ajan metayı nasıl etkileyecek? Yetenekleri çok güçlü duruyor...', likes: 24, comments: 12, category: 'Valorant' },
@@ -25,7 +29,7 @@ export default function Topluluk() {
             Topluluk Akışı
           </h1>
           <button 
-            onClick={() => handleTagClick('Konu Aç')}
+            onClick={() => handleComingSoon('Konu Aç')}
             className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -51,15 +55,24 @@ export default function Topluluk() {
               <p className="text-sm text-gray-400 mb-4 line-clamp-2">{post.content}</p>
               
               <div className="flex items-center gap-4 pt-4 border-t border-white/5">
-                <button className="flex items-center gap-1.5 text-gray-400 hover:text-pink-500 transition-colors text-sm">
+                <button 
+                  onClick={() => handleComingSoon('Beğen')}
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-pink-500 transition-colors text-sm"
+                >
                   <Heart className="w-4 h-4" />
                   {post.likes}
                 </button>
-                <button className="flex items-center gap-1.5 text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">
+                <button 
+                  onClick={() => handleComingSoon('Yorum Yap')}
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-[#5b68f6] transition-colors text-sm"
+                >
                   <MessageSquare className="w-4 h-4" />
                   {post.comments}
                 </button>
-                <button className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-sm ml-auto">
+                <button 
+                  onClick={() => handleComingSoon('Paylaş')}
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-sm ml-auto"
+                >
                   <Share2 className="w-4 h-4" />
                   Paylaş
                 </button>
@@ -103,7 +116,7 @@ export default function Topluluk() {
                   <div className="text-xs text-gray-400">{i * 1200} Üye</div>
                 </div>
                 <button 
-                  onClick={() => handleTagClick('Gruba Katıl')}
+                  onClick={() => handleComingSoon('Gruba Katıl')}
                   className="ml-auto bg-[#2b3142] hover:bg-[#32394d] text-white text-xs px-3 py-1.5 rounded transition-colors"
                 >
                   Katıl

@@ -1,6 +1,11 @@
 import { Users, Star, MessageSquare, Play, Heart } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Streamers() {
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
   const streamers = [
     { id: 1, name: 'GamerX', avatar: 'https://picsum.photos/seed/u1/100/100', followers: '1.2M', platform: 'Twitch', status: 'Canlı', game: 'Valorant' },
     { id: 2, name: 'ProPlayer', avatar: 'https://picsum.photos/seed/u2/100/100', followers: '850K', platform: 'YouTube', status: 'Canlı', game: 'CS2' },
@@ -51,11 +56,17 @@ export default function Streamers() {
             </div>
 
             <div className="flex gap-2 w-full">
-              <button className="flex-1 bg-[#5b68f6] hover:bg-[#4a55d6] text-white py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2">
+              <button 
+                onClick={() => handleComingSoon('Takip Et')}
+                className="flex-1 bg-[#5b68f6] hover:bg-[#4a55d6] text-white py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2"
+              >
                 <Star className="w-3.5 h-3.5" />
                 Takip Et
               </button>
-              <button className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2">
+              <button 
+                onClick={() => handleComingSoon('Mesaj Gönder')}
+                className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2"
+              >
                 <MessageSquare className="w-3.5 h-3.5" />
                 Mesaj
               </button>
@@ -74,7 +85,10 @@ export default function Streamers() {
             <p className="text-gray-400 text-sm">Siz de İtemsatış partneri olmak ve avantajlardan yararlanmak ister misiniz?</p>
           </div>
         </div>
-        <button className="bg-white text-black hover:bg-gray-200 px-8 py-3 rounded-xl font-bold transition-colors">
+        <button 
+          onClick={() => handleComingSoon('Yayıncı Başvurusu')}
+          className="bg-white text-black hover:bg-gray-200 px-8 py-3 rounded-xl font-bold transition-colors"
+        >
           Hemen Başvur
         </button>
       </div>

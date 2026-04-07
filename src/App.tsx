@@ -35,6 +35,7 @@ import Terms from './pages/Terms';
 import Deals from './pages/Deals';
 import Blog from './pages/Blog';
 import Streamers from './pages/Streamers';
+import PlaceholderPage from './pages/PlaceholderPage';
 
 export default function App() {
   return (
@@ -57,6 +58,15 @@ export default function App() {
               <Route path="alim-ilanlari" element={<AlimIlanlari />} />
               <Route path="topluluk" element={<Topluluk />} />
               <Route path="magazalar" element={<Magazalar />} />
+              <Route path="cekilisler" element={<PlaceholderPage />} />
+              <Route path="cd-key" element={<PlaceholderPage />} />
+              <Route path="top-up" element={<PlaceholderPage />} />
+              <Route path="hediye-kartlari" element={<PlaceholderPage />} />
+              <Route path="ilan-ekle" element={<PlaceholderPage />} />
+              <Route path="gizlilik-politikasi" element={<PlaceholderPage />} />
+              <Route path="mesafeli-satis-sozlesmesi" element={<PlaceholderPage />} />
+              <Route path="iade-politikasi" element={<PlaceholderPage />} />
+              <Route path="sss" element={<PlaceholderPage />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="sifremi-unuttum" element={<ForgotPassword />} />

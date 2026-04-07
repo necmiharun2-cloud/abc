@@ -1,6 +1,15 @@
 import { Star, ShieldCheck, Search, Award } from 'lucide-react';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function Magazalar() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('Öne Çıkanlar');
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
   const stores = Array(12).fill(0).map((_, i) => ({
     id: i,
     name: `StoreName ${i + 1}`,
@@ -11,6 +20,10 @@ export default function Magazalar() {
     isVerified: Math.random() > 0.5,
     isPro: Math.random() > 0.7
   }));
+
+  const filteredStores = stores.filter(store => 
+    store.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-8">
@@ -26,6 +39,8 @@ export default function Magazalar() {
           <input 
             type="text" 
             placeholder="Mağaza adı ara..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-[#2b3142] border border-white/10 rounded-full py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[#5b68f6] shadow-inner"
           />
         </div>
@@ -33,14 +48,20 @@ export default function Magazalar() {
 
       {/* Tabs */}
       <div className="flex flex-wrap items-center justify-center gap-4">
-        <button className="bg-[#5b68f6] text-white px-6 py-2.5 rounded-full text-sm font-medium">Öne Çıkanlar</button>
-        <button className="bg-[#232736] text-gray-300 hover:text-white px-6 py-2.5 rounded-full text-sm font-medium border border-white/5 hover:bg-[#2b3142] transition-colors">En Çok Satış Yapanlar</button>
-        <button className="bg-[#232736] text-gray-300 hover:text-white px-6 py-2.5 rounded-full text-sm font-medium border border-white/5 hover:bg-[#2b3142] transition-colors">En Yeniler</button>
+        {['Öne Çıkanlar', 'En Çok Satış Yapanlar', 'En Yeniler'].map((tab) => (
+          <button 
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`${activeTab === tab ? 'bg-[#5b68f6] text-white' : 'bg-[#232736] text-gray-300 hover:text-white border border-white/5 hover:bg-[#2b3142]'} px-6 py-2.5 rounded-full text-sm font-medium transition-colors`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {stores.map(store => (
+        {filteredStores.map(store => (
           <div key={store.id} className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden hover:border-white/20 transition-colors group">
             {/* Banner */}
             <div className="h-24 relative">
@@ -72,7 +93,10 @@ export default function Magazalar() {
                   <span className="text-white font-medium">{store.sales}</span> Başarılı İşlem
                 </div>
                 
-                <button className="w-full bg-[#2b3142] hover:bg-[#32394d] text-white text-sm font-medium py-2 rounded transition-colors">
+                <button 
+                  onClick={() => handleComingSoon('Mağaza Detay')}
+                  className="w-full bg-[#2b3142] hover:bg-[#32394d] text-white text-sm font-medium py-2 rounded transition-colors"
+                >
                   Mağazaya Git
                 </button>
               </div>

@@ -44,10 +44,13 @@ export default function Navbar() {
             })}
           </ul>
           
-          <button className="flex items-center gap-2 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 shrink-0 ml-4 shadow-[0_0_15px_rgba(91,104,246,0.5)] hover:shadow-[0_0_25px_rgba(91,104,246,0.8)]">
+          <Link 
+            to="/ilan-ekle"
+            className="flex items-center gap-2 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 shrink-0 ml-4 shadow-[0_0_15px_rgba(91,104,246,0.5)] hover:shadow-[0_0_25px_rgba(91,104,246,0.8)]"
+          >
             <Plus className="h-4 w-4" />
             İlan Ekle
-          </button>
+          </Link>
         </div>
       </div>
     </nav>
