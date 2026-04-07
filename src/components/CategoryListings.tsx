@@ -1,4 +1,5 @@
 import { valorantListings } from '../data/mockData';
+import { Link } from 'react-router-dom';
 
 export default function CategoryListings() {
   const tabs = [
@@ -32,7 +33,7 @@ export default function CategoryListings() {
       {/* Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {valorantListings.map((listing) => (
-          <div key={listing.id} className="bg-[#232736] rounded-lg overflow-hidden border border-white/5 hover:border-white/20 transition-colors group cursor-pointer flex flex-col">
+          <Link to={`/product/${listing.id}`} key={listing.id} className="bg-[#232736] rounded-lg overflow-hidden border border-white/5 hover:border-white/20 transition-colors group cursor-pointer flex flex-col">
             {/* Image & Badge */}
             <div className="relative aspect-[4/3]">
               <img src={listing.image} alt={listing.title} className="w-full h-full object-cover" />
@@ -67,7 +68,7 @@ export default function CategoryListings() {
                 )}
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

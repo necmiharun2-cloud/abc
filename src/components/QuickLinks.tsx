@@ -1,12 +1,12 @@
 export default function QuickLinks() {
   const links = [
-    { name: 'Steam', icon: 'https://picsum.photos/seed/l1/24/24' },
-    { name: 'Mobile Legends', icon: 'https://picsum.photos/seed/l2/24/24' },
-    { name: 'Clash of Clans', icon: 'https://picsum.photos/seed/l3/24/24' },
     { name: 'CS2', icon: 'https://picsum.photos/seed/l4/24/24' },
     { name: 'CD Key', icon: 'https://picsum.photos/seed/l5/24/24' },
     { name: 'Hediye Kartı', icon: 'https://picsum.photos/seed/l6/24/24' },
     { name: 'Sosyal Medya', icon: 'https://picsum.photos/seed/l7/24/24' },
+    { name: 'Random Hesap', icon: 'https://picsum.photos/seed/l8/24/24' },
+    { name: 'MMO Oyunlar', icon: 'https://picsum.photos/seed/l9/24/24' },
+    { name: 'Mobil Oyunlar', icon: 'https://picsum.photos/seed/l10/24/24' },
   ];
 
   return (
