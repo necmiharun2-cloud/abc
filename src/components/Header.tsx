@@ -87,10 +87,10 @@ export default function Header() {
               <>
                 {/* Neon Icons */}
                 <div className="flex items-center gap-1 sm:gap-2">
-                  <button className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Mesajlarım">
+                  <Link to="/mesajlarim" className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Mesajlarım">
                     <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
                     <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#1a1d27]">3</span>
-                  </button>
+                  </Link>
                   
                   <button className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Bildirimler">
                     <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -159,7 +159,7 @@ export default function Header() {
                         <User className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Profilim</span>
                       </Link>
-                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                      <Link to="/kontrol-merkezi" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
                         <Sliders className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Kontrol Merkezi</span>
                       </Link>
