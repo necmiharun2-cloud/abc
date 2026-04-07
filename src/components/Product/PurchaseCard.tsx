@@ -1,6 +1,48 @@
-import { ShoppingCart, Heart, Share2, Bell, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { ShoppingCart, Heart, Share2, Bell, AlertTriangle, ShieldCheck, CheckCircle2, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function PurchaseCard() {
+  const [quantity, setQuantity] = useState(1);
+  const price = 15.00;
+
+  const handleAddToCart = () => {
+    toast.custom((t) => (
+      <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-[#232736] shadow-2xl rounded-xl pointer-events-auto flex flex-col border border-white/10 overflow-hidden`}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-white/5">
+          <div className="flex items-center gap-2 text-emerald-400">
+            <CheckCircle2 className="w-5 h-5" />
+            <span className="font-medium">Sepete Eklendi</span>
+          </div>
+          <button onClick={() => toast.dismiss(t.id)} className="text-gray-400 hover:text-white transition-colors">
+            <X className="w-4 h-4"/>
+          </button>
+        </div>
+        {/* Body */}
+        <div className="p-4 flex gap-4">
+           <img src="https://picsum.photos/seed/epic/80/80" alt="Product" className="w-16 h-16 rounded-lg object-cover" />
+           <div>
+             <h4 className="text-white text-sm font-medium mb-1 line-clamp-2">Mail Değişen ⭐ Epic Games +100 Oyun Garanti Hesap</h4>
+             <p className="text-gray-400 text-xs">{quantity}x {price.toFixed(2)}₺</p>
+           </div>
+        </div>
+        {/* Footer */}
+        <div className="p-4 border-t border-white/5 flex items-center justify-between bg-[#1a1d27]">
+           <div className="text-gray-400 text-sm">Toplam: <span className="text-white font-bold text-lg ml-2">{(price * quantity).toFixed(2)}₺</span></div>
+           <Link 
+             to="/sepet" 
+             onClick={() => toast.dismiss(t.id)} 
+             className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors"
+           >
+             Sepete Git
+           </Link>
+        </div>
+      </div>
+    ), { duration: 5000, position: 'top-right' });
+  };
+
   return (
     <div className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden">
       <div className="p-4">
@@ -58,7 +100,10 @@ export default function PurchaseCard() {
           </button>
           
           <div className="flex gap-2">
-            <button className="flex-[2] bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3.5 rounded flex items-center justify-center gap-2 transition-colors">
+            <button 
+              onClick={handleAddToCart}
+              className="flex-[2] bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3.5 rounded flex items-center justify-center gap-2 transition-colors"
+            >
               <ShoppingCart className="w-5 h-5" />
               Sepete Ekle
             </button>

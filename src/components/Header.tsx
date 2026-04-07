@@ -9,7 +9,10 @@ import toast from 'react-hot-toast';
 export default function Header() {
   const [lang, setLang] = useState<'TR' | 'EN'>('TR');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
   const { user } = useAuth();
 
   const toggleLang = () => {
@@ -26,11 +29,14 @@ export default function Header() {
     }
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setIsNotificationOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -92,14 +98,44 @@ export default function Header() {
                     <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#1a1d27]">3</span>
                   </Link>
                   
-                  <button className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Bildirimler">
-                    <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#1a1d27]">1</span>
-                  </button>
+                  <div className="relative" ref={notificationRef}>
+                    <button 
+                      onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                      className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" 
+                      title="Bildirimler"
+                    >
+                      <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#1a1d27]">1</span>
+                    </button>
 
-                  <button className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Sepetim">
+                    {/* Notification Popover */}
+                    {isNotificationOpen && (
+                      <div className="absolute top-full right-0 mt-2 w-80 bg-[#232736] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                        <div className="p-4 border-b border-white/5 bg-[#1a1d27]/50 flex items-start gap-3 hover:bg-white/5 transition-colors cursor-pointer">
+                          <div className="w-10 h-10 rounded-lg bg-[#5b68f6]/20 flex items-center justify-center shrink-0">
+                            <img src="https://picsum.photos/seed/logo/40/40" alt="Logo" className="w-6 h-6 rounded" />
+                          </div>
+                          <div>
+                            <h4 className="text-white text-sm font-bold mb-1">Bu Hafta Neler Var</h4>
+                            <p className="text-gray-400 text-xs line-clamp-2">Haftalık Fırsatlar sayfamız az önce güncellendi! Hemen göz at.</p>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-[#1a1d27]">
+                          <Link 
+                            to="/bildirimler" 
+                            onClick={() => setIsNotificationOpen(false)}
+                            className="block w-full text-center bg-[#5b68f6] hover:bg-[#4a55d6] text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Tüm bildirimlerim
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <Link to="/sepet" className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Sepetim">
                     <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="relative" ref={dropdownRef}>
@@ -163,7 +199,7 @@ export default function Header() {
                         <Sliders className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Kontrol Merkezi</span>
                       </Link>
-                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                      <Link to="/siparislerim" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
                         <ShoppingCart className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Siparişlerim</span>
                       </Link>

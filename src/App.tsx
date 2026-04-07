@@ -19,6 +19,9 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
 import Dashboard from './pages/Dashboard';
+import Notifications from './pages/Notifications';
+import Cart from './pages/Cart';
+import Orders from './pages/Orders';
 
 export default function App() {
   return (
@@ -45,6 +48,9 @@ export default function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="mesajlarim" element={<Messages />} />
             <Route path="kontrol-merkezi" element={<Dashboard />} />
+            <Route path="bildirimler" element={<Notifications />} />
+            <Route path="sepet" element={<Cart />} />
+            <Route path="siparislerim" element={<Orders />} />
             {/* Fallback for other routes */}
             <Route path="*" element={<Home />} />
           </Route>
