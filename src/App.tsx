@@ -26,6 +26,8 @@ import Orders from './pages/Orders';
 import SoldListings from './pages/SoldListings';
 import MyListings from './pages/MyListings';
 import Favorites from './pages/Favorites';
+import Withdraw from './pages/Withdraw';
+import Support from './pages/Support';
 
 export default function App() {
   return (
@@ -59,6 +61,8 @@ export default function App() {
               <Route path="sattigim-ilanlar" element={<SoldListings />} />
               <Route path="ilanlarim" element={<MyListings />} />
               <Route path="favorilerim" element={<Favorites />} />
+              <Route path="para-cek" element={<Withdraw />} />
+              <Route path="destek-sistemi" element={<Support />} />
               {/* Fallback for other routes */}
               <Route path="*" element={<Home />} />
             </Route>

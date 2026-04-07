@@ -1,9 +1,9 @@
 import { 
   Wallet, ArrowUpRight, ArrowDownRight, Package, Trophy, 
-  ChevronDown, User, Shield, CreditCard, Settings
+  ChevronDown, User, Shield, CreditCard, Settings, LifeBuoy
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -28,10 +28,10 @@ export default function Dashboard() {
               <Wallet className="w-4 h-4" />
               Bakiye Yükle
             </button>
-            <button className="flex-1 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+            <Link to="/para-cek" className="flex-1 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
               <ArrowUpRight className="w-4 h-4" />
               Para Çek
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -153,6 +153,16 @@ export default function Dashboard() {
                   Hediye Merkezi
                 </a>
               </div>
+            </div>
+
+            {/* Destek Section */}
+            <div>
+              <Link to="/destek-sistemi" className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5">
+                <div className="flex items-center gap-3 font-medium">
+                  <LifeBuoy className="w-5 h-5" />
+                  Destek Sistemi
+                </div>
+              </Link>
             </div>
 
             {/* Kullanıcı İzinleri Section */}

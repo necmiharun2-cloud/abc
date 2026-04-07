@@ -222,23 +222,11 @@ export default function Header() {
                         <Star className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Favori İlanlarım</span>
                       </Link>
-                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
-                        <ShoppingBag className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
-                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Sattığım İlanlar</span>
-                      </Link>
-                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
-                        <List className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
-                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">İlanlarım</span>
-                      </Link>
-                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
-                        <Heart className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
-                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Favori İlanlarım</span>
-                      </Link>
-                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                      <Link to="/para-cek" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
                         <Wallet className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Para Çek</span>
                       </Link>
-                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                      <Link to="/destek-sistemi" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
                         <LifeBuoy className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Destek Sistemi</span>
                       </Link>
