@@ -1,7 +1,8 @@
-import { Search, User, LogOut, Sliders, ShoppingCart, ShoppingBag, List, Heart, Wallet, LifeBuoy, MessageSquare, ChevronDown, ShieldCheck, PlusCircle, Bell } from 'lucide-react';
+import { Search, User, LogOut, Sliders, ShoppingCart, ShoppingBag, List, Heart, Wallet, LifeBuoy, MessageSquare, ChevronDown, ShieldCheck, PlusCircle, Bell, Package, Tag, Star } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import toast from 'react-hot-toast';
@@ -14,6 +15,7 @@ export default function Header() {
   const notificationRef = useRef<HTMLDivElement>(null);
 
   const { user } = useAuth();
+  const { cartCount } = useCart();
 
   const toggleLang = () => {
     setLang(prev => prev === 'TR' ? 'EN' : 'TR');
@@ -135,6 +137,11 @@ export default function Header() {
 
                   <Link to="/sepet" className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Sepetim">
                     <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    {cartCount > 0 && (
+                      <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#1a1d27]">
+                        {cartCount}
+                      </span>
+                    )}
                   </Link>
                 </div>
 
@@ -202,6 +209,18 @@ export default function Header() {
                       <Link to="/siparislerim" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
                         <ShoppingCart className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Siparişlerim</span>
+                      </Link>
+                      <Link to="/sattigim-ilanlar" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <Package className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Sattığım İlanlar</span>
+                      </Link>
+                      <Link to="/ilanlarim" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <Tag className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">İlanlarım</span>
+                      </Link>
+                      <Link to="/favorilerim" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <Star className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Favori İlanlarım</span>
                       </Link>
                       <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
                         <ShoppingBag className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />

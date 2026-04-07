@@ -6,6 +6,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Roblox from './pages/Roblox';
@@ -22,40 +23,48 @@ import Dashboard from './pages/Dashboard';
 import Notifications from './pages/Notifications';
 import Cart from './pages/Cart';
 import Orders from './pages/Orders';
+import SoldListings from './pages/SoldListings';
+import MyListings from './pages/MyListings';
+import Favorites from './pages/Favorites';
 
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Toaster position="top-center" toastOptions={{
-          style: {
-            background: '#232736',
-            color: '#fff',
-            border: '1px solid rgba(255,255,255,0.1)'
-          }
-        }} />
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="roblox" element={<Roblox />} />
-            <Route path="product/:id" element={<Product />} />
-            <Route path="ilan-pazari" element={<IlanPazari />} />
-            <Route path="alim-ilanlari" element={<AlimIlanlari />} />
-            <Route path="topluluk" element={<Topluluk />} />
-            <Route path="magazalar" element={<Magazalar />} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="mesajlarim" element={<Messages />} />
-            <Route path="kontrol-merkezi" element={<Dashboard />} />
-            <Route path="bildirimler" element={<Notifications />} />
-            <Route path="sepet" element={<Cart />} />
-            <Route path="siparislerim" element={<Orders />} />
-            {/* Fallback for other routes */}
-            <Route path="*" element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <CartProvider>
+        <BrowserRouter>
+          <Toaster position="top-center" toastOptions={{
+            style: {
+              background: '#232736',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }
+          }} />
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="roblox" element={<Roblox />} />
+              <Route path="product/:id" element={<Product />} />
+              <Route path="ilan-pazari" element={<IlanPazari />} />
+              <Route path="alim-ilanlari" element={<AlimIlanlari />} />
+              <Route path="topluluk" element={<Topluluk />} />
+              <Route path="magazalar" element={<Magazalar />} />
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="mesajlarim" element={<Messages />} />
+              <Route path="kontrol-merkezi" element={<Dashboard />} />
+              <Route path="bildirimler" element={<Notifications />} />
+              <Route path="sepet" element={<Cart />} />
+              <Route path="siparislerim" element={<Orders />} />
+              <Route path="sattigim-ilanlar" element={<SoldListings />} />
+              <Route path="ilanlarim" element={<MyListings />} />
+              <Route path="favorilerim" element={<Favorites />} />
+              {/* Fallback for other routes */}
+              <Route path="*" element={<Home />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
     </AuthProvider>
   );
 }

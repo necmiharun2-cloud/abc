@@ -2,12 +2,23 @@ import { useState } from 'react';
 import { ShoppingCart, Heart, Share2, Bell, AlertTriangle, ShieldCheck, CheckCircle2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useCart } from '../../contexts/CartContext';
 
 export default function PurchaseCard() {
   const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
   const price = 15.00;
 
   const handleAddToCart = () => {
+    addToCart({
+      id: 'epic-games-100-oyun', // Mock ID
+      title: 'Mail Değişen ⭐ Epic Games +100 Oyun Garanti Hesap',
+      price: price,
+      originalPrice: 240.00,
+      seller: 'OpssGamerShop',
+      image: 'https://picsum.photos/seed/epic/80/80'
+    });
+
     toast.custom((t) => (
       <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-[#232736] shadow-2xl rounded-xl pointer-events-auto flex flex-col border border-white/10 overflow-hidden`}>
         {/* Header */}

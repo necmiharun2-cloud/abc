@@ -1,16 +1,12 @@
-import { useState } from 'react';
 import { Trash2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
 
 export default function Cart() {
-  const [quantity1, setQuantity1] = useState(1);
-  const [quantity2, setQuantity2] = useState(1);
+  const { items, updateQuantity, removeFromCart } = useCart();
 
-  const price = 59.90;
-  const originalPrice = 240.00;
-  const totalQuantity = quantity1 + quantity2;
-  const totalPrice = price * totalQuantity;
-  const totalOriginalPrice = originalPrice * totalQuantity;
+  const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalOriginalPrice = items.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0);
   const discount = totalOriginalPrice - totalPrice;
 
   return (
@@ -64,77 +60,51 @@ export default function Cart() {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Cart Items */}
         <div className="flex-1 space-y-4">
-          {/* Item 1 */}
-          <div className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <img src="https://picsum.photos/seed/epic/80/80" alt="Product" className="w-20 h-20 rounded-lg object-cover" />
-            <div className="flex-1">
-              <h3 className="text-white font-medium mb-1">Mail Değişen ⭐ Epic Games +100 Oyun Garanti Hesap</h3>
-              <p className="text-gray-400 text-sm mb-2">Stoklardan anında teslim edilecektir.</p>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-400">Satıcı :</span>
-                <span className="text-white bg-white/5 px-2 py-1 rounded flex items-center gap-1">
-                  <img src="https://picsum.photos/seed/seller/16/16" alt="Seller" className="w-4 h-4 rounded" />
-                  OpssGamerShop
-                </span>
-              </div>
+          {items.length === 0 ? (
+            <div className="bg-[#232736] border border-white/5 rounded-xl p-8 text-center">
+              <p className="text-gray-400">Sepetinizde ürün bulunmamaktadır.</p>
             </div>
-            <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end mt-4 sm:mt-0">
-              <div className="flex items-center bg-[#1a1d27] rounded-lg border border-white/5">
-                <button 
-                  onClick={() => setQuantity1(Math.max(1, quantity1 - 1))}
-                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-                >-</button>
-                <div className="w-10 text-center text-white text-sm">{quantity1}</div>
-                <button 
-                  onClick={() => setQuantity1(quantity1 + 1)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-                >+</button>
+          ) : (
+            items.map((item) => (
+              <div key={item.id} className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <img src={item.image} alt="Product" className="w-20 h-20 rounded-lg object-cover" />
+                <div className="flex-1">
+                  <h3 className="text-white font-medium mb-1">{item.title}</h3>
+                  <p className="text-gray-400 text-sm mb-2">Stoklardan anında teslim edilecektir.</p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-400">Satıcı :</span>
+                    <span className="text-white bg-white/5 px-2 py-1 rounded flex items-center gap-1">
+                      <img src={`https://picsum.photos/seed/${item.seller}/16/16`} alt="Seller" className="w-4 h-4 rounded" />
+                      {item.seller}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end mt-4 sm:mt-0">
+                  <div className="flex items-center bg-[#1a1d27] rounded-lg border border-white/5">
+                    <button 
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                    >-</button>
+                    <div className="w-10 text-center text-white text-sm">{item.quantity}</div>
+                    <button 
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                    >+</button>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-gray-500 line-through text-sm">{item.originalPrice.toFixed(2)} ₺</div>
+                    <div className="text-emerald-400 font-bold text-lg">{item.price.toFixed(2)} ₺</div>
+                  </div>
+                  <button 
+                    onClick={() => removeFromCart(item.id)}
+                    className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-gray-500 line-through text-sm">{originalPrice.toFixed(2)} ₺</div>
-                <div className="text-emerald-400 font-bold text-lg">{price.toFixed(2)} ₺</div>
-              </div>
-              <button className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Item 2 */}
-          <div className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <img src="https://picsum.photos/seed/epic/80/80" alt="Product" className="w-20 h-20 rounded-lg object-cover" />
-            <div className="flex-1">
-              <h3 className="text-white font-medium mb-1">Mail Değişen ⭐ Epic Games +100 Oyun Garanti Hesap</h3>
-              <p className="text-gray-400 text-sm mb-2">Stoklardan anında teslim edilecektir.</p>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-400">Satıcı :</span>
-                <span className="text-white bg-white/5 px-2 py-1 rounded flex items-center gap-1">
-                  <img src="https://picsum.photos/seed/seller/16/16" alt="Seller" className="w-4 h-4 rounded" />
-                  OpssGamerShop
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end mt-4 sm:mt-0">
-              <div className="flex items-center bg-[#1a1d27] rounded-lg border border-white/5">
-                <button 
-                  onClick={() => setQuantity2(Math.max(1, quantity2 - 1))}
-                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-                >-</button>
-                <div className="w-10 text-center text-white text-sm">{quantity2}</div>
-                <button 
-                  onClick={() => setQuantity2(quantity2 + 1)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-                >+</button>
-              </div>
-              <div className="text-right">
-                <div className="text-gray-500 line-through text-sm">{originalPrice.toFixed(2)} ₺</div>
-                <div className="text-emerald-400 font-bold text-lg">{price.toFixed(2)} ₺</div>
-              </div>
-              <button className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+            ))
+          )}
         </div>
 
         {/* Order Summary */}
