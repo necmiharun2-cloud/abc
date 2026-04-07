@@ -27,15 +27,15 @@ export default function Navbar() {
                 <li key={item.name}>
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-2 text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                    className={`flex items-center gap-2 text-sm font-medium transition-all duration-300 whitespace-nowrap group ${
                       item.color 
                         ? `${item.color} drop-shadow-[0_0_8px_rgba(234,179,8,0.6)] hover:drop-shadow-[0_0_12px_rgba(234,179,8,0.9)]` 
                         : isActive 
                           ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]' 
-                          : 'text-gray-300 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
+                          : 'text-gray-300 hover:text-[#00f0ff] hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)]'
                     }`}
                   >
-                    <item.icon className="h-4 w-4" />
+                    <item.icon className={`h-4 w-4 transition-transform duration-300 ${!item.color && !isActive ? 'group-hover:scale-110' : ''}`} />
                     {item.name}
                     {item.hasDropdown && <span className="text-[10px] ml-1">▼</span>}
                   </Link>

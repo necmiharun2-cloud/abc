@@ -16,6 +16,7 @@ import Topluluk from './pages/Topluluk';
 import Magazalar from './pages/Magazalar';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="magazalar" element={<Magazalar />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
+            <Route path="profile" element={<Profile />} />
             {/* Fallback for other routes */}
             <Route path="*" element={<Home />} />
           </Route>

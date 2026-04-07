@@ -1,5 +1,5 @@
-import { Search, User, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { Search, User, LogOut, Sliders, ShoppingCart, ShoppingBag, List, Heart, Wallet, LifeBuoy, MessageSquare, ChevronDown, ShieldCheck, PlusCircle, Bell } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { signOut } from 'firebase/auth';
@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 
 export default function Header() {
   const [lang, setLang] = useState<'TR' | 'EN'>('TR');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
   const toggleLang = () => {
@@ -18,13 +20,27 @@ export default function Header() {
     try {
       await signOut(auth);
       toast.success('Çıkış yapıldı.');
+      setIsDropdownOpen(false);
     } catch (error) {
       toast.error('Çıkış yapılırken bir hata oluştu.');
     }
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <header className="bg-[#1a1d27] border-b border-white/5 relative overflow-hidden">
+    <header className="bg-[#1a1d27] border-b border-white/5 relative overflow-visible z-50">
       {/* Subtle Background Pattern/Image */}
       <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/pubg-bg/1920/1080')] bg-cover bg-center opacity-10 mix-blend-overlay pointer-events-none"></div>
       <div className="absolute inset-0 bg-gradient-to-r from-[#1a1d27] via-[#1a1d27]/90 to-[#1a1d27] pointer-events-none"></div>
@@ -68,24 +84,123 @@ export default function Header() {
           {/* User Actions */}
           <div className="flex items-center gap-4">
             {user ? (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-[#5b68f6] flex items-center justify-center border border-white/10 text-white font-bold">
-                    {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+              <>
+                {/* Neon Icons */}
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <button className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Mesajlarım">
+                    <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#1a1d27]">3</span>
+                  </button>
+                  
+                  <button className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Bildirimler">
+                    <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#1a1d27]">1</span>
+                  </button>
+
+                  <button className="relative p-2 text-gray-400 hover:text-[#00f0ff] transition-all duration-300 hover:drop-shadow-[0_0_12px_rgba(0,240,255,0.8)] group" title="Sepetim">
+                    <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </button>
+                </div>
+
+                <div className="relative" ref={dropdownRef}>
+                  <button 
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors cursor-pointer"
+                  >
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full bg-[#5b68f6] flex items-center justify-center border border-white/10 text-white font-bold">
+                      {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                    </div>
+                    {/* Level Badge */}
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full border-2 border-[#1a1d27] flex items-center justify-center text-[10px] font-bold text-white">
+                      2
+                    </div>
                   </div>
                   <div className="flex flex-col items-start text-sm">
                     <span className="font-medium text-white">{user.displayName || 'Kullanıcı'}</span>
-                    <span className="text-emerald-400 text-xs">0.00 ₺</span>
+                    <span className="text-emerald-400 text-xs font-semibold">0.00 ₺</span>
                   </div>
-                </div>
-                <button 
-                  onClick={handleLogout}
-                  className="w-10 h-10 rounded-full bg-[#2b3142] hover:bg-red-500/20 flex items-center justify-center border border-white/10 text-gray-400 hover:text-red-500 transition-colors"
-                  title="Çıkış Yap"
-                >
-                  <LogOut className="w-5 h-5" />
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
+
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-[#232736] rounded-xl border border-white/10 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="p-4 border-b border-white/5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="relative">
+                          <div className="w-12 h-12 rounded-full bg-[#5b68f6] flex items-center justify-center border border-white/10 text-white font-bold text-lg">
+                            {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full border-2 border-[#232736] flex items-center justify-center text-xs font-bold text-white">
+                            2
+                          </div>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-white">{user.displayName || 'Kullanıcı'}</span>
+                          <span className="text-gray-400 text-xs">0.00 ₺</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <button className="w-full flex items-center justify-center gap-2 bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-[#60a5fa] py-2 rounded-lg text-sm font-medium transition-colors border border-[#3b82f6]/30">
+                          <PlusCircle className="w-4 h-4" />
+                          Bakiye Yükle
+                        </button>
+                        <button className="w-full flex items-center justify-center gap-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 py-2 rounded-lg text-sm font-medium transition-colors border border-emerald-500/30">
+                          <ShieldCheck className="w-4 h-4" />
+                          Güvenli Hesaba Yükselt
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="p-2 space-y-1">
+                      <Link to="/profile" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <User className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Profilim</span>
+                      </Link>
+                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <Sliders className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Kontrol Merkezi</span>
+                      </Link>
+                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <ShoppingCart className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Siparişlerim</span>
+                      </Link>
+                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <ShoppingBag className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Sattığım İlanlar</span>
+                      </Link>
+                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <List className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">İlanlarım</span>
+                      </Link>
+                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <Heart className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Favori İlanlarım</span>
+                      </Link>
+                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <Wallet className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Para Çek</span>
+                      </Link>
+                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <LifeBuoy className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Destek Sistemi</span>
+                      </Link>
+                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                        <MessageSquare className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Discord</span>
+                      </Link>
+                      <div className="h-px bg-white/5 my-1"></div>
+                      <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-500/10 text-gray-300 hover:text-red-400 transition-all duration-300 group text-sm">
+                        <LogOut className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(248,113,113,0.8)] group-hover:scale-110 transition-all" />
+                        <span className="group-hover:drop-shadow-[0_0_8px_rgba(248,113,113,0.8)]">Çıkış</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
+              </>
             ) : (
               <Link to="/login" className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors">
                 <div className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center border border-white/10">
