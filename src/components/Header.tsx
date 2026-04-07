@@ -9,8 +9,12 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[#232736] border-b border-white/5">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-[#1a1d27] border-b border-white/5 relative overflow-hidden">
+      {/* Subtle Background Pattern/Image */}
+      <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/pubg-bg/1920/1080')] bg-cover bg-center opacity-10 mix-blend-overlay pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-[#1a1d27] via-[#1a1d27]/90 to-[#1a1d27] pointer-events-none"></div>
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center gap-6">
