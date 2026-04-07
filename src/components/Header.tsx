@@ -1,6 +1,13 @@
 import { Search, User } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Header() {
+  const [lang, setLang] = useState<'TR' | 'EN'>('TR');
+
+  const toggleLang = () => {
+    setLang(prev => prev === 'TR' ? 'EN' : 'TR');
+  };
+
   return (
     <header className="bg-[#232736] border-b border-white/5">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,9 +19,16 @@ export default function Header() {
               <span className="text-white font-bold text-2xl tracking-tight">itemsatış</span>
             </a>
             
-            <button className="flex items-center gap-2 bg-[#2b3142] hover:bg-[#32394d] px-3 py-1.5 rounded-md text-sm font-medium transition-colors border border-white/10">
-              <img src="https://flagcdn.com/w20/tr.png" alt="TR" className="w-5 h-3.5 object-cover rounded-sm" />
-              <span>EN</span>
+            <button 
+              onClick={toggleLang}
+              className="flex items-center gap-2 bg-[#2b3142] hover:bg-[#32394d] px-3 py-1.5 rounded-md text-sm font-medium transition-colors border border-white/10 text-white"
+            >
+              <img 
+                src={lang === 'TR' ? "https://flagcdn.com/w20/tr.png" : "https://flagcdn.com/w20/gb.png"} 
+                alt={lang} 
+                className="w-5 h-3.5 object-cover rounded-sm" 
+              />
+              <span>{lang === 'TR' ? 'EN' : 'TR'}</span>
             </button>
           </div>
 

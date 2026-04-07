@@ -5,6 +5,7 @@ import TagsRow from '../components/TagsRow';
 import ShowcaseListings from '../components/ShowcaseListings';
 import SocialMediaSection from '../components/SocialMediaSection';
 import CategoryListings from '../components/CategoryListings';
+import NewsTicker from '../components/NewsTicker';
 
 export default function Home() {
   return (
@@ -16,6 +17,9 @@ export default function Home() {
       <ShowcaseListings />
       <SocialMediaSection />
       <CategoryListings />
+      <div className="pt-6">
+        <NewsTicker />
+      </div>
     </div>
   );
 }

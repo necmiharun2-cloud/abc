@@ -34,19 +34,19 @@ export default function ShowcaseListings() {
                   VİTRİN İLANI
                 </div>
               )}
-              {/* Seller Avatar Overlay */}
-              <div className="absolute -bottom-4 left-3 flex items-center gap-2">
-                <img src={listing.sellerAvatar} alt={listing.sellerName} className="w-8 h-8 rounded-md border-2 border-[#232736] bg-[#2b3142]" />
+            </div>
+
+            {/* Seller Info Bar */}
+            <div className="bg-[#181b26] px-3 py-2 flex items-center gap-2.5 border-b border-white/5">
+              <img src={listing.sellerAvatar} alt={listing.sellerName} className="w-7 h-7 rounded object-cover" />
+              <div className="flex flex-col justify-center">
+                <span className="text-[9px] text-gray-400 font-medium leading-none mb-1">SATICI</span>
+                <span className="text-xs text-white font-bold leading-none truncate">{listing.sellerName}</span>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-3 pt-6 flex flex-col flex-1">
-              <div className="flex flex-col gap-0.5 mb-2">
-                <span className="text-[10px] text-gray-500 font-medium">SATICI</span>
-                <span className="text-xs text-white font-medium truncate">{listing.sellerName}</span>
-              </div>
-              
+            <div className="p-3 flex flex-col flex-1">
               <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">{listing.category}</span>
               
               <h4 className="text-sm text-white font-medium line-clamp-2 mb-3 leading-snug group-hover:text-blue-400 transition-colors">
