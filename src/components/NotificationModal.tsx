@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, BellOff } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function NotificationModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +20,14 @@ export default function NotificationModal() {
   const handleClose = () => {
     setIsOpen(false);
     localStorage.setItem('hasSeenNotificationModal', 'true');
+  };
+
+  const handleEnableNotifications = () => {
+    toast.success('Bildirimleri açmak için tarayıcı adres çubuğundaki kilit ikonuna tıklayıp "Bildirimler" seçeneğini aktif edebilirsiniz.', {
+      duration: 6000,
+      icon: '🔔'
+    });
+    handleClose();
   };
 
   if (!isOpen) return null;
@@ -60,7 +69,7 @@ export default function NotificationModal() {
         {/* Butonlar */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button 
-            onClick={handleClose}
+            onClick={handleEnableNotifications}
             className="w-full sm:w-auto bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
           >
             Bildirim İzinlerini Aç

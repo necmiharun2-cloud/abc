@@ -1,30 +1,38 @@
+import React from 'react';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function Footer() {
+  const handleComingSoon = (e: React.MouseEvent, name: string) => {
+    e.preventDefault();
+    toast.success(`${name} sayfası yakında eklenecek!`);
+  };
+
   return (
     <footer className="bg-[#232736] border-t border-white/5 pt-16 pb-8 mt-12">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <div>
-            <a href="/" className="flex items-center gap-2 mb-6">
+            <Link to="/" className="flex items-center gap-2 mb-6">
               <img src="https://picsum.photos/seed/logo/40/40" alt="Logo" className="w-10 h-10 rounded-full" />
               <span className="text-white font-bold text-2xl tracking-tight">itemsatış</span>
-            </a>
+            </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-6">
               Türkiye'nin en gelişmiş dijital oyun pazarı İtemsatış'ta hesap, item, skin, CD Key ve en ucuz Epin ürünlerini güvenle alıp sat, hızlıca kazanç sağla!
             </p>
             <div className="flex items-center gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center text-gray-400 hover:bg-[#5b68f6] hover:text-white transition-colors">
+              <a href="https://facebook.com/itemsatis" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center text-gray-400 hover:bg-[#5b68f6] hover:text-white transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center text-gray-400 hover:bg-[#5b68f6] hover:text-white transition-colors">
+              <a href="https://twitter.com/itemsatis" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center text-gray-400 hover:bg-[#5b68f6] hover:text-white transition-colors">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center text-gray-400 hover:bg-[#5b68f6] hover:text-white transition-colors">
+              <a href="https://instagram.com/itemsatis" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center text-gray-400 hover:bg-[#5b68f6] hover:text-white transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center text-gray-400 hover:bg-[#5b68f6] hover:text-white transition-colors">
+              <a href="https://youtube.com/itemsatis" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center text-gray-400 hover:bg-[#5b68f6] hover:text-white transition-colors">
                 <Youtube className="h-5 w-5" />
               </a>
             </div>
@@ -34,12 +42,12 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-bold text-lg mb-6">Hızlı Linkler</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Hakkımızda</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Kullanıcı Sözleşmesi</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Gizlilik Politikası</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Mesafeli Satış Sözleşmesi</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">İade Politikası</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Sıkça Sorulan Sorular</a></li>
+              <li><Link to="/hakkimizda" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Hakkımızda</Link></li>
+              <li><Link to="/kullanici-sozlesmesi" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Kullanıcı Sözleşmesi</Link></li>
+              <li><a href="#" onClick={(e) => handleComingSoon(e, 'Gizlilik Politikası')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Gizlilik Politikası</a></li>
+              <li><a href="#" onClick={(e) => handleComingSoon(e, 'Mesafeli Satış Sözleşmesi')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Mesafeli Satış Sözleşmesi</a></li>
+              <li><a href="#" onClick={(e) => handleComingSoon(e, 'İade Politikası')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">İade Politikası</a></li>
+              <li><a href="#" onClick={(e) => handleComingSoon(e, 'Sıkça Sorulan Sorular')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Sıkça Sorulan Sorular</a></li>
             </ul>
           </div>
 
@@ -47,12 +55,12 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-bold text-lg mb-6">Kategoriler</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Valorant Hesap Satışı</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">LoL Hesap Satışı</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">CS:GO 2 İtem Satışı</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">PUBG Mobile UC</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Roblox Robux</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Steam Cüzdan Kodu</a></li>
+              <li><Link to="/ilan-pazari" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Valorant Hesap Satışı</Link></li>
+              <li><Link to="/ilan-pazari" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">LoL Hesap Satışı</Link></li>
+              <li><Link to="/ilan-pazari" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">CS:GO 2 İtem Satışı</Link></li>
+              <li><Link to="/ilan-pazari" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">PUBG Mobile UC</Link></li>
+              <li><Link to="/roblox" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Roblox Robux</Link></li>
+              <li><Link to="/ilan-pazari" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Steam Cüzdan Kodu</Link></li>
             </ul>
           </div>
 

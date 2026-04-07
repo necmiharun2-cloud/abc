@@ -1,4 +1,10 @@
+import toast from 'react-hot-toast';
+
 export default function QuickLinks() {
+  const handleLinkClick = (name: string) => {
+    toast.success(`${name} kategorisi yakında eklenecek!`);
+  };
+
   const links = [
     { name: 'CS2', icon: 'https://picsum.photos/seed/l4/24/24' },
     { name: 'CD Key', icon: 'https://picsum.photos/seed/l5/24/24' },
@@ -12,10 +18,14 @@ export default function QuickLinks() {
   return (
     <div className="flex items-center justify-between bg-[#232736] rounded-xl p-4 border border-white/5">
       {links.map((link) => (
-        <a key={link.name} href="#" className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors font-medium text-sm">
+        <button 
+          key={link.name} 
+          onClick={() => handleLinkClick(link.name)}
+          className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors font-medium text-sm"
+        >
           <img src={link.icon} alt={link.name} className="w-6 h-6 rounded" />
           {link.name}
-        </a>
+        </button>
       ))}
     </div>
   );

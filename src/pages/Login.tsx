@@ -62,7 +62,7 @@ export default function Login() {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="block text-sm font-medium text-gray-300">Şifre</label>
-            <a href="#" className="text-xs text-[#5b68f6] hover:text-[#4a55d6] transition-colors">Şifremi Unuttum</a>
+            <Link to="/sifremi-unuttum" className="text-xs text-[#5b68f6] hover:text-[#4a55d6] transition-colors">Şifremi Unuttum</Link>
           </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />

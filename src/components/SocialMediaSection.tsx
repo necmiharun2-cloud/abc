@@ -1,4 +1,10 @@
+import toast from 'react-hot-toast';
+
 export default function SocialMediaSection() {
+  const handlePlatformClick = (name: string) => {
+    toast.success(`${name} ilanları yakında listelenecek!`);
+  };
+
   const platforms = [
     { name: 'Facebook', color: 'bg-[#1877f2]', icon: 'https://picsum.photos/seed/fb/32/32' },
     { name: 'YouTube', color: 'bg-[#ff0000]', icon: 'https://picsum.photos/seed/yt/32/32' },
@@ -20,10 +26,10 @@ export default function SocialMediaSection() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
         {platforms.map((platform) => (
-          <a
+          <button
             key={platform.name}
-            href="#"
-            className={`${platform.color} rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:-translate-y-1 transition-transform duration-300 shadow-lg`}
+            onClick={() => handlePlatformClick(platform.name)}
+            className={`${platform.color} rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:-translate-y-1 transition-transform duration-300 shadow-lg w-full`}
           >
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
               <img src={platform.icon} alt={platform.name} className="w-6 h-6 object-contain" />
@@ -32,7 +38,7 @@ export default function SocialMediaSection() {
               <div className="text-white font-bold text-sm">{platform.name}</div>
               <div className="text-white/70 text-[10px]">İlanları</div>
             </div>
-          </a>
+          </button>
         ))}
       </div>
     </section>

@@ -4,9 +4,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -47,30 +52,30 @@ export default function Dashboard() {
                 <ChevronDown className="w-5 h-5 text-gray-400 rotate-180" />
               </button>
               <div className="bg-[#1a1d27] py-2">
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-white bg-white/5 border-l-2 border-[#5b68f6]">
+                <button onClick={() => handleComingSoon('Hesap Özeti')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-white bg-white/5 border-l-2 border-[#5b68f6] text-left">
                   Hesap Özeti
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Oyuncu ID & URL')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Oyuncu ID & URL <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">YENİ</span>
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Üyelik Paketleri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Üyelik Paketleri
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Kişisel Bilgiler')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Kişisel Bilgiler
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Referanslarım')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Referanslarım
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Bağlantılı Hesaplar')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Bağlantılı Hesaplar
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Değerlendirmelerim')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Değerlendirmelerim
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Bildirim Ayarları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Bildirim Ayarları
-                </a>
+                </button>
               </div>
             </div>
 
@@ -84,18 +89,18 @@ export default function Dashboard() {
                 <ChevronDown className="w-5 h-5 rotate-180" />
               </button>
               <div className="bg-[#1a1d27] py-2">
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                <button onClick={() => handleComingSoon('Avatar')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Avatar
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Kapak Fotoğrafı')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Kapak Fotoğrafı
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Hızlı Erişim Menü')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Hızlı Erişim Menü
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Rozet Sergileme')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Rozet Sergileme
-                </a>
+                </button>
               </div>
             </div>
 
@@ -109,21 +114,21 @@ export default function Dashboard() {
                 <ChevronDown className="w-5 h-5 rotate-180" />
               </button>
               <div className="bg-[#1a1d27] py-2">
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                <button onClick={() => handleComingSoon('Şifre Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Şifre Değiştir
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Mail Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Mail Değiştir
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Telefon Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Telefon Değiştir
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Hesap Güvenliği')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Hesap Güvenliği
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Erişim Kayıtları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Erişim Kayıtları
-                </a>
+                </button>
               </div>
             </div>
 
@@ -137,21 +142,21 @@ export default function Dashboard() {
                 <ChevronDown className="w-5 h-5 rotate-180" />
               </button>
               <div className="bg-[#1a1d27] py-2">
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                <button onClick={() => handleComingSoon('Banka Hesapları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Banka Hesapları
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Bakiye Hareketleri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Bakiye Hareketleri
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Fatura Bilgileri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Fatura Bilgileri
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Bakiye Kuponu')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Bakiye Kuponu
-                </a>
-                <a href="#" className="flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                </button>
+                <button onClick={() => handleComingSoon('Hediye Merkezi')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
                   Hediye Merkezi
-                </a>
+                </button>
               </div>
             </div>
 

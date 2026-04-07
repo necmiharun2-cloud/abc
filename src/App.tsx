@@ -28,6 +28,10 @@ import MyListings from './pages/MyListings';
 import Favorites from './pages/Favorites';
 import Withdraw from './pages/Withdraw';
 import Support from './pages/Support';
+import ForgotPassword from './pages/ForgotPassword';
+import NotFound from './pages/NotFound';
+import About from './pages/About';
+import Terms from './pages/Terms';
 
 export default function App() {
   return (
@@ -52,6 +56,9 @@ export default function App() {
               <Route path="magazalar" element={<Magazalar />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
+              <Route path="sifremi-unuttum" element={<ForgotPassword />} />
+              <Route path="hakkimizda" element={<About />} />
+              <Route path="kullanici-sozlesmesi" element={<Terms />} />
               <Route path="profile" element={<Profile />} />
               <Route path="mesajlarim" element={<Messages />} />
               <Route path="kontrol-merkezi" element={<Dashboard />} />
@@ -64,7 +71,7 @@ export default function App() {
               <Route path="para-cek" element={<Withdraw />} />
               <Route path="destek-sistemi" element={<Support />} />
               {/* Fallback for other routes */}
-              <Route path="*" element={<Home />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
         </BrowserRouter>

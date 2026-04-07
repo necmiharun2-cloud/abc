@@ -230,10 +230,10 @@ export default function Header() {
                         <LifeBuoy className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Destek Sistemi</span>
                       </Link>
-                      <Link to="#" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
+                      <a href="https://discord.gg/itemsatis" target="_blank" rel="noopener noreferrer" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-[#00f0ff] transition-all duration-300 group text-sm">
                         <MessageSquare className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)] group-hover:scale-110 transition-all" />
                         <span className="group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]">Discord</span>
-                      </Link>
+                      </a>
                       <div className="h-px bg-white/5 my-1"></div>
                       <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-500/10 text-gray-300 hover:text-red-400 transition-all duration-300 group text-sm">
                         <LogOut className="w-4 h-4 group-hover:drop-shadow-[0_0_8px_rgba(248,113,113,0.8)] group-hover:scale-110 transition-all" />

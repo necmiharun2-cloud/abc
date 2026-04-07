@@ -28,9 +28,9 @@ export default function NewsTicker() {
           <div key={index} className="flex items-center mx-6">
             <span className="w-1.5 h-1.5 rounded-full bg-[#5b68f6] mr-3"></span>
             <span className="text-gray-400 text-xs mr-2">{item.date}</span>
-            <Link to="#" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">
+            <span className="text-gray-300 hover:text-white transition-colors text-sm font-medium cursor-default">
               {item.title}
-            </Link>
+            </span>
           </div>
         ))}
       </div>

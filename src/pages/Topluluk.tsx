@@ -1,6 +1,10 @@
 import { MessageSquare, TrendingUp, Users, Plus, Heart, Share2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Topluluk() {
+  const handleTagClick = (tag: string) => {
+    toast.success(`${tag} etiketli konular yakında listelenecek!`);
+  };
   const posts = [
     { id: 1, author: 'GamerX', avatar: 'https://picsum.photos/seed/u1/40/40', time: '2 saat önce', title: 'Valorant yeni ajan hakkında ne düşünüyorsunuz?', content: 'Sizce yeni gelen ajan metayı nasıl etkileyecek? Yetenekleri çok güçlü duruyor...', likes: 24, comments: 12, category: 'Valorant' },
     { id: 2, author: 'ProPlayer', avatar: 'https://picsum.photos/seed/u2/40/40', time: '5 saat önce', title: 'CS2 FPS Drop sorunu çözümü', content: 'Son güncellemeden sonra FPS drop yaşayanlar için bulduğum birkaç çözüm yöntemini paylaşıyorum...', likes: 156, comments: 45, category: 'CS2' },
@@ -71,9 +75,13 @@ export default function Topluluk() {
           </h3>
           <div className="space-y-3">
             {trending.map((tag, i) => (
-              <a key={i} href="#" className="block text-sm text-gray-400 hover:text-[#5b68f6] transition-colors">
+              <button 
+                key={i} 
+                onClick={() => handleTagClick(tag)}
+                className="block text-sm text-gray-400 hover:text-[#5b68f6] transition-colors text-left w-full"
+              >
                 {tag}
-              </a>
+              </button>
             ))}
           </div>
         </div>
