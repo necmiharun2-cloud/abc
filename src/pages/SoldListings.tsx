@@ -1,10 +1,34 @@
-import { RefreshCw, Filter, ChevronDown } from 'lucide-react';
+import { RefreshCw, Filter, ChevronDown, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
+import { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
 
 export default function SoldListings() {
   const { user, loading } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const allSales = [
+    { id: '1461229', title: 'Valorant Random Hesap', price: 350.00, date: '2 Şubat 2023, 17:06', status: 'delivered', buyer: 'Alıcı123', image: 'https://picsum.photos/seed/sold1/80/80' },
+    { id: '1461500', title: 'Roblox Robux 500', price: 120.00, date: '5 Şubat 2023, 12:30', status: 'delivered', buyer: 'GameLover', image: 'https://picsum.photos/seed/sold2/80/80' },
+  ];
+
+  const filteredSales = useMemo(() => {
+    return allSales.filter(sale => 
+      sale.id.includes(searchTerm) || 
+      sale.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sale.buyer.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast.success('Satışlar güncellendi.');
+    }, 1000);
+  };
 
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
@@ -33,51 +57,78 @@ export default function SoldListings() {
       </div>
 
       {/* Controls */}
-      <div className="flex justify-end gap-3">
-        <button 
-          onClick={() => handleComingSoon('Sayfa Yenileme')}
-          className="bg-[#232736] hover:bg-white/5 border border-white/5 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Sayfayı Yenile
-        </button>
-        <button 
-          onClick={() => handleComingSoon('Filtreleme')}
-          className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(91,104,246,0.3)]"
-        >
-          <Filter className="w-4 h-4" />
-          Gelişmiş Filtre
-        </button>
+      <div className="flex flex-col md:flex-row justify-between gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input 
+            type="text"
+            placeholder="Sipariş no, ilan veya alıcı ara..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[#232736] border border-white/5 rounded-lg py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+          />
+        </div>
+        <div className="flex gap-3">
+          <button 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="bg-[#232736] hover:bg-white/5 border border-white/5 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Sayfayı Yenile
+          </button>
+          <button 
+            onClick={() => handleComingSoon('Gelişmiş Filtreleme')}
+            className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(91,104,246,0.3)]"
+          >
+            <Filter className="w-4 h-4" />
+            Gelişmiş Filtre
+          </button>
+        </div>
       </div>
 
-      {/* Orders List */}
-      <div>
-        <h2 className="text-lg font-bold text-white mb-4">Şubat 2023</h2>
-        <div className="space-y-4">
-          {/* Order 1 */}
-          <div 
-            onClick={() => handleComingSoon('Sipariş Detayı')}
-            className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer group"
-          >
-            <img src="https://picsum.photos/seed/sold1/80/80" alt="Product" className="w-16 h-16 rounded-lg object-cover" />
-            <div className="flex-1 w-full">
-              <div className="text-gray-400 text-sm mb-1">Sipariş No : 1461229</div>
-              <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                Sipariş teslim edildi
+      {/* Sales List */}
+      <div className="space-y-6">
+        {filteredSales.length > 0 ? (
+          <div className="space-y-4">
+            {filteredSales.map((sale) => (
+              <div 
+                key={sale.id}
+                onClick={() => handleComingSoon('Satış Detayı')}
+                className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer group"
+              >
+                <img src={sale.image} alt={sale.title} className="w-16 h-16 rounded-lg object-cover" />
+                <div className="flex-1 w-full">
+                  <div className="text-gray-400 text-sm mb-1">Sipariş No : {sale.id}</div>
+                  <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                    Sipariş teslim edildi
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-500 text-xs uppercase">Alıcı</span>
+                    <span className="text-white bg-[#1a1d27] px-2 py-1 rounded flex items-center gap-2 border border-white/5">
+                      <img src={`https://picsum.photos/seed/${sale.buyer}/16/16`} alt="Buyer" className="w-4 h-4 rounded" />
+                      {sale.buyer}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between w-full md:w-auto gap-6 mt-4 md:mt-0">
+                  <div className="text-right">
+                    <div className="text-gray-400 text-sm mb-1">{sale.date}</div>
+                    <div className="text-yellow-500 font-bold text-lg">{sale.price.toFixed(2)} ₺</div>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-[#5b68f6] group-hover:text-white transition-colors">
+                    <ChevronDown className="w-5 h-5" />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center justify-between w-full md:w-auto gap-6 mt-4 md:mt-0">
-              <div className="text-right">
-                <div className="text-gray-400 text-sm mb-1">2 Şubat 2023, 17:06, Perşembe</div>
-                <div className="text-yellow-500 font-bold text-lg">350.00 ₺</div>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-[#5b68f6] group-hover:text-white transition-colors">
-                <ChevronDown className="w-5 h-5" />
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="bg-[#232736] rounded-xl border border-white/5 p-12 text-center">
+            <p className="text-gray-400">Aradığınız kriterlere uygun satış bulunamadı.</p>
+          </div>
+        )}
       </div>
     </div>
   );

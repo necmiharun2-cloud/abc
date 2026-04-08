@@ -32,6 +32,10 @@ import ForgotPassword from './pages/ForgotPassword';
 import NotFound from './pages/NotFound';
 import About from './pages/About';
 import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import DistanceSales from './pages/DistanceSales';
+import RefundPolicy from './pages/RefundPolicy';
+import FAQ from './pages/FAQ';
 import Deals from './pages/Deals';
 import Blog from './pages/Blog';
 import Streamers from './pages/Streamers';
@@ -69,10 +73,10 @@ export default function App() {
               <Route path="ilan-ekle" element={<PlaceholderPage />} />
               <Route path="favori-sistemi" element={<PlaceholderPage />} />
               <Route path="ilan-yukari-tasima" element={<PlaceholderPage />} />
-              <Route path="gizlilik-politikasi" element={<PlaceholderPage />} />
-              <Route path="mesafeli-satis-sozlesmesi" element={<PlaceholderPage />} />
-              <Route path="iade-politikasi" element={<PlaceholderPage />} />
-              <Route path="sss" element={<PlaceholderPage />} />
+              <Route path="gizlilik-politikasi" element={<Privacy />} />
+              <Route path="mesafeli-satis-sozlesmesi" element={<DistanceSales />} />
+              <Route path="iade-politikasi" element={<RefundPolicy />} />
+              <Route path="sss" element={<FAQ />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="sifremi-unuttum" element={<ForgotPassword />} />

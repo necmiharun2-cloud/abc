@@ -1,7 +1,12 @@
 import { Shield, Smartphone, MessageSquare, ShoppingCart } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function SellerCard() {
+interface SellerCardProps {
+  sellerName?: string;
+  sellerAvatar?: string;
+}
+
+export default function SellerCard({ sellerName = 'ValoKing', sellerAvatar }: SellerCardProps) {
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
   };
@@ -9,8 +14,8 @@ export default function SellerCard() {
   return (
     <div className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/5">
-        <span className="text-xs font-bold text-gray-400">SATICI BİLGİLERİ</span>
+      <div className="p-4 border-b border-white/5 flex items-center justify-between">
+        <span className="text-xs font-bold text-gray-400 uppercase">Satıcı Bilgileri</span>
         <button 
           onClick={() => handleComingSoon('Takip Et')}
           className="text-xs text-[#5b68f6] hover:text-white transition-colors flex items-center gap-1"
@@ -24,19 +29,23 @@ export default function SellerCard() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <img src="https://picsum.photos/seed/valoking/48/48" alt="ValoKing" className="w-12 h-12 rounded-lg" />
+              <img 
+                src={sellerAvatar || `https://picsum.photos/seed/${sellerName}/48/48`} 
+                alt={sellerName} 
+                className="w-12 h-12 rounded-lg object-cover" 
+              />
               <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#232736]"></div>
             </div>
             <div>
               <div className="text-white font-bold text-sm flex items-center gap-1.5">
-                ValoKing
+                {sellerName}
                 <Shield className="w-3.5 h-3.5 text-emerald-500" />
                 <Smartphone className="w-3.5 h-3.5 text-gray-400" />
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-white font-bold text-lg">2.097</div>
+            <div className="text-white font-bold text-lg">{Math.floor(Math.random() * 5000) + 100}</div>
             <div className="text-[10px] text-gray-400">Başarılı İşlem</div>
           </div>
         </div>

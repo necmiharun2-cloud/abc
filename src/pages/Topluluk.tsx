@@ -9,10 +9,12 @@ export default function Topluluk() {
   const [newPost, setNewPost] = useState({ title: '', content: '', category: 'Genel' });
   
   const [posts, setPosts] = useState([
-    { id: 1, author: 'GamerX', avatar: 'https://picsum.photos/seed/u1/40/40', time: '2 saat önce', title: 'Valorant yeni ajan hakkında ne düşünüyorsunuz?', content: 'Sizce yeni gelen ajan metayı nasıl etkileyecek? Yetenekleri çok güçlü duruyor...', likes: 24, comments: 12, category: 'Valorant', isLiked: false },
-    { id: 2, author: 'ProPlayer', avatar: 'https://picsum.photos/seed/u2/40/40', time: '5 saat önce', title: 'CS2 FPS Drop sorunu çözümü', content: 'Son güncellemeden sonra FPS drop yaşayanlar için bulduğum birkaç çözüm yöntemini paylaşıyorum...', likes: 156, comments: 45, category: 'CS2', isLiked: false },
-    { id: 3, author: 'NoobMaster', avatar: 'https://picsum.photos/seed/u3/40/40', time: '1 gün önce', title: 'En iyi F/P oyuncu faresi önerisi?', content: 'Maksimum 1000 TL bütçem var, FPS oyunları için fare arıyorum. Önerilerinizi bekliyorum.', likes: 8, comments: 32, category: 'Donanım', isLiked: false },
+    { id: 1, author: 'GamerX', avatar: 'https://picsum.photos/seed/u1/40/40', time: '2 saat önce', title: 'Valorant yeni ajan hakkında ne düşünüyorsunuz?', content: 'Sizce yeni gelen ajan metayı nasıl etkileyecek? Yetenekleri çok güçlü duruyor...', likes: 24, comments: 12, category: 'Valorant', isLiked: false, showComments: false },
+    { id: 2, author: 'ProPlayer', avatar: 'https://picsum.photos/seed/u2/40/40', time: '5 saat önce', title: 'CS2 FPS Drop sorunu çözümü', content: 'Son güncellemeden sonra FPS drop yaşayanlar için bulduğum birkaç çözüm yöntemini paylaşıyorum...', likes: 156, comments: 45, category: 'CS2', isLiked: false, showComments: false },
+    { id: 3, author: 'NoobMaster', avatar: 'https://picsum.photos/seed/u3/40/40', time: '1 gün önce', title: 'En iyi F/P oyuncu faresi önerisi?', content: 'Maksimum 1000 TL bütçem var, FPS oyunları için fare arıyorum. Önerilerinizi bekliyorum.', likes: 8, comments: 32, category: 'Donanım', isLiked: false, showComments: false },
   ]);
+
+  const [commentText, setCommentText] = useState('');
 
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
@@ -29,6 +31,32 @@ export default function Topluluk() {
       }
       return post;
     }));
+  };
+
+  const toggleComments = (id: number) => {
+    setPosts(prev => prev.map(post => {
+      if (post.id === id) {
+        return { ...post, showComments: !post.showComments };
+      }
+      return post;
+    }));
+  };
+
+  const handleAddComment = (postId: number) => {
+    if (!user) {
+      toast.error('Yorum yapmak için giriş yapmalısınız.');
+      return;
+    }
+    if (!commentText.trim()) return;
+
+    setPosts(prev => prev.map(post => {
+      if (post.id === postId) {
+        return { ...post, comments: post.comments + 1 };
+      }
+      return post;
+    }));
+    setCommentText('');
+    toast.success('Yorumunuz eklendi!');
   };
 
   const handleCreatePost = (e: any) => {
@@ -109,7 +137,7 @@ export default function Topluluk() {
                   {post.likes}
                 </button>
                 <button 
-                  onClick={() => handleComingSoon('Yorum Yap')}
+                  onClick={() => toggleComments(post.id)}
                   className="flex items-center gap-1.5 text-gray-400 hover:text-[#5b68f6] transition-colors text-sm"
                 >
                   <MessageSquare className="w-4 h-4" />
@@ -123,6 +151,41 @@ export default function Topluluk() {
                   Paylaş
                 </button>
               </div>
+
+              {post.showComments && (
+                <div className="mt-4 pt-4 border-t border-white/5 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex gap-3">
+                    <img src={user?.photoURL || `https://picsum.photos/seed/${user?.uid}/32/32`} alt="Me" className="w-8 h-8 rounded-full" />
+                    <div className="flex-1 flex gap-2">
+                      <input 
+                        type="text"
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        placeholder="Yorumunuzu yazın..."
+                        className="flex-1 bg-[#1a1d27] border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#5b68f6]"
+                      />
+                      <button 
+                        onClick={() => handleAddComment(post.id)}
+                        className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        Gönder
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Mock Comments */}
+                  <div className="space-y-3 pl-11">
+                    <div className="text-sm">
+                      <span className="font-bold text-white mr-2">Kullanıcı_123</span>
+                      <span className="text-gray-400">Harika bir paylaşım olmuş, teşekkürler!</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-bold text-white mr-2">Gamer_Pro</span>
+                      <span className="text-gray-400">Bence de yetenekleri çok dengeli.</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

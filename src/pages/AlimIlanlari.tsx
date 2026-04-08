@@ -1,11 +1,21 @@
-import { Filter, Search, PlusCircle, RefreshCw } from 'lucide-react';
+import { Filter, Search, PlusCircle, RefreshCw, X } from 'lucide-react';
 import CategoryListings from '../components/CategoryListings';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function AlimIlanlari() {
+  const { user } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     keyword: '',
+  });
+
+  const [newListing, setNewListing] = useState({
+    category: '',
+    title: '',
+    budget: '',
+    description: ''
   });
 
   const handleFilterChange = (key: string, value: string) => {
@@ -19,6 +29,22 @@ export default function AlimIlanlari() {
   const clearFilters = () => {
     setFilters({ keyword: '' });
     toast.success('Filtreler temizlendi!');
+  };
+
+  const handleCreateListing = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error('İlan oluşturmak için giriş yapmalısınız.');
+      return;
+    }
+    if (!newListing.category || !newListing.title || !newListing.budget) {
+      toast.error('Lütfen gerekli alanları doldurun.');
+      return;
+    }
+
+    toast.success('Alım ilanınız başarıyla oluşturuldu ve onaya gönderildi!');
+    setIsModalOpen(false);
+    setNewListing({ category: '', title: '', budget: '', description: '' });
   };
 
   return (
@@ -72,7 +98,10 @@ export default function AlimIlanlari() {
             <h1 className="text-2xl font-bold text-white mb-2">Alım İlanları Pazarı</h1>
             <p className="text-sm text-gray-400">Aradığın ürünü bulamıyor musun? Hemen bir alım ilanı oluştur, satıcılar sana ulaşsın.</p>
           </div>
-          <button className="shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-colors">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-colors"
+          >
             <PlusCircle className="w-5 h-5" />
             Alım İlanı Oluştur
           </button>
@@ -83,6 +112,75 @@ export default function AlimIlanlari() {
           <CategoryListings filters={filters} />
         </div>
       </div>
+
+      {/* Create Listing Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#232736] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-white/5">
+              <h3 className="text-xl font-bold text-white">Alım İlanı Oluştur</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateListing} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Kategori</label>
+                <input 
+                  type="text"
+                  placeholder="Örn: Valorant, Roblox, Steam..."
+                  value={newListing.category}
+                  onChange={(e) => setNewListing({...newListing, category: e.target.value})}
+                  className="w-full bg-[#2b3142] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">İlan Başlığı</label>
+                <input 
+                  type="text"
+                  placeholder="Ne arıyorsunuz?"
+                  value={newListing.title}
+                  onChange={(e) => setNewListing({...newListing, title: e.target.value})}
+                  className="w-full bg-[#2b3142] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Bütçe (₺)</label>
+                <input 
+                  type="number"
+                  placeholder="0.00"
+                  value={newListing.budget}
+                  onChange={(e) => setNewListing({...newListing, budget: e.target.value})}
+                  className="w-full bg-[#2b3142] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Açıklama (Opsiyonel)</label>
+                <textarea 
+                  rows={4}
+                  placeholder="Aradığınız ürünün detaylarını belirtin..."
+                  value={newListing.description}
+                  onChange={(e) => setNewListing({...newListing, description: e.target.value})}
+                  className="w-full bg-[#2b3142] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors resize-none"
+                ></textarea>
+              </div>
+              
+              <div className="pt-2">
+                <button 
+                  type="submit"
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-emerald-500/20"
+                >
+                  İlanı Yayınla
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,3 +1,6 @@
+import { useParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import { showcaseListings, valorantListings } from '../data/mockData';
 import Breadcrumb from '../components/Product/Breadcrumb';
 import ProductGallery from '../components/Product/ProductGallery';
 import SellerCard from '../components/Product/SellerCard';
@@ -7,25 +10,34 @@ import SimilarProducts from '../components/Product/SimilarProducts';
 import toast from 'react-hot-toast';
 
 export default function Product() {
+  const { id } = useParams();
+  
+  const product = useMemo(() => {
+    const allListings = [...showcaseListings, ...valorantListings];
+    return allListings.find(p => p.id === Number(id)) || allListings[0];
+  }, [id]);
+
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
   };
 
+  if (!product) return <div className="text-center py-20 text-white">Ürün bulunamadı.</div>;
+
   return (
     <div className="max-w-[1200px] mx-auto">
-      <Breadcrumb />
+      <Breadcrumb category={product.category} title={product.title} />
       
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Column */}
         <div className="flex-1 space-y-6 min-w-0">
-          <ProductGallery />
-          <ProductDetails />
+          <ProductGallery image={product.image} />
+          <ProductDetails product={product} />
         </div>
 
         {/* Right Column */}
         <div className="w-full lg:w-[320px] shrink-0 space-y-6">
-          <SellerCard />
-          <PurchaseCard />
+          <SellerCard sellerName={product.sellerName} sellerAvatar={product.sellerAvatar} />
+          <PurchaseCard product={product} />
           
           {/* Help Banner */}
           <div className="bg-[#232736] rounded-xl border border-white/5 p-6 text-center">
@@ -49,7 +61,7 @@ export default function Product() {
         </div>
       </div>
 
-      <SimilarProducts />
+      <SimilarProducts category={product.category} />
     </div>
   );
 }

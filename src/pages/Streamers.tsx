@@ -1,14 +1,22 @@
-import { Users, Star, MessageSquare, Play, Heart } from 'lucide-react';
-import { useState } from 'react';
+import { Users, Star, MessageSquare, Play, Heart, X } from 'lucide-react';
+import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function Streamers() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [streamers, setStreamers] = useState([
     { id: 1, name: 'GamerX', avatar: 'https://picsum.photos/seed/u1/100/100', followers: '1.2M', platform: 'Twitch', status: 'Canlı', game: 'Valorant', isFollowing: false },
     { id: 2, name: 'ProPlayer', avatar: 'https://picsum.photos/seed/u2/100/100', followers: '850K', platform: 'YouTube', status: 'Canlı', game: 'CS2', isFollowing: false },
     { id: 3, name: 'NoobMaster', avatar: 'https://picsum.photos/seed/u3/100/100', followers: '450K', platform: 'Twitch', status: 'Çevrimdışı', game: 'LoL', isFollowing: false },
     { id: 4, name: 'StreamQueen', avatar: 'https://picsum.photos/seed/u4/100/100', followers: '2.5M', platform: 'TikTok', status: 'Canlı', game: 'Sohbet', isFollowing: false },
   ]);
+
+  const [application, setApplication] = useState({
+    platform: 'Twitch',
+    channelUrl: '',
+    followers: '',
+    message: ''
+  });
 
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
@@ -23,6 +31,17 @@ export default function Streamers() {
       }
       return s;
     }));
+  };
+
+  const handleApply = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!application.channelUrl || !application.followers) {
+      toast.error('Lütfen gerekli alanları doldurun.');
+      return;
+    }
+    toast.success('Başvurunuz başarıyla alındı! Ekibimiz en kısa sürede sizinle iletişime geçecektir.');
+    setIsModalOpen(false);
+    setApplication({ platform: 'Twitch', channelUrl: '', followers: '', message: '' });
   };
 
   return (
@@ -98,12 +117,82 @@ export default function Streamers() {
           </div>
         </div>
         <button 
-          onClick={() => handleComingSoon('Yayıncı Başvurusu')}
+          onClick={() => setIsModalOpen(true)}
           className="bg-white text-black hover:bg-gray-200 px-8 py-3 rounded-xl font-bold transition-colors"
         >
           Hemen Başvur
         </button>
       </div>
+
+      {/* Application Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#232736] w-full max-w-md rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-white/5">
+              <h3 className="text-xl font-bold text-white">Yayıncı Başvurusu</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleApply} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Platform</label>
+                <select 
+                  value={application.platform}
+                  onChange={(e) => setApplication({...application, platform: e.target.value})}
+                  className="w-full bg-[#2b3142] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+                >
+                  <option value="Twitch">Twitch</option>
+                  <option value="YouTube">YouTube</option>
+                  <option value="TikTok">TikTok</option>
+                  <option value="Kick">Kick</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Kanal Linki</label>
+                <input 
+                  type="url"
+                  placeholder="https://twitch.tv/kanaliniz"
+                  value={application.channelUrl}
+                  onChange={(e) => setApplication({...application, channelUrl: e.target.value})}
+                  className="w-full bg-[#2b3142] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Takipçi Sayısı</label>
+                <input 
+                  type="text"
+                  placeholder="Örn: 10.000"
+                  value={application.followers}
+                  onChange={(e) => setApplication({...application, followers: e.target.value})}
+                  className="w-full bg-[#2b3142] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Mesajınız (Opsiyonel)</label>
+                <textarea 
+                  rows={3}
+                  placeholder="Bize kendinizden bahsedin..."
+                  value={application.message}
+                  onChange={(e) => setApplication({...application, message: e.target.value})}
+                  className="w-full bg-[#2b3142] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors resize-none"
+                ></textarea>
+              </div>
+              
+              <button 
+                type="submit"
+                className="w-full bg-[#5b68f6] hover:bg-[#4a55d6] text-white font-bold py-3 rounded-lg transition-colors"
+              >
+                Başvuruyu Gönder
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

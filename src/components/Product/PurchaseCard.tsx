@@ -4,19 +4,23 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useCart } from '../../contexts/CartContext';
 
-export default function PurchaseCard() {
+interface PurchaseCardProps {
+  product: any;
+}
+
+export default function PurchaseCard({ product }: PurchaseCardProps) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
-  const price = 15.00;
+  const price = product.price;
 
   const handleAddToCart = () => {
     addToCart({
-      id: 'epic-games-100-oyun', // Mock ID
-      title: 'Mail Değişen ⭐ Epic Games +100 Oyun Garanti Hesap',
+      id: product.id.toString(),
+      title: product.title,
       price: price,
-      originalPrice: 240.00,
-      seller: 'OpssGamerShop',
-      image: 'https://picsum.photos/seed/epic/80/80'
+      originalPrice: product.oldPrice,
+      seller: product.sellerName,
+      image: product.image
     });
 
     toast.custom((t) => (
@@ -33,9 +37,9 @@ export default function PurchaseCard() {
         </div>
         {/* Body */}
         <div className="p-4 flex gap-4">
-           <img src="https://picsum.photos/seed/epic/80/80" alt="Product" className="w-16 h-16 rounded-lg object-cover" />
+           <img src={product.image} alt="Product" className="w-16 h-16 rounded-lg object-cover" />
            <div>
-             <h4 className="text-white text-sm font-medium mb-1 line-clamp-2">Mail Değişen ⭐ Epic Games +100 Oyun Garanti Hesap</h4>
+             <h4 className="text-white text-sm font-medium mb-1 line-clamp-2">{product.title}</h4>
              <p className="text-gray-400 text-xs">{quantity}x {price.toFixed(2)}₺</p>
            </div>
         </div>
@@ -64,7 +68,7 @@ export default function PurchaseCard() {
         {/* Price */}
         <div className="flex justify-between items-end mb-6">
           <div>
-            <div className="text-3xl font-bold text-emerald-500">15,00 ₺</div>
+            <div className="text-3xl font-bold text-emerald-500">{price.toFixed(2)} ₺</div>
             <div className="text-[10px] text-gray-400">İlan Ücreti</div>
           </div>
           <div className="text-right">

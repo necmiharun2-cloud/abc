@@ -1,14 +1,11 @@
 import { Star, ShieldCheck, Search, Award } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export default function Magazalar() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('Öne Çıkanlar');
-
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
-  };
 
   const stores = Array(12).fill(0).map((_, i) => ({
     id: i,
@@ -93,12 +90,12 @@ export default function Magazalar() {
                   <span className="text-white font-medium">{store.sales}</span> Başarılı İşlem
                 </div>
                 
-                <button 
-                  onClick={() => handleComingSoon('Mağaza Detay')}
-                  className="w-full bg-[#2b3142] hover:bg-[#32394d] text-white text-sm font-medium py-2 rounded transition-colors"
+                <Link 
+                  to={`/profil/${store.id}`}
+                  className="block w-full bg-[#2b3142] hover:bg-[#32394d] text-white text-sm font-medium py-2 rounded transition-colors text-center"
                 >
                   Mağazaya Git
-                </button>
+                </Link>
               </div>
             </div>
           </div>

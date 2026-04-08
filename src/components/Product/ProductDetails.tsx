@@ -1,7 +1,11 @@
 import { RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function ProductDetails() {
+interface ProductDetailsProps {
+  product: any;
+}
+
+export default function ProductDetails({ product }: ProductDetailsProps) {
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
   };
@@ -9,7 +13,7 @@ export default function ProductDetails() {
   return (
     <div className="space-y-4">
       {/* Price History & Alternatives */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-[#232736] rounded-xl p-4 border border-white/5">
           <div className="flex items-center gap-2 text-sm text-white font-medium mb-6">
             <svg className="w-4 h-4 text-[#5b68f6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -43,7 +47,7 @@ export default function ProductDetails() {
                 <div className="text-xs text-white font-medium">Daha Hızlı Teslimat Yapan Satıcı</div>
                 <div className="text-[10px] text-gray-400">Ort. Yanıt: 2dk • FastSeller</div>
               </div>
-              <div className="text-emerald-500 font-bold text-sm">65,00 ₺</div>
+              <div className="text-emerald-500 font-bold text-sm">{(product.price * 0.9).toFixed(2)} ₺</div>
             </div>
             <div 
               onClick={() => handleComingSoon('Alternatif Ürün')}
@@ -53,7 +57,7 @@ export default function ProductDetails() {
                 <div className="text-xs text-white font-medium">Daha Güvenilir Satıcı (Risk: 0)</div>
                 <div className="text-[10px] text-gray-400">10.000+ İşlem • ProSeller</div>
               </div>
-              <div className="text-[#5b68f6] font-bold text-sm">62,50 ₺</div>
+              <div className="text-[#5b68f6] font-bold text-sm">{(product.price * 1.1).toFixed(2)} ₺</div>
             </div>
           </div>
         </div>
@@ -87,7 +91,7 @@ export default function ProductDetails() {
 
         <div className="p-6">
           {/* Info Cards */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-[#2b3142] p-4 rounded-lg">
               <div className="text-[10px] text-[#5b68f6] font-medium mb-1">Gönderim Süresi</div>
               <div className="text-white font-bold">1-24 Saat</div>
@@ -105,11 +109,11 @@ export default function ProductDetails() {
           {/* Description Content */}
           <div className="space-y-6 text-sm">
             <div>
-              <h3 className="text-white font-bold underline underline-offset-4 mb-4">Youtube 1000 izlenme ilanımıza Hoşgeldiniz.</h3>
+              <h3 className="text-white font-bold underline underline-offset-4 mb-4">{product.title} ilanımıza Hoşgeldiniz.</h3>
               
               <div className="text-red-500 font-bold mb-2">📌 Nasıl Teslim Edilir?</div>
               <p className="text-white font-medium mb-2">İlanımızı Satın Aldığınızda Bize İlettiğiniz Link Gelir, O Linke Gönderimi Sağlarız.</p>
-              <p className="text-red-500 font-medium">Youtube İlanlarında Hesabınızın Gizli Olmaması Gerekir. Şayet Bu Gönderimi İmkansız Hale Kılar ve Gönderimi İptal Edemediğim İçin İade Olmaz.</p>
+              <p className="text-red-500 font-medium">Hesabınızın Gizli Olmaması Gerekir. Şayet Bu Gönderimi İmkansız Hale Kılar ve Gönderimi İptal Edemediğim İçin İade Olmaz.</p>
             </div>
 
             <div>
