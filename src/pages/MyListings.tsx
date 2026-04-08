@@ -23,7 +23,7 @@ export default function MyListings() {
           where('status', '==', activeTab)
         );
         const querySnapshot = await getDocs(q);
-        const fetchedListings = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const fetchedListings = querySnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
         setListings(fetchedListings);
       } catch (error) {
         console.error('Error fetching listings:', error);

@@ -13,7 +13,7 @@ export default function ShowcaseListings() {
       try {
         const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(12));
         const snapshot = await getDocs(q);
-        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
         setShowcaseListings(fetched);
       } catch (error) {
         console.error('Error fetching showcase listings:', error);

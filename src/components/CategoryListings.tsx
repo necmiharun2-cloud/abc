@@ -40,7 +40,7 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
       try {
         const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
-        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
         setAllListings(fetched);
       } catch (error) {
         console.error('Error fetching listings:', error);

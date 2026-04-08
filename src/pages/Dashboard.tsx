@@ -62,7 +62,7 @@ export default function Dashboard() {
     const fetchBanks = async () => {
       const q = query(collection(db, 'users', user.uid, 'banks'));
       const snapshot = await getDocs(q);
-      setBanks(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setBanks(snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) })));
     };
     fetchBanks();
   }, [user]);

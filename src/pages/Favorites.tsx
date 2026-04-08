@@ -34,7 +34,7 @@ export default function Favorites() {
         for (const chunk of chunks) {
           const q = query(collection(db, 'products'), where(documentId(), 'in', chunk));
           const snapshot = await getDocs(q);
-          const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
           allFetched = [...allFetched, ...fetched];
         }
         

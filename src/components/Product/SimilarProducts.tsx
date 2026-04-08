@@ -33,7 +33,7 @@ export default function SimilarProducts({ category, currentProductId }: SimilarP
         }
 
         const snapshot = await getDocs(q);
-        let fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
         
         if (currentProductId) {
           fetchedProducts = fetchedProducts.filter(p => p.id !== currentProductId);
