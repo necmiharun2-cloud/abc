@@ -1,34 +1,55 @@
 import { RefreshCw, Filter, ChevronDown, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function Orders() {
   const { user, loading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [fetching, setFetching] = useState(true);
 
-  const allOrders = [
-    { id: '1234352', title: 'Valorant Random Hesap', price: 180.00, date: '30.11.2022 20:21', status: 'delivered', seller: 'batuhanyahya6120', image: 'https://picsum.photos/seed/order1/80/80' },
-    { id: '1232716', title: 'Steam Random Key', price: 180.00, date: '30.11.2022 09:13', status: 'cancelled', seller: 'batuhanyahya6120', image: 'https://picsum.photos/seed/order2/80/80' },
-    { id: '1235500', title: 'Roblox 1000 Robux', price: 250.00, date: '01.12.2022 14:45', status: 'delivered', seller: 'RobloxKing', image: 'https://picsum.photos/seed/order3/80/80' },
-  ];
+  const fetchOrders = async () => {
+    if (!user) return;
+    setFetching(true);
+    try {
+      const q = query(
+        collection(db, 'orders'),
+        where('buyerId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      const fetchedOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setOrders(fetchedOrders);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast.error('Siparişler yüklenirken bir hata oluştu.');
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [user]);
 
   const filteredOrders = useMemo(() => {
-    return allOrders.filter(order => 
+    return orders.filter(order => 
       order.id.includes(searchTerm) || 
-      order.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.seller.toLowerCase().includes(searchTerm.toLowerCase())
+      (order.productName && order.productName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (order.sellerName && order.sellerName.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }, [searchTerm]);
+  }, [searchTerm, orders]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      toast.success('Siparişler güncellendi.');
-    }, 1000);
+    await fetchOrders();
+    setIsRefreshing(false);
+    toast.success('Siparişler güncellendi.');
   };
 
   const handleComingSoon = (feature: string) => {
@@ -90,7 +111,9 @@ export default function Orders() {
 
       {/* Orders List */}
       <div className="space-y-6">
-        {filteredOrders.length > 0 ? (
+        {fetching ? (
+          <div className="text-center py-20 text-white">Siparişler yükleniyor...</div>
+        ) : filteredOrders.length > 0 ? (
           <div className="space-y-4">
             {filteredOrders.map((order) => (
               <Link 
@@ -98,25 +121,25 @@ export default function Orders() {
                 to={`/siparis/${order.id}`}
                 className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer group"
               >
-                <img src={order.image} alt={order.title} className="w-16 h-16 rounded-lg object-cover" />
+                <img src={order.productImage || `https://picsum.photos/seed/${order.id}/80/80`} alt={order.productName} className="w-16 h-16 rounded-lg object-cover" />
                 <div className="flex-1 w-full">
-                  <div className="text-gray-400 text-sm mb-1">Sipariş No : {order.id}</div>
-                  <div className={`flex items-center gap-2 text-sm font-medium mb-2 ${order.status === 'delivered' ? 'text-emerald-400' : 'text-red-400'}`}>
-                    <div className={`w-2 h-2 rounded-full ${order.status === 'delivered' ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
-                    {order.status === 'delivered' ? 'Sipariş teslim edildi' : 'Sipariş iptal edildi'}
+                  <div className="text-gray-400 text-sm mb-1">Sipariş No : {order.id.slice(0, 8)}</div>
+                  <div className={`flex items-center gap-2 text-sm font-medium mb-2 ${order.status === 'completed' || order.status === 'delivered' ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                    <div className={`w-2 h-2 rounded-full ${order.status === 'completed' || order.status === 'delivered' ? 'bg-emerald-400' : 'bg-yellow-400'}`}></div>
+                    {order.status === 'completed' || order.status === 'delivered' ? 'Sipariş teslim edildi' : (order.status === 'cancelled' ? 'İptal Edildi' : 'İşleniyor')}
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-500 text-xs uppercase">Satıcı</span>
                     <span className="text-white bg-[#1a1d27] px-2 py-1 rounded flex items-center gap-2 border border-white/5">
-                      <img src={`https://picsum.photos/seed/${order.seller}/16/16`} alt="Seller" className="w-4 h-4 rounded" />
-                      {order.seller}
+                      <img src={`https://picsum.photos/seed/${order.sellerId}/16/16`} alt="Seller" className="w-4 h-4 rounded" />
+                      {order.sellerName || 'Satıcı'}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between w-full md:w-auto gap-6 mt-4 md:mt-0">
                   <div className="text-right">
-                    <div className="text-gray-400 text-sm mb-1">{order.date}</div>
-                    <div className="text-yellow-500 font-bold text-lg">{order.price.toFixed(2)} ₺</div>
+                    <div className="text-gray-400 text-sm mb-1">{order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString('tr-TR') : 'Yeni'}</div>
+                    <div className="text-yellow-500 font-bold text-lg">{order.price?.toFixed(2) || '0.00'} ₺</div>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-[#5b68f6] group-hover:text-white transition-colors">
                     <ChevronDown className="w-5 h-5" />

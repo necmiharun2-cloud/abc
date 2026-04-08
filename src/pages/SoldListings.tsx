@@ -1,33 +1,55 @@
 import { RefreshCw, Filter, ChevronDown, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function SoldListings() {
   const { user, loading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [sales, setSales] = useState<any[]>([]);
+  const [fetching, setFetching] = useState(true);
 
-  const allSales = [
-    { id: '1461229', title: 'Valorant Random Hesap', price: 350.00, date: '2 Şubat 2023, 17:06', status: 'delivered', buyer: 'Alıcı123', image: 'https://picsum.photos/seed/sold1/80/80' },
-    { id: '1461500', title: 'Roblox Robux 500', price: 120.00, date: '5 Şubat 2023, 12:30', status: 'delivered', buyer: 'GameLover', image: 'https://picsum.photos/seed/sold2/80/80' },
-  ];
+  const fetchSales = async () => {
+    if (!user) return;
+    setFetching(true);
+    try {
+      const q = query(
+        collection(db, 'orders'),
+        where('sellerId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      const fetchedSales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setSales(fetchedSales);
+    } catch (error) {
+      console.error('Error fetching sales:', error);
+      toast.error('Satışlar yüklenirken bir hata oluştu.');
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSales();
+  }, [user]);
 
   const filteredSales = useMemo(() => {
-    return allSales.filter(sale => 
+    return sales.filter(sale => 
       sale.id.includes(searchTerm) || 
-      sale.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.buyer.toLowerCase().includes(searchTerm.toLowerCase())
+      (sale.productName && sale.productName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (sale.buyerName && sale.buyerName.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }, [searchTerm]);
+  }, [searchTerm, sales]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      toast.success('Satışlar güncellendi.');
-    }, 1000);
+    await fetchSales();
+    setIsRefreshing(false);
+    toast.success('Satışlar güncellendi.');
   };
 
   const handleComingSoon = (feature: string) => {
@@ -89,7 +111,9 @@ export default function SoldListings() {
 
       {/* Sales List */}
       <div className="space-y-6">
-        {filteredSales.length > 0 ? (
+        {fetching ? (
+          <div className="text-center py-20 text-white">Satışlar yükleniyor...</div>
+        ) : filteredSales.length > 0 ? (
           <div className="space-y-4">
             {filteredSales.map((sale) => (
               <Link 
@@ -97,25 +121,25 @@ export default function SoldListings() {
                 to={`/siparis/${sale.id}`}
                 className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer group"
               >
-                <img src={sale.image} alt={sale.title} className="w-16 h-16 rounded-lg object-cover" />
+                <img src={sale.productImage || `https://picsum.photos/seed/${sale.id}/80/80`} alt={sale.productName} className="w-16 h-16 rounded-lg object-cover" />
                 <div className="flex-1 w-full">
-                  <div className="text-gray-400 text-sm mb-1">Sipariş No : {sale.id}</div>
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                    Sipariş teslim edildi
+                  <div className="text-gray-400 text-sm mb-1">Sipariş No : {sale.id.slice(0, 8)}</div>
+                  <div className={`flex items-center gap-2 text-sm font-medium mb-2 ${sale.status === 'completed' || sale.status === 'delivered' ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                    <div className={`w-2 h-2 rounded-full ${sale.status === 'completed' || sale.status === 'delivered' ? 'bg-emerald-400' : 'bg-yellow-400'}`}></div>
+                    {sale.status === 'completed' || sale.status === 'delivered' ? 'Sipariş teslim edildi' : (sale.status === 'cancelled' ? 'İptal Edildi' : 'İşleniyor')}
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-500 text-xs uppercase">Alıcı</span>
                     <span className="text-white bg-[#1a1d27] px-2 py-1 rounded flex items-center gap-2 border border-white/5">
-                      <img src={`https://picsum.photos/seed/${sale.buyer}/16/16`} alt="Buyer" className="w-4 h-4 rounded" />
-                      {sale.buyer}
+                      <img src={`https://picsum.photos/seed/${sale.buyerId}/16/16`} alt="Buyer" className="w-4 h-4 rounded" />
+                      {sale.buyerName || 'Alıcı'}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between w-full md:w-auto gap-6 mt-4 md:mt-0">
                   <div className="text-right">
-                    <div className="text-gray-400 text-sm mb-1">{sale.date}</div>
-                    <div className="text-yellow-500 font-bold text-lg">{sale.price.toFixed(2)} ₺</div>
+                    <div className="text-gray-400 text-sm mb-1">{sale.createdAt?.toDate ? sale.createdAt.toDate().toLocaleString('tr-TR') : 'Yeni'}</div>
+                    <div className="text-yellow-500 font-bold text-lg">{sale.price?.toFixed(2) || '0.00'} ₺</div>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-[#5b68f6] group-hover:text-white transition-colors">
                     <ChevronDown className="w-5 h-5" />

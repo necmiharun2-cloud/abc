@@ -1,12 +1,62 @@
-import { HelpCircle, Rocket, FileText } from 'lucide-react';
-import React, { useState } from 'react';
+import { HelpCircle, Rocket, FileText, Search, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
+import { db } from '../firebase';
+import { collection, query, where, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function MyListings() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<'active' | 'passive'>('active');
+  const [listings, setListings] = useState<any[]>([]);
+  const [fetching, setFetching] = useState(true);
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      if (!user) return;
+      setFetching(true);
+      try {
+        const q = query(
+          collection(db, 'products'),
+          where('sellerId', '==', user.uid),
+          where('status', '==', activeTab)
+        );
+        const querySnapshot = await getDocs(q);
+        const fetchedListings = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setListings(fetchedListings);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+        toast.error('İlanlar yüklenirken bir hata oluştu.');
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchListings();
+  }, [user, activeTab]);
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Bu ilanı silmek istediğinize emin misiniz?')) return;
+    try {
+      await deleteDoc(doc(db, 'products', id));
+      setListings(listings.filter(l => l.id !== id));
+      toast.success('İlan başarıyla silindi.');
+    } catch (error) {
+      toast.error('İlan silinirken bir hata oluştu.');
+    }
+  };
+
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'passive' : 'active';
+    try {
+      await updateDoc(doc(db, 'products', id), { status: newStatus });
+      setListings(listings.filter(l => l.id !== id));
+      toast.success(`İlan ${newStatus === 'active' ? 'aktif' : 'pasif'} duruma getirildi.`);
+    } catch (error) {
+      toast.error('İlan durumu güncellenirken bir hata oluştu.');
+    }
+  };
 
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
@@ -58,40 +108,50 @@ export default function MyListings() {
       </div>
 
       {/* Content Area */}
-      <div className="bg-[#232736] border border-white/5 rounded-xl p-12 flex flex-col items-center justify-center text-center min-h-[400px]">
-        <div className="w-24 h-24 bg-[#1a1d27] rounded-full flex items-center justify-center mb-6 border border-white/5 relative">
-          <FileText className="w-10 h-10 text-gray-400" />
-          <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#232736] rounded-full flex items-center justify-center">
-            <SearchIcon className="w-5 h-5 text-[#5b68f6]" />
-          </div>
+      {fetching ? (
+        <div className="text-center py-20 text-white">İlanlar yükleniyor...</div>
+      ) : listings.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {listings.map((listing) => (
+            <div key={listing.id} className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden flex flex-col">
+              <img src={listing.image} alt={listing.title} className="w-full h-48 object-cover" />
+              <div className="p-4 flex-1 flex flex-col">
+                <h3 className="text-white font-bold mb-2 line-clamp-2">{listing.title}</h3>
+                <div className="text-emerald-400 font-bold text-lg mb-4">{listing.price.toFixed(2)} ₺</div>
+                <div className="mt-auto flex gap-2">
+                  <button 
+                    onClick={() => handleToggleStatus(listing.id, listing.status)}
+                    className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    {listing.status === 'active' ? 'Pasife Al' : 'Aktife Al'}
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(listing.id)}
+                    className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">
-          {activeTab === 'active' ? 'Aktif ilan bulunamadı.' : 'Pasif ilan bulunamadı.'}
-        </h3>
-        <p className="text-gray-400 text-sm">
-          {activeTab === 'active' ? 'Satıcıya ait hiçbir aktif ilan bulunamadı.' : 'Satıcıya ait hiçbir pasif ilan bulunamadı.'}
-        </p>
-      </div>
+      ) : (
+        <div className="bg-[#232736] border border-white/5 rounded-xl p-12 flex flex-col items-center justify-center text-center min-h-[400px]">
+          <div className="w-24 h-24 bg-[#1a1d27] rounded-full flex items-center justify-center mb-6 border border-white/5 relative">
+            <FileText className="w-10 h-10 text-gray-400" />
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#232736] rounded-full flex items-center justify-center">
+              <Search className="w-5 h-5 text-[#5b68f6]" />
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">
+            {activeTab === 'active' ? 'Aktif ilan bulunamadı.' : 'Pasif ilan bulunamadı.'}
+          </h3>
+          <p className="text-gray-400 text-sm">
+            {activeTab === 'active' ? 'Satıcıya ait hiçbir aktif ilan bulunamadı.' : 'Satıcıya ait hiçbir pasif ilan bulunamadı.'}
+          </p>
+        </div>
+      )}
     </div>
   );
-}
-
-function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  )
 }

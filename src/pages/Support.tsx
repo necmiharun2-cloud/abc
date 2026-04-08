@@ -1,38 +1,72 @@
-import { MessageSquare, PlusCircle, Headphones, ChevronRight, Clock, CheckCircle2, AlertCircle, X } from 'lucide-react';
-import { useState } from 'react';
+import { MessageSquare, PlusCircle, Headphones, ChevronRight, ChevronDown, Clock, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, onSnapshot } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 export default function Support() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTicket, setNewTicket] = useState({ subject: '', category: 'Genel', message: '' });
-  const [tickets, setTickets] = useState([
-    { id: '180410', subject: 'Ödeme Sorunu', date: '2 Şubat 2023 18:14', status: 'Cevaplandı', statusColor: 'emerald' },
-    { id: '180411', subject: 'İlan Onayı Hakkında', date: '5 Şubat 2023 12:30', status: 'Beklemede', statusColor: 'yellow' },
-  ]);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
 
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
-  };
+  useEffect(() => {
+    if (!user) return;
+    const q = query(
+      collection(db, 'support_tickets'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedTickets = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setTickets(fetchedTickets);
+    });
 
-  const handleCreateTicket = (e: any) => {
+    return unsubscribe;
+  }, [user]);
+
+  const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Giriş yapmalısınız.');
+      return;
+    }
     if (!newTicket.subject || !newTicket.message) {
       toast.error('Lütfen tüm alanları doldurun.');
       return;
     }
 
-    const ticket = {
-      id: Math.floor(100000 + Math.random() * 900000).toString(),
-      subject: newTicket.subject,
-      date: new Date().toLocaleString('tr-TR'),
-      status: 'Beklemede',
-      statusColor: 'yellow'
-    };
+    try {
+      await addDoc(collection(db, 'support_tickets'), {
+        userId: user.uid,
+        subject: newTicket.subject,
+        category: newTicket.category,
+        message: newTicket.message,
+        status: 'Beklemede',
+        createdAt: serverTimestamp()
+      });
 
-    setTickets([ticket, ...tickets]);
-    setIsModalOpen(false);
-    setNewTicket({ subject: '', category: 'Genel', message: '' });
-    toast.success('Destek talebiniz başarıyla oluşturuldu!');
+      setIsModalOpen(false);
+      setNewTicket({ subject: '', category: 'Genel', message: '' });
+      toast.success('Destek talebiniz başarıyla oluşturuldu!');
+    } catch (error) {
+      toast.error('Talep oluşturulurken bir hata oluştu.');
+    }
+  };
+
+  const handleLiveSupport = () => {
+    toast.success('Canlı destek operatörüne bağlanılıyor...');
+    setTimeout(() => {
+      navigate('/mesajlarim');
+    }, 1500);
   };
 
   return (
@@ -57,7 +91,7 @@ export default function Support() {
             Destek Talebi Oluştur
           </button>
           <button 
-            onClick={() => handleComingSoon('Canlı Destek')}
+            onClick={handleLiveSupport}
             className="flex-1 md:flex-none bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20"
           >
             <MessageSquare className="w-5 h-5" />
@@ -106,34 +140,58 @@ export default function Support() {
         
         <div className="divide-y divide-white/5">
           {tickets.map((ticket) => (
-            <div key={ticket.id} className="p-6 hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#1a1d27] rounded-lg flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-gray-500">#{ticket.id}</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-bold mb-1">{ticket.subject}</h3>
-                  <div className="flex items-center gap-3 text-xs text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {ticket.date}
-                    </span>
-                    <span className={`flex items-center gap-1 font-bold ${ticket.statusColor === 'emerald' ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${ticket.statusColor === 'emerald' ? 'bg-emerald-400' : 'bg-yellow-400'}`}></div>
-                      {ticket.status}
-                    </span>
+            <div key={ticket.id} className="hover:bg-white/[0.02] transition-colors">
+              <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer" onClick={() => setExpandedTicket(expandedTicket === ticket.id ? null : ticket.id)}>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-[#1a1d27] rounded-lg flex items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-gray-500">#{ticket.id.slice(0, 6)}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold mb-1">{ticket.subject}</h3>
+                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {ticket.createdAt?.toDate ? ticket.createdAt.toDate().toLocaleString('tr-TR') : 'Yeni'}
+                      </span>
+                      <span className={`flex items-center gap-1 font-bold ${ticket.status === 'Cevaplandı' ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${ticket.status === 'Cevaplandı' ? 'bg-emerald-400' : 'bg-yellow-400'}`}></div>
+                        {ticket.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <button 
+                  className="flex items-center gap-2 text-[#5b68f6] hover:text-white transition-colors text-sm font-bold group"
+                >
+                  Talebi Gör
+                  {expandedTicket === ticket.id ? (
+                    <ChevronDown className="w-4 h-4 transition-transform" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  )}
+                </button>
               </div>
-              <button 
-                onClick={() => handleComingSoon('Talebi Gör')}
-                className="flex items-center gap-2 text-[#5b68f6] hover:text-white transition-colors text-sm font-bold group"
-              >
-                Talebi Gör
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
+              {expandedTicket === ticket.id && (
+                <div className="px-6 pb-6 pt-2 border-t border-white/5 bg-[#1a1d27]/50">
+                  <div className="text-sm text-gray-300 whitespace-pre-wrap">
+                    <span className="font-bold text-white block mb-2">Mesajınız:</span>
+                    {ticket.message}
+                  </div>
+                  {ticket.reply && (
+                    <div className="mt-4 p-4 bg-[#5b68f6]/10 rounded-lg border border-[#5b68f6]/20 text-sm text-gray-300 whitespace-pre-wrap">
+                      <span className="font-bold text-[#5b68f6] block mb-2">Destek Ekibi:</span>
+                      {ticket.reply}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
+          {tickets.length === 0 && (
+            <div className="p-8 text-center text-gray-400">
+              Henüz bir destek talebiniz bulunmuyor.
+            </div>
+          )}
         </div>
       </div>
 

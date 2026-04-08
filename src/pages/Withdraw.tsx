@@ -1,20 +1,17 @@
 import { HelpCircle, PlusCircle, CreditCard, Wallet, Bitcoin, ChevronDown } from 'lucide-react';
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export default function Withdraw() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [method, setMethod] = useState<'bank' | 'tosla' | 'binance'>('bank');
   const [amount, setAmount] = useState('');
   const [bankAccount, setBankAccount] = useState('');
   const [isAgreed, setIsAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
-  };
 
   const handleWithdraw = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,14 +52,14 @@ export default function Withdraw() {
         </div>
         <div className="flex gap-3">
           <button 
-            onClick={() => handleComingSoon('Yardım')}
+            onClick={() => navigate('/destek-sistemi')}
             className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
           >
             <HelpCircle className="w-4 h-4" />
             Sorun mu yaşıyorsunuz?
           </button>
           <button 
-            onClick={() => handleComingSoon('Banka Hesabı Ekle')}
+            onClick={() => navigate('/kontrol-merkezi', { state: { activeView: 'banks' } })}
             className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
           >
             <PlusCircle className="w-4 h-4" />

@@ -1,18 +1,80 @@
 import { useAuth } from '../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useParams, Link } from 'react-router-dom';
 import ProfileWarningModal from '../components/ProfileWarningModal';
 import { Package, Star, Trophy, Users, UserPlus, Edit3, X, Camera } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function Profile() {
   const { user, loading } = useAuth();
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState('ilanlar');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [profileData, setProfileData] = useState({
-    displayName: user?.displayName || '',
+    displayName: '',
     bio: ''
   });
+  const [viewedUser, setViewedUser] = useState<any>(null);
+  const [fetchingUser, setFetchingUser] = useState(true);
+  const [listings, setListings] = useState<any[]>([]);
+  const [fetchingListings, setFetchingListings] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      setFetchingUser(true);
+      if (id) {
+        try {
+          const docRef = doc(db, 'users', id);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setViewedUser({ id: docSnap.id, ...docSnap.data() });
+          } else {
+            toast.error('Kullanıcı bulunamadı.');
+          }
+        } catch (error) {
+          console.error('Error fetching user:', error);
+        }
+      } else if (user) {
+        setViewedUser({
+          id: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          avatar: user.photoURL,
+          // Add other profile fields if needed
+        });
+        setProfileData({
+          displayName: user.displayName || '',
+          bio: ''
+        });
+      }
+      setFetchingUser(false);
+    };
+    fetchUser();
+  }, [id, user]);
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      if (!viewedUser || activeTab !== 'ilanlar') return;
+      setFetchingListings(true);
+      try {
+        const q = query(
+          collection(db, 'products'),
+          where('sellerId', '==', viewedUser.id),
+          where('status', '==', 'active')
+        );
+        const querySnapshot = await getDocs(q);
+        const fetchedListings = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setListings(fetchedListings);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      } finally {
+        setFetchingListings(false);
+      }
+    };
+    fetchListings();
+  }, [viewedUser, activeTab]);
 
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
@@ -24,27 +86,33 @@ export default function Profile() {
     setIsEditModalOpen(false);
   };
 
-  if (loading) {
+  if (loading || fetchingUser) {
     return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   }
 
-  if (!user) {
+  if (!user && !id) {
     return <Navigate to="/login" />;
   }
 
+  if (!viewedUser) {
+    return <div className="text-center py-20 text-white">Kullanıcı bulunamadı.</div>;
+  }
+
+  const isOwnProfile = !id || id === user?.uid;
+
   return (
     <div className="max-w-[1400px] mx-auto">
-      <ProfileWarningModal />
+      {isOwnProfile && <ProfileWarningModal />}
       
       {/* Cover Photo Area */}
       <div className="h-[300px] w-full bg-[#1a1d27] relative overflow-hidden rounded-t-xl border-x border-t border-white/5">
         <img 
-          src="https://picsum.photos/seed/cover/1400/300" 
+          src={`https://picsum.photos/seed/cover${viewedUser.id}/1400/300`} 
           alt="Cover" 
           className="w-full h-full object-cover opacity-50"
         />
         <div className="absolute top-4 right-4 text-xs text-gray-400 bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-          Üyelik Tarihi : 15 Kasım 2022
+          Üyelik Tarihi : {viewedUser.createdAt?.toDate ? viewedUser.createdAt.toDate().toLocaleDateString('tr-TR') : 'Bilinmiyor'}
         </div>
       </div>
 
@@ -54,26 +122,36 @@ export default function Profile() {
         <div className="flex gap-6 -mt-16 relative z-10">
           <div className="relative">
             <div className="w-32 h-32 rounded-xl bg-[#1a1d27] border-4 border-[#232736] overflow-hidden flex items-center justify-center">
-              <img src="https://picsum.photos/seed/avatar/128/128" alt="Avatar" className="w-full h-full object-cover" />
+              <img src={viewedUser.avatar || `https://picsum.photos/seed/avatar${viewedUser.id}/128/128`} alt="Avatar" className="w-full h-full object-cover" />
             </div>
             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full border-4 border-[#232736]"></div>
           </div>
           
           <div className="pt-20">
             <div className="text-sm text-gray-400 mb-1">Kullanıcı</div>
-            <h1 className="text-2xl font-bold text-white mb-2">{user.displayName || user.email?.split('@')[0] || 'Kullanıcı'}</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">{viewedUser.username || viewedUser.displayName || viewedUser.email?.split('@')[0] || 'Kullanıcı'}</h1>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-[#1a1d27] border-2 border-yellow-500 flex items-center justify-center">
                 <span className="text-xs font-bold text-white">2</span>
               </div>
             </div>
-            <button 
-              onClick={() => setIsEditModalOpen(true)}
-              className="mt-4 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-            >
-              <Edit3 className="w-4 h-4" />
-              Profilini Düzenle
-            </button>
+            {isOwnProfile ? (
+              <button 
+                onClick={() => setIsEditModalOpen(true)}
+                className="mt-4 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <Edit3 className="w-4 h-4" />
+                Profilini Düzenle
+              </button>
+            ) : (
+              <button 
+                onClick={() => handleComingSoon('Takip Et')}
+                className="mt-4 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                Takip Et
+              </button>
+            )}
           </div>
         </div>
 
@@ -81,12 +159,12 @@ export default function Profile() {
         <div className="flex flex-col items-end gap-4 w-full md:w-auto">
           <div className="flex items-center gap-2">
             <Star className="w-6 h-6 text-yellow-500 fill-current" />
-            <span className="text-xl font-bold text-white">9.8</span>
+            <span className="text-xl font-bold text-white">{(Math.random() * 1 + 4).toFixed(1)}</span>
             <span className="text-gray-400">/ 10</span>
           </div>
           <div className="text-sm text-gray-400">12 Değerlendirme</div>
           <div className="w-full md:w-48 bg-emerald-500/20 text-emerald-400 text-center py-2 rounded-lg text-sm font-medium border border-emerald-500/30">
-            154 Başarılı İşlem
+            {viewedUser.soldCount || 0} Başarılı İşlem
           </div>
         </div>
       </div>
@@ -129,16 +207,41 @@ export default function Profile() {
       {/* Content Area */}
       <div className="bg-[#232736] rounded-xl border border-white/5 p-12 flex flex-col items-center justify-center text-center min-h-[400px]">
         {activeTab === 'ilanlar' && (
-          <>
-            <div className="w-24 h-24 bg-[#1a1d27] rounded-full flex items-center justify-center mb-6 relative">
-              <Package className="w-12 h-12 text-blue-400" />
-              <div className="absolute -bottom-2 -right-2 bg-yellow-500 w-8 h-8 rounded-full flex items-center justify-center border-4 border-[#232736]">
-                <SearchIcon className="w-4 h-4 text-white" />
+          <div className="w-full">
+            {fetchingListings ? (
+              <div className="text-center py-10 text-gray-400">İlanlar yükleniyor...</div>
+            ) : listings.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 text-left">
+                {listings.map((listing) => (
+                  <Link key={listing.id} to={`/product/${listing.id}`} className="bg-[#1a1d27] rounded-xl border border-white/5 overflow-hidden hover:border-white/20 transition-colors group flex flex-col">
+                    <div className="relative h-40">
+                      <img src={listing.image || `https://picsum.photos/seed/${listing.id}/400/300`} alt={listing.title} className="w-full h-full object-cover" />
+                      <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-white">
+                        {listing.category}
+                      </div>
+                    </div>
+                    <div className="p-4 flex-1 flex flex-col">
+                      <h3 className="text-white font-bold mb-2 line-clamp-2 group-hover:text-[#5b68f6] transition-colors">{listing.title}</h3>
+                      <div className="mt-auto flex items-center justify-between">
+                        <div className="text-emerald-400 font-bold text-lg">{listing.price.toFixed(2)} ₺</div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">Aktif ilan bulunamadı.</h2>
-            <p className="text-gray-400">Satıcıya ait hiçbir aktif ilan bulunamadı.</p>
-          </>
+            ) : (
+              <div className="flex flex-col items-center justify-center">
+                <div className="w-24 h-24 bg-[#1a1d27] rounded-full flex items-center justify-center mb-6 relative">
+                  <Package className="w-12 h-12 text-blue-400" />
+                  <div className="absolute -bottom-2 -right-2 bg-yellow-500 w-8 h-8 rounded-full flex items-center justify-center border-4 border-[#232736]">
+                    <SearchIcon className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <h2 className="text-xl font-bold text-white mb-2">Aktif ilan bulunamadı.</h2>
+                <p className="text-gray-400">Kullanıcıya ait hiçbir aktif ilan bulunamadı.</p>
+              </div>
+            )}
+          </div>
         )}
         {activeTab === 'degerlendirmeler' && (
           <div className="w-full max-w-2xl space-y-4">

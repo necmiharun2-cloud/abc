@@ -2,13 +2,13 @@ import {
   Wallet, ArrowUpRight, ArrowDownRight, Package, Trophy, 
   ChevronDown, User, Shield, CreditCard, Settings, LifeBuoy,
   Bell, History, Landmark, UserCircle, Image, Link as LinkIcon,
-  Star, Lock, Smartphone, Globe, Receipt, Gift, Eye
+  Star, Lock, Smartphone, Globe, Receipt, Gift, Eye, Plus, Trash2
 } from 'lucide-react';
 import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, updateDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, deleteDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -34,7 +34,16 @@ export default function Dashboard() {
     avatar: '',
   });
 
-  const [balanceHistory, setBalanceHistory] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState({
+    orders: true,
+    messages: true,
+    system: true,
+    marketing: false
+  });
+
+  const [banks, setBanks] = useState<any[]>([]);
+  const [isAddingBank, setIsAddingBank] = useState(false);
+  const [newBank, setNewBank] = useState({ bankName: '', iban: '', accountHolder: '' });
 
   useEffect(() => {
     if (profile) {
@@ -42,8 +51,21 @@ export default function Dashboard() {
         username: profile.username || '',
         avatar: profile.avatar || '',
       });
+      if (profile.notifications) {
+        setNotifications(profile.notifications);
+      }
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchBanks = async () => {
+      const q = query(collection(db, 'users', user.uid, 'banks'));
+      const snapshot = await getDocs(q);
+      setBanks(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    };
+    fetchBanks();
+  }, [user]);
 
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -61,6 +83,48 @@ export default function Dashboard() {
       toast.success('Profil bilgileriniz güncellendi.');
     } catch (error) {
       toast.error('Güncelleme başarısız oldu.');
+    }
+  };
+
+  const handleUpdateNotifications = async () => {
+    if (!user) return;
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        notifications
+      });
+      toast.success('Bildirim ayarlarınız kaydedildi.');
+    } catch (error) {
+      toast.error('Ayarlar kaydedilemedi.');
+    }
+  };
+
+  const handleAddBank = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    if (!newBank.bankName || !newBank.iban || !newBank.accountHolder) {
+      toast.error('Lütfen tüm alanları doldurun.');
+      return;
+    }
+    try {
+      const docRef = await addDoc(collection(db, 'users', user.uid, 'banks'), newBank);
+      setBanks([...banks, { id: docRef.id, ...newBank }]);
+      setNewBank({ bankName: '', iban: '', accountHolder: '' });
+      setIsAddingBank(false);
+      toast.success('Banka hesabı eklendi.');
+    } catch (error) {
+      toast.error('Banka hesabı eklenemedi.');
+    }
+  };
+
+  const handleDeleteBank = async (id: string) => {
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'banks', id));
+      setBanks(banks.filter(b => b.id !== id));
+      toast.success('Banka hesabı silindi.');
+    } catch (error) {
+      toast.error('Banka hesabı silinemedi.');
     }
   };
 
@@ -364,13 +428,16 @@ export default function Dashboard() {
                     <h4 className="text-white font-medium">{item.label}</h4>
                     <p className="text-xs text-gray-500">{item.desc}</p>
                   </div>
-                  <div className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-[#5b68f6]">
-                    <span className="translate-x-5 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
-                  </div>
+                  <button 
+                    onClick={() => setNotifications(prev => ({ ...prev, [item.id]: !prev[item.id as keyof typeof notifications] }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${notifications[item.id as keyof typeof notifications] ? 'bg-[#5b68f6]' : 'bg-gray-600'}`}
+                  >
+                    <span className={`${notifications[item.id as keyof typeof notifications] ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}></span>
+                  </button>
                 </div>
               ))}
               <button 
-                onClick={() => toast.success('Bildirim ayarlarınız kaydedildi.')}
+                onClick={handleUpdateNotifications}
                 className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-8 py-2.5 rounded-lg font-bold transition-colors mt-4"
               >
                 Ayarları Kaydet
@@ -381,20 +448,113 @@ export default function Dashboard() {
 
         {activeView === 'banks' && (
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-white mb-4">Banka Hesapları</h2>
-            <div className="bg-[#232736] rounded-xl border border-white/5 p-6">
-              <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
-                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
-                  <Landmark className="w-8 h-8 text-gray-400" />
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Banka Hesapları</h2>
+              <button 
+                onClick={() => setIsAddingBank(true)}
+                className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Yeni Hesap Ekle
+              </button>
+            </div>
+
+            {isAddingBank && (
+              <form onSubmit={handleAddBank} className="bg-[#232736] rounded-xl border border-white/5 p-6 mb-6 space-y-4">
+                <h3 className="text-white font-bold mb-4">Yeni Banka Hesabı Ekle</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Banka Adı</label>
+                    <input 
+                      type="text" 
+                      value={newBank.bankName}
+                      onChange={(e) => setNewBank({ ...newBank, bankName: e.target.value })}
+                      placeholder="Örn: Ziraat Bankası" 
+                      className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Hesap Sahibi</label>
+                    <input 
+                      type="text" 
+                      value={newBank.accountHolder}
+                      onChange={(e) => setNewBank({ ...newBank, accountHolder: e.target.value })}
+                      placeholder="Ad Soyad" 
+                      className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" 
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm text-gray-400">IBAN</label>
+                    <input 
+                      type="text" 
+                      value={newBank.iban}
+                      onChange={(e) => setNewBank({ ...newBank, iban: e.target.value })}
+                      placeholder="TR00 0000 0000 0000 0000 0000 00" 
+                      className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" 
+                    />
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-white font-bold">Kayıtlı banka hesabı bulunamadı</h3>
-                  <p className="text-sm text-gray-400">Para çekme işlemleri için bir banka hesabı eklemelisiniz.</p>
+                <div className="flex gap-3 pt-4">
+                  <button 
+                    type="submit"
+                    className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                  >
+                    Kaydet
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setIsAddingBank(false)}
+                    className="bg-white/5 hover:bg-white/10 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                  >
+                    İptal
+                  </button>
                 </div>
-                <button className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors">
-                  Yeni Hesap Ekle
-                </button>
-              </div>
+              </form>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {banks.map(bank => (
+                <div key={bank.id} className="bg-[#232736] rounded-xl border border-white/5 p-6 relative group">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center">
+                      <Landmark className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-bold">{bank.bankName}</h3>
+                      <p className="text-sm text-gray-400">{bank.accountHolder}</p>
+                    </div>
+                  </div>
+                  <div className="bg-[#1a1d27] p-3 rounded-lg border border-white/5">
+                    <p className="text-sm text-gray-300 font-mono tracking-wider">{bank.iban}</p>
+                  </div>
+                  <button 
+                    onClick={() => handleDeleteBank(bank.id)}
+                    className="absolute top-4 right-4 p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              
+              {banks.length === 0 && !isAddingBank && (
+                <div className="col-span-full bg-[#232736] rounded-xl border border-white/5 p-6">
+                  <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
+                      <Landmark className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-bold">Kayıtlı banka hesabı bulunamadı</h3>
+                      <p className="text-sm text-gray-400">Para çekme işlemleri için bir banka hesabı eklemelisiniz.</p>
+                    </div>
+                    <button 
+                      onClick={() => setIsAddingBank(true)}
+                      className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                    >
+                      Yeni Hesap Ekle
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
