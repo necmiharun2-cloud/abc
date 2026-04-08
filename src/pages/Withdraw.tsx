@@ -21,12 +21,9 @@ export default function Withdraw() {
     const fetchBankAccounts = async () => {
       if (user) {
         try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            setBankAccounts(userData.bankAccounts || []);
-          }
+          const q = query(collection(db, 'users', user.uid, 'banks'));
+          const snapshot = await getDocs(q);
+          setBankAccounts(snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) })));
         } catch (error) {
           console.error('Error fetching bank accounts:', error);
         }

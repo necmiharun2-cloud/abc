@@ -24,6 +24,10 @@ export default function IlanEkle() {
     'VALORANT', 'ROBLOX', 'STEAM', 'DISCORD', 'PUBG MOBILE', 'LEAGUE OF LEGENDS', 'CS2', 'GROWTOPIA', 'KNIGHT ONLINE', 'METIN2'
   ];
 
+  const isFormValid = formData.title.length >= 5 && 
+                      formData.description.length >= 10 && 
+                      parseFloat(formData.price) > 0;
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -31,24 +35,8 @@ export default function IlanEkle() {
       return;
     }
 
-    if (!formData.title || !formData.price || !formData.description) {
-      toast.error('Lütfen tüm zorunlu alanları doldurun.');
-      return;
-    }
-
-    if (formData.title.length < 5) {
-      toast.error('İlan başlığı en az 5 karakter olmalıdır.');
-      return;
-    }
-
-    if (formData.description.length < 10) {
-      toast.error('İlan açıklaması en az 10 karakter olmalıdır.');
-      return;
-    }
-
-    const priceNum = parseFloat(formData.price);
-    if (isNaN(priceNum) || priceNum <= 0) {
-      toast.error('Lütfen geçerli bir fiyat girin.');
+    if (!isFormValid) {
+      toast.error('Lütfen tüm alanları geçerli şekilde doldurun.');
       return;
     }
 
@@ -56,7 +44,7 @@ export default function IlanEkle() {
     try {
       await addDoc(collection(db, 'products'), {
         ...formData,
-        price: priceNum,
+        price: parseFloat(formData.price),
         stock: parseInt(formData.stock) || 1,
         sellerId: user.uid,
         sellerName: user.displayName || 'Anonim Satıcı',
@@ -199,7 +187,7 @@ export default function IlanEkle() {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !isFormValid}
               className="bg-[#5b68f6] hover:bg-[#4a55d6] disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-[#5b68f6]/20 flex items-center gap-2"
             >
               {loading ? 'Oluşturuluyor...' : 'İlanı Yayınla'}
