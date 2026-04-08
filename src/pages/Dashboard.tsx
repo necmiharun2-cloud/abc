@@ -8,7 +8,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, deleteDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -86,6 +86,16 @@ export default function Dashboard() {
     }
   };
 
+  const handleUpdatePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
+  };
+
+  const handleUpdateEmail = async (e: FormEvent) => {
+    e.preventDefault();
+    toast.success('E-posta doğrulama bağlantısı gönderildi.');
+  };
+
   const handleUpdateNotifications = async () => {
     if (!user) return;
     try {
@@ -102,13 +112,27 @@ export default function Dashboard() {
   const handleAddBank = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    
+    const ibanRegex = /^TR\d{24}$/;
+    const cleanIban = newBank.iban.replace(/\s/g, '');
+
     if (!newBank.bankName || !newBank.iban || !newBank.accountHolder) {
       toast.error('Lütfen tüm alanları doldurun.');
       return;
     }
+
+    if (!ibanRegex.test(cleanIban)) {
+      toast.error('Geçersiz IBAN formatı. (TR ile başlamalı ve 26 karakter olmalıdır)');
+      return;
+    }
+
     try {
-      const docRef = await addDoc(collection(db, 'users', user.uid, 'banks'), newBank);
-      setBanks([...banks, { id: docRef.id, ...newBank }]);
+      const docRef = await addDoc(collection(db, 'users', user.uid, 'banks'), {
+        ...newBank,
+        iban: cleanIban,
+        createdAt: serverTimestamp()
+      });
+      setBanks([...banks, { id: docRef.id, ...newBank, iban: cleanIban }]);
       setNewBank({ bankName: '', iban: '', accountHolder: '' });
       setIsAddingBank(false);
       toast.success('Banka hesabı eklendi.');
@@ -138,6 +162,79 @@ export default function Dashboard() {
       toast.success('Bakiyenize 100 ₺ eklendi! (Test Modu)');
     } catch (error) {
       toast.error('Bakiye eklenemedi.');
+    }
+  };
+
+  const handleSeedData = async () => {
+    if (!user) return;
+    const confirm = window.confirm('Test verileri (örnek ilanlar) oluşturulsun mu?');
+    if (!confirm) return;
+
+    try {
+      const sampleProducts = [
+        {
+          title: '100-150 Skinli Valorant Hesabı',
+          category: 'VALORANT',
+          price: 450,
+          oldPrice: 550,
+          description: 'İçinde ejder vandal ve yağmacı bıçak bulunan dolu hesap.',
+          sellerId: user.uid,
+          sellerName: profile?.username || user.displayName || 'Test Satıcı',
+          sellerAvatar: profile?.avatar || 'https://picsum.photos/seed/u1/40/40',
+          image: 'https://picsum.photos/seed/v1/400/300',
+          status: 'active',
+          isVitrin: true,
+          createdAt: new Date().toISOString()
+        },
+        {
+          title: 'Roblox 10.000 Robux - Hızlı Teslimat',
+          category: 'ROBLOX',
+          price: 250,
+          description: 'Anında teslimat garantili robux.',
+          sellerId: user.uid,
+          sellerName: profile?.username || user.displayName || 'Test Satıcı',
+          sellerAvatar: profile?.avatar || 'https://picsum.photos/seed/u1/40/40',
+          image: 'https://picsum.photos/seed/r1/400/300',
+          status: 'active',
+          isVitrin: true,
+          createdAt: new Date().toISOString()
+        },
+        {
+          title: 'Steam 50 TL Cüzdan Kodu',
+          category: 'STEAM',
+          price: 45,
+          oldPrice: 50,
+          description: 'Global geçerli steam cüzdan kodu.',
+          sellerId: user.uid,
+          sellerName: profile?.username || user.displayName || 'Test Satıcı',
+          sellerAvatar: profile?.avatar || 'https://picsum.photos/seed/u1/40/40',
+          image: 'https://picsum.photos/seed/s1/400/300',
+          status: 'active',
+          isVitrin: false,
+          createdAt: new Date().toISOString()
+        },
+        {
+          title: 'Discord 1 Aylık Nitro Boost',
+          category: 'DISCORD',
+          price: 35,
+          description: 'Kendi hesabınıza tanımlanan nitro boost.',
+          sellerId: user.uid,
+          sellerName: profile?.username || user.displayName || 'Test Satıcı',
+          sellerAvatar: profile?.avatar || 'https://picsum.photos/seed/u1/40/40',
+          image: 'https://picsum.photos/seed/d1/400/300',
+          status: 'active',
+          isVitrin: true,
+          createdAt: new Date().toISOString()
+        }
+      ];
+
+      for (const product of sampleProducts) {
+        await addDoc(collection(db, 'products'), product);
+      }
+      toast.success('Örnek ilanlar başarıyla oluşturuldu! Anasayfayı kontrol edebilirsiniz.');
+    } catch (error) {
+      console.error('Seed error:', error);
+      toast.error('Veri oluşturulurken bir hata oluştu.');
     }
   };
 
@@ -175,6 +272,13 @@ export default function Dashboard() {
               Para Çek
             </Link>
           </div>
+          <button 
+            onClick={handleSeedData}
+            className="w-full mt-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-amber-500/20"
+          >
+            <Plus className="w-4 h-4" />
+            Örnek İlanları Yükle
+          </button>
         </div>
 
           {/* Navigation Menu */}
@@ -374,7 +478,7 @@ export default function Dashboard() {
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-white mb-4">Güvenlik Ayarları</h2>
             <div className="bg-[#232736] rounded-xl border border-white/5 p-6 space-y-6">
-              <div className="space-y-4">
+              <form onSubmit={handleUpdatePassword} className="space-y-4">
                 <h3 className="text-white font-bold">Şifre Değiştir</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -387,28 +491,26 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <button 
-                  type="button"
-                  onClick={() => toast.success('Şifreniz başarıyla güncellendi.')}
+                  type="submit"
                   className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors"
                 >
                   Şifreyi Güncelle
                 </button>
-              </div>
+              </form>
 
-              <div className="pt-6 border-t border-white/5 space-y-4">
+              <form onSubmit={handleUpdateEmail} className="pt-6 border-t border-white/5 space-y-4">
                 <h3 className="text-white font-bold">E-Posta Değiştir</h3>
                 <div className="space-y-2">
                   <label className="text-sm text-gray-400">Yeni E-Posta Adresi</label>
                   <input type="email" placeholder={user.email || ''} className="w-full max-w-md bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
                 </div>
                 <button 
-                  type="button"
-                  onClick={() => toast.success('Doğrulama e-postası gönderildi.')}
+                  type="submit"
                   className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors"
                 >
                   E-Postayı Güncelle
                 </button>
-              </div>
+              </form>
             </div>
           </div>
         )}

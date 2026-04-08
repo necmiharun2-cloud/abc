@@ -14,7 +14,7 @@ export default function PurchaseCard({ product }: PurchaseCardProps) {
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   const navigate = useNavigate();
-  const price = product.price;
+  const price = Number(product.price || 0);
 
   const handleAddToCart = () => {
     addToCart({

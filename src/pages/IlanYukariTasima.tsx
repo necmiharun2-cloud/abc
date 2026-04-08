@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { ArrowUpCircle, Zap, Clock, ShieldCheck, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -11,55 +11,69 @@ export default function IlanYukariTasima() {
   const [loading, setLoading] = useState(true);
   const [promoting, setPromoting] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchListings = async () => {
-      if (!user) return;
-      try {
-        const q = query(collection(db, 'products'), where('sellerId', '==', user.uid), where('status', '==', 'active'));
-        const querySnapshot = await getDocs(q);
-        const fetchedListings = querySnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
-        setListings(fetchedListings);
-      } catch (error) {
-        console.error('Error fetching listings:', error);
-        toast.error('İlanlarınız yüklenirken bir hata oluştu.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchListings = async () => {
+    if (!user) return;
+    try {
+      const q = query(collection(db, 'products'), where('sellerId', '==', user.uid), where('status', '==', 'active'));
+      const querySnapshot = await getDocs(q);
+      const fetchedListings = querySnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
+      setListings(fetchedListings);
+    } catch (error) {
+      console.error('Error fetching listings:', error);
+      toast.error('İlanlarınız yüklenirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchListings();
   }, [user]);
 
   const handlePromote = async (listingId: string) => {
-    if (!profile || profile.balance < 5) {
+    if (!user || !profile || profile.balance < 5) {
       toast.error('Yetersiz bakiye. İlan yükseltme ücreti 5 ₺\'dir.');
       return;
     }
 
     setPromoting(listingId);
     try {
-      // Update listing timestamp to move it up
-      const listingRef = doc(db, 'products', listingId);
-      await updateDoc(listingRef, {
-        createdAt: new Date().toISOString(),
-        isPromoted: true
-      });
+      await runTransaction(db, async (transaction) => {
+        const userRef = doc(db, 'users', user.uid);
+        const listingRef = doc(db, 'products', listingId);
+        
+        const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists()) throw new Error("Kullanıcı bulunamadı.");
+        
+        const currentBalance = userDoc.data().balance || 0;
+        if (currentBalance < 5) throw new Error("Yetersiz bakiye.");
 
-      // Deduct balance (In a real app, this would be a server-side transaction)
-      const userRef = doc(db, 'users', user!.uid);
-      await updateDoc(userRef, {
-        balance: profile.balance - 5
+        // Update balance
+        transaction.update(userRef, {
+          balance: currentBalance - 5
+        });
+
+        // Update listing
+        transaction.update(listingRef, {
+          createdAt: serverTimestamp(),
+          isPromoted: true
+        });
       });
 
       toast.success('İlanınız başarıyla yukarı taşındı!');
-      // Refresh listings
-      setListings(prev => prev.map(l => l.id === listingId ? { ...l, createdAt: new Date().toISOString(), isPromoted: true } : l));
-    } catch (error) {
+      await fetchListings();
+    } catch (error: any) {
       console.error('Error promoting listing:', error);
-      toast.error('İşlem sırasında bir hata oluştu.');
+      toast.error(error.message || 'İşlem sırasında bir hata oluştu.');
     } finally {
       setPromoting(null);
     }
+  };
+
+  const formatDate = (date: any) => {
+    if (!date) return '-';
+    if (date.toDate) return date.toDate().toLocaleString('tr-TR');
+    return new Date(date).toLocaleString('tr-TR');
   };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
@@ -133,7 +147,7 @@ export default function IlanYukariTasima() {
                   <span>•</span>
                   <span>{listing.price.toFixed(2)} ₺</span>
                   <span>•</span>
-                  <span>Son Güncelleme: {new Date(listing.createdAt).toLocaleString()}</span>
+                  <span>Son Güncelleme: {formatDate(listing.createdAt)}</span>
                 </div>
               </div>
               <button

@@ -38,14 +38,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const addToCart = (newItem: Omit<CartItem, 'quantity'>) => {
+    const itemWithNumbers = {
+      ...newItem,
+      price: Number(newItem.price || 0),
+      originalPrice: Number(newItem.originalPrice || 0)
+    };
     setItems(prev => {
-      const existing = prev.find(item => item.id === newItem.id);
+      const existing = prev.find(item => item.id === itemWithNumbers.id);
       if (existing) {
         return prev.map(item => 
-          item.id === newItem.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === itemWithNumbers.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prev, { ...newItem, quantity: 1 }];
+      return [...prev, { ...itemWithNumbers, quantity: 1 }];
     });
   };
 

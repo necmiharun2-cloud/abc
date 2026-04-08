@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, getDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, addDoc, runTransaction, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function Withdraw() {
-  const { user, loading } = useAuth();
+  const { user, loading, profile } = useAuth();
   const navigate = useNavigate();
   const [method, setMethod] = useState<'bank' | 'tosla' | 'binance'>('bank');
   const [amount, setAmount] = useState('');
@@ -62,14 +62,25 @@ export default function Withdraw() {
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
     if (!bankAccount) {
       toast.error('Lütfen bir banka hesabı seçiniz.');
       return;
     }
-    if (!amount || parseFloat(amount) < 30) {
+
+    const amountNum = parseFloat(amount);
+    if (!amount || isNaN(amountNum) || amountNum < 30) {
       toast.error('Minimum çekim tutarı 30.00 ₺\'dir.');
       return;
     }
+
+    const totalNeeded = amountNum + 20; // 20 TL fee
+    if (!profile || profile.balance < totalNeeded) {
+      toast.error(`Yetersiz bakiye. İşlem ücreti dahil ${totalNeeded.toFixed(2)} ₺ bakiyeniz olmalıdır.`);
+      return;
+    }
+
     if (!isAgreed) {
       toast.error('Lütfen sözleşmeyi onaylayın.');
       return;
@@ -79,30 +90,58 @@ export default function Withdraw() {
     try {
       const selectedBank = bankAccounts.find(b => b.iban === bankAccount);
       
-      const newWithdrawal = {
-        userId: user?.uid,
-        amount: parseFloat(amount),
-        method: method,
-        bankName: selectedBank?.bankName || '',
-        iban: selectedBank?.iban || '',
-        accountHolder: selectedBank?.accountHolder || '',
-        status: 'Beklemede',
-        createdAt: new Date() // Use client date for immediate UI update, serverTimestamp() in production
-      };
+      await runTransaction(db, async (transaction) => {
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await transaction.get(userRef);
+        
+        if (!userDoc.exists()) {
+          throw new Error("Kullanıcı bulunamadı.");
+        }
 
-      // Add to Firestore
-      const docRef = await addDoc(collection(db, 'withdrawals'), newWithdrawal);
-      
-      // Update local state
-      setWithdrawals(prev => [{ id: docRef.id, ...newWithdrawal }, ...prev]);
+        const currentBalance = userDoc.data().balance || 0;
+        if (currentBalance < totalNeeded) {
+          throw new Error("Yetersiz bakiye.");
+        }
+
+        // Update balance
+        transaction.update(userRef, {
+          balance: currentBalance - totalNeeded
+        });
+
+        // Add withdrawal record
+        const withdrawalRef = doc(collection(db, 'withdrawals'));
+        transaction.set(withdrawalRef, {
+          userId: user.uid,
+          amount: amountNum,
+          fee: 20,
+          method: method,
+          bankName: selectedBank?.bankName || '',
+          iban: selectedBank?.iban || '',
+          accountHolder: selectedBank?.accountHolder || '',
+          status: 'Beklemede',
+          createdAt: serverTimestamp()
+        });
+      });
       
       toast.success('Para çekme talebiniz başarıyla oluşturuldu!');
       setAmount('');
       setBankAccount('');
       setIsAgreed(false);
-    } catch (error) {
+      
+      // Refresh withdrawals
+      const q = query(collection(db, 'withdrawals'), where('userId', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+      const fetchedWithdrawals = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      fetchedWithdrawals.sort((a: any, b: any) => {
+        const dateA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const dateB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return dateB - dateA;
+      });
+      setWithdrawals(fetchedWithdrawals);
+
+    } catch (error: any) {
       console.error('Error creating withdrawal:', error);
-      toast.error('Talep oluşturulurken bir hata oluştu.');
+      toast.error(error.message || 'Talep oluşturulurken bir hata oluştu.');
     } finally {
       setIsSubmitting(false);
     }

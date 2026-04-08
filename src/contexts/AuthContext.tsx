@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               avatar: firebaseUser.photoURL || '',
               balance: 0,
               role: 'user',
-              createdAt: new Date().toISOString(),
+              createdAt: new Date().toISOString(), // Keeping string for now as it's easier for simple display, but using Timestamp is better. Actually, I'll use ISO string to match the interface.
               listingCount: 0,
               soldCount: 0,
               rating: 0,

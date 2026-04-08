@@ -1,18 +1,22 @@
 import { Filter, Search, PlusCircle, RefreshCw, X } from 'lucide-react';
 import CategoryListings from '../components/CategoryListings';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
+import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 export default function AlimIlanlari() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [filters, setFilters] = useState({
+  const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState<{ keyword: string; type: 'buy' | 'sell' }>({
     keyword: '',
+    type: 'buy'
   });
 
   const [newListing, setNewListing] = useState({
-    category: '',
+    category: 'VALORANT',
     title: '',
     budget: '',
     description: ''
@@ -27,11 +31,11 @@ export default function AlimIlanlari() {
   };
 
   const clearFilters = () => {
-    setFilters({ keyword: '' });
+    setFilters({ keyword: '', type: 'buy' });
     toast.success('Filtreler temizlendi!');
   };
 
-  const handleCreateListing = (e: React.FormEvent) => {
+  const handleCreateListing = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
       toast.error('İlan oluşturmak için giriş yapmalısınız.');
@@ -42,9 +46,38 @@ export default function AlimIlanlari() {
       return;
     }
 
-    toast.success('Alım ilanınız başarıyla oluşturuldu ve onaya gönderildi!');
-    setIsModalOpen(false);
-    setNewListing({ category: '', title: '', budget: '', description: '' });
+    if (newListing.title.length < 5) {
+      toast.error('İlan başlığı en az 5 karakter olmalıdır.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'products'), {
+        category: newListing.category.toUpperCase(),
+        title: newListing.title,
+        price: parseFloat(newListing.budget),
+        description: newListing.description,
+        sellerId: user.uid,
+        sellerName: profile?.username || user.displayName || 'Anonim',
+        sellerAvatar: profile?.avatar || user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`,
+        status: 'active',
+        type: 'buy',
+        createdAt: serverTimestamp(),
+        image: `https://picsum.photos/seed/${Math.random()}/400/300`
+      });
+
+      toast.success('Alım ilanınız başarıyla oluşturuldu!');
+      setIsModalOpen(false);
+      setNewListing({ category: 'VALORANT', title: '', budget: '', description: '' });
+      // Force refresh of CategoryListings by changing a key or just letting it re-fetch if it has a listener
+      // Since CategoryListings uses useEffect with empty deps, we might need to pass a refresh trigger
+    } catch (error) {
+      console.error('Error creating buying listing:', error);
+      toast.error('İlan oluşturulurken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -72,7 +72,7 @@ export default function Favorites() {
                     {listing.title}
                   </h4>
                   <div className="mt-auto flex items-end gap-2">
-                    <span className="text-yellow-500 font-bold text-lg leading-none">{listing.price.toFixed(2)} ₺</span>
+                    <span className="text-yellow-500 font-bold text-lg leading-none">{(Number(listing.price) || 0).toFixed(2)} ₺</span>
                   </div>
                 </div>
               </Link>

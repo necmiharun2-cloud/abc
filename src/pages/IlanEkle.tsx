@@ -36,16 +36,32 @@ export default function IlanEkle() {
       return;
     }
 
+    if (formData.title.length < 5) {
+      toast.error('İlan başlığı en az 5 karakter olmalıdır.');
+      return;
+    }
+
+    if (formData.description.length < 10) {
+      toast.error('İlan açıklaması en az 10 karakter olmalıdır.');
+      return;
+    }
+
+    const priceNum = parseFloat(formData.price);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      toast.error('Lütfen geçerli bir fiyat girin.');
+      return;
+    }
+
     setLoading(true);
     try {
       await addDoc(collection(db, 'products'), {
         ...formData,
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
+        price: priceNum,
+        stock: parseInt(formData.stock) || 1,
         sellerId: user.uid,
         sellerName: user.displayName || 'Anonim Satıcı',
         status: 'active',
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
         image: `https://picsum.photos/seed/${Math.random()}/400/300`
       });
 

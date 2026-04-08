@@ -1,12 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import React, { useState, useMemo, useEffect } from 'react';
-import { Heart, MessageSquare } from 'lucide-react';
+import { Heart, MessageSquare, Zap, ShieldCheck } from 'lucide-react';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useAuth } from '../contexts/AuthContext';
 import { chatService } from '../services/chatService';
 import toast from 'react-hot-toast';
 import { db } from '../firebase';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, where } from 'firebase/firestore';
 
 interface Filters {
   category?: string;
@@ -19,6 +19,7 @@ interface Filters {
   autoDelivery?: boolean;
   trustedOnly?: boolean;
   corporateOnly?: boolean;
+  type?: 'buy' | 'sell';
 }
 
 interface CategoryListingsProps {
@@ -35,20 +36,20 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchListings = async () => {
-      setLoading(true);
-      try {
-        const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
-        setAllListings(fetched);
-      } catch (error) {
-        console.error('Error fetching listings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchListings();
+    setLoading(true);
+    // Base query: only active listings
+    let q = query(collection(db, 'products'), where('status', '==', 'active'), orderBy('createdAt', 'desc'));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
+      setAllListings(fetched);
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching listings:', error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleMessageSeller = async (e: React.MouseEvent, sellerId: string, sellerName: string) => {
@@ -89,6 +90,11 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
 
   const filteredListings = useMemo(() => {
     return allListings.filter(listing => {
+      // Type filter (default to sell if not specified)
+      const filterType = filters?.type || 'sell';
+      const listingType = listing.type || 'sell';
+      if (listingType !== filterType) return false;
+
       // Tab filter
       if (activeTab && listing.category !== activeTab) {
         return false;
@@ -99,12 +105,28 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
         if (filters.minPrice && listing.price < parseFloat(filters.minPrice)) return false;
         if (filters.maxPrice && listing.price > parseFloat(filters.maxPrice)) return false;
         if (filters.seller && !listing.sellerName?.toLowerCase().includes(filters.seller.toLowerCase())) return false;
-        if (filters.keyword && !listing.title?.toLowerCase().includes(filters.keyword.toLowerCase())) return false;
+        if (filters.keyword) {
+          const searchIn = filters.includeDescription 
+            ? `${listing.title} ${listing.description}`.toLowerCase()
+            : listing.title?.toLowerCase();
+          if (!searchIn?.includes(filters.keyword.toLowerCase())) return false;
+        }
+        if (filters.autoDelivery && listing.deliveryType !== 'Otomatik Teslimat') return false;
       }
 
       return true;
     });
   }, [allListings, activeTab, filters]);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="bg-[#232736] rounded-lg aspect-[4/6] animate-pulse border border-white/5"></div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <section className="space-y-6">
@@ -134,7 +156,11 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
               {/* Image & Badge */}
               <div className="relative aspect-[4/3]">
                 <img src={listing.image} alt={listing.title} className="w-full h-full object-cover" />
-                {listing.isVitrin ? (
+                {listing.type === 'buy' ? (
+                  <div className="absolute top-0 inset-x-0 bg-amber-500 text-white text-[10px] font-bold text-center py-1 tracking-wider">
+                    ALIM İLANI
+                  </div>
+                ) : listing.isVitrin ? (
                   <div className="absolute top-0 inset-x-0 bg-[#10b981] text-white text-[10px] font-bold text-center py-1 tracking-wider">
                     VİTRİN İLANI
                   </div>
@@ -160,13 +186,19 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
                 >
                   <MessageSquare className="w-4 h-4" />
                 </button>
+                
+                {listing.deliveryType === 'Otomatik Teslimat' && (
+                  <div className="absolute top-8 right-2 p-1 bg-yellow-500 rounded-md shadow-lg" title="Otomatik Teslimat">
+                    <Zap className="w-3 h-3 text-white" />
+                  </div>
+                )}
               </div>
 
               {/* Seller Info Bar */}
               <div className="bg-[#181b26] px-3 py-2 flex items-center gap-2.5 border-b border-white/5">
-                <img src={listing.sellerAvatar} alt={listing.sellerName} className="w-7 h-7 rounded object-cover" />
+                <img src={listing.sellerAvatar || `https://picsum.photos/seed/${listing.sellerId}/40/40`} alt={listing.sellerName} className="w-7 h-7 rounded object-cover" />
                 <div className="flex flex-col justify-center">
-                  <span className="text-[9px] text-gray-400 font-medium leading-none mb-1">SATICI</span>
+                  <span className="text-[9px] text-gray-400 font-medium leading-none mb-1">{listing.type === 'buy' ? 'ALICI' : 'SATICI'}</span>
                   <span className="text-xs text-white font-bold leading-none truncate">{listing.sellerName}</span>
                 </div>
               </div>
@@ -180,9 +212,9 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
                 </h4>
                 
                 <div className="mt-auto flex items-end gap-2">
-                  <span className="text-yellow-500 font-bold text-lg leading-none">{listing.price.toFixed(2)} ₺</span>
+                  <span className="text-yellow-500 font-bold text-lg leading-none">{(listing.price || 0).toFixed(2)} ₺</span>
                   {listing.oldPrice && (
-                    <span className="text-gray-500 text-xs line-through leading-none mb-0.5">{listing.oldPrice.toFixed(2)} ₺</span>
+                    <span className="text-gray-500 text-xs line-through leading-none mb-0.5">{(listing.oldPrice || 0).toFixed(2)} ₺</span>
                   )}
                 </div>
               </div>
@@ -203,3 +235,4 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
     </section>
   );
 }
+

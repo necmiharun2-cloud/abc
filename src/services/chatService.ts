@@ -1,4 +1,4 @@
-import { collection, addDoc, query, where, onSnapshot, orderBy, doc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, onSnapshot, orderBy, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export interface ChatMessage {
@@ -20,49 +20,31 @@ export interface Chat {
 
 export const chatService = {
   async createOrGetChat(participants: string[], participantData: { [key: string]: { name: string, avatar: string } }) {
-    const chatId = participants.sort().join('_');
+    const sortedParticipants = [...participants].sort();
+    const chatId = sortedParticipants.join('_');
     const chatRef = doc(db, 'chats', chatId);
     
     const participantNames: { [key: string]: string } = {};
     const participantAvatars: { [key: string]: string } = {};
     
-    participants.forEach(uid => {
-      participantNames[uid] = participantData[uid].name;
-      participantAvatars[uid] = participantData[uid].avatar;
+    sortedParticipants.forEach(uid => {
+      participantNames[uid] = participantData[uid]?.name || 'Kullanıcı';
+      participantAvatars[uid] = participantData[uid]?.avatar || '';
     });
 
     await setDoc(chatRef, {
       id: chatId,
-      participants,
+      participants: sortedParticipants,
       participantNames,
       participantAvatars,
-      createdAt: new Date().toISOString()
+      createdAt: serverTimestamp()
     }, { merge: true });
 
     return chatId;
   },
 
   async createChat(participants: string[], participantData: { [key: string]: { name: string, avatar: string } }) {
-    const chatId = participants.sort().join('_');
-    const chatRef = doc(db, 'chats', chatId);
-    
-    const participantNames: { [key: string]: string } = {};
-    const participantAvatars: { [key: string]: string } = {};
-    
-    participants.forEach(uid => {
-      participantNames[uid] = participantData[uid].name;
-      participantAvatars[uid] = participantData[uid].avatar;
-    });
-
-    await setDoc(chatRef, {
-      id: chatId,
-      participants,
-      participantNames,
-      participantAvatars,
-      createdAt: new Date().toISOString()
-    }, { merge: true });
-
-    return chatId;
+    return this.createOrGetChat(participants, participantData);
   },
 
   getChats(userId: string, callback: (chats: Chat[]) => void) {
@@ -85,12 +67,11 @@ export const chatService = {
   },
 
   async sendMessage(chatId: string, senderId: string, text: string) {
-    const now = new Date().toISOString();
     const messageData = {
       chatId,
       senderId,
       text,
-      createdAt: now
+      createdAt: serverTimestamp()
     };
     
     await addDoc(collection(db, `chats/${chatId}/messages`), messageData);
@@ -98,7 +79,8 @@ export const chatService = {
     // Update last message in chat doc
     await setDoc(doc(db, 'chats', chatId), {
       lastMessage: text,
-      lastMessageAt: now
+      lastMessageAt: serverTimestamp()
     }, { merge: true });
   }
 };
+
