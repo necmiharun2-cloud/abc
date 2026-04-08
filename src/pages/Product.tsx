@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
-import { useMemo } from 'react';
-import { showcaseListings, valorantListings } from '../data/mockData';
+import { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import Breadcrumb from '../components/Product/Breadcrumb';
 import ProductGallery from '../components/Product/ProductGallery';
 import SellerCard from '../components/Product/SellerCard';
@@ -11,16 +12,35 @@ import toast from 'react-hot-toast';
 
 export default function Product() {
   const { id } = useParams();
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
-  const product = useMemo(() => {
-    const allListings = [...showcaseListings, ...valorantListings];
-    return allListings.find(p => p.id === Number(id)) || allListings[0];
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      if (id) {
+        try {
+          const docRef = doc(db, 'products', id);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setProduct({ id: docSnap.id, ...docSnap.data() });
+          } else {
+            toast.error('Ürün bulunamadı.');
+          }
+        } catch (error) {
+          console.error('Error fetching product:', error);
+        }
+      }
+      setLoading(false);
+    };
+    fetchProduct();
   }, [id]);
 
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
   };
 
+  if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!product) return <div className="text-center py-20 text-white">Ürün bulunamadı.</div>;
 
   return (
@@ -36,7 +56,7 @@ export default function Product() {
 
         {/* Right Column */}
         <div className="w-full lg:w-[320px] shrink-0 space-y-6">
-          <SellerCard sellerName={product.sellerName} sellerAvatar={product.sellerAvatar} />
+          <SellerCard sellerName={product.sellerName} sellerAvatar={product.sellerAvatar} sellerId={product.sellerId} />
           <PurchaseCard product={product} />
           
           {/* Help Banner */}

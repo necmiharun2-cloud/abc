@@ -35,11 +35,6 @@ export default function Header() {
     setIsDropdownOpen(false);
   };
 
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
-    setIsDropdownOpen(false);
-  };
-
   const handleLogout = async () => {
     try {
       await signOut(auth);

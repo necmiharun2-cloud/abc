@@ -4,11 +4,6 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export default function Footer() {
-  const handleComingSoon = (e: React.MouseEvent, name: string) => {
-    e.preventDefault();
-    toast.success(`${name} sayfası yakında eklenecek!`);
-  };
-
   return (
     <footer className="bg-[#232736] border-t border-white/5 pt-16 pb-8 mt-12">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,10 +39,10 @@ export default function Footer() {
             <ul className="space-y-3">
               <li><Link to="/hakkimizda" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Hakkımızda</Link></li>
               <li><Link to="/kullanici-sozlesmesi" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Kullanıcı Sözleşmesi</Link></li>
-              <li><button onClick={(e) => handleComingSoon(e, 'Gizlilik Politikası')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm text-left">Gizlilik Politikası</button></li>
-              <li><button onClick={(e) => handleComingSoon(e, 'Mesafeli Satış Sözleşmesi')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm text-left">Mesafeli Satış Sözleşmesi</button></li>
-              <li><button onClick={(e) => handleComingSoon(e, 'İade Politikası')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm text-left">İade Politikası</button></li>
-              <li><button onClick={(e) => handleComingSoon(e, 'Sıkça Sorulan Sorular')} className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm text-left">Sıkça Sorulan Sorular</button></li>
+              <li><Link to="/gizlilik-politikasi" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Gizlilik Politikası</Link></li>
+              <li><Link to="/mesafeli-satis-sozlesmesi" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Mesafeli Satış Sözleşmesi</Link></li>
+              <li><Link to="/iade-politikasi" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">İade Politikası</Link></li>
+              <li><Link to="/sss" className="text-gray-400 hover:text-[#5b68f6] transition-colors text-sm">Sıkça Sorulan Sorular</Link></li>
             </ul>
           </div>
 

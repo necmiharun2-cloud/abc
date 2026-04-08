@@ -4,10 +4,6 @@ import toast from 'react-hot-toast';
 
 export default function CategoryPills() {
   const location = useLocation();
-  
-  const handleComingSoon = (name: string) => {
-    toast.success(`${name} kategorisi yakında eklenecek!`);
-  };
 
   const pills = [
     { name: 'En Yeniler', icon: Flame, path: '/', type: 'link' },
@@ -43,7 +39,7 @@ export default function CategoryPills() {
         return (
           <button 
             key={pill.name} 
-            onClick={() => handleComingSoon(pill.name)}
+            onClick={() => toast.success(`${pill.name} kategorisi yakında eklenecek!`)}
             className={baseClass}
           >
             <pill.icon className="h-4 w-4" />

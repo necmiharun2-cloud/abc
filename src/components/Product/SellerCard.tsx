@@ -1,14 +1,46 @@
 import { Shield, Smartphone, MessageSquare, ShoppingCart } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { chatService } from '../../services/chatService';
 
 interface SellerCardProps {
   sellerName?: string;
   sellerAvatar?: string;
+  sellerId?: string;
 }
 
-export default function SellerCard({ sellerName = 'ValoKing', sellerAvatar }: SellerCardProps) {
+export default function SellerCard({ sellerName = 'ValoKing', sellerAvatar, sellerId }: SellerCardProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
+  const handleMessage = async () => {
+    if (!user) {
+      toast.error('Mesaj göndermek için giriş yapmalısınız.');
+      navigate('/login');
+      return;
+    }
+
+    if (!sellerId) {
+      toast.error('Satıcı bilgisi bulunamadı.');
+      return;
+    }
+
+    if (user.uid === sellerId) {
+      toast.error('Kendinize mesaj gönderemezsiniz.');
+      return;
+    }
+
+    try {
+      const chatId = await chatService.createOrGetChat(user.uid, sellerId);
+      navigate('/mesajlarim', { state: { activeChatId: chatId } });
+    } catch (error) {
+      toast.error('Sohbet başlatılamadı.');
+    }
   };
 
   return (
@@ -52,12 +84,21 @@ export default function SellerCard({ sellerName = 'ValoKing', sellerAvatar }: Se
 
         {/* Action Buttons */}
         <div className="flex gap-2 mb-6">
-          <button 
-            onClick={() => handleComingSoon('Satıcı Profili')}
-            className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
-          >
-            Satıcı Profili
-          </button>
+          {sellerId ? (
+            <Link 
+              to={`/profil/${sellerId}`}
+              className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
+            >
+              Satıcı Profili
+            </Link>
+          ) : (
+            <button 
+              onClick={() => handleComingSoon('Satıcı Profili')}
+              className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
+            >
+              Satıcı Profili
+            </button>
+          )}
           <button 
             onClick={() => handleComingSoon('Sepete Ekle')}
             className="w-10 bg-[#2b3142] hover:bg-[#32394d] text-white rounded flex items-center justify-center transition-colors"
@@ -65,11 +106,11 @@ export default function SellerCard({ sellerName = 'ValoKing', sellerAvatar }: Se
             <ShoppingCart className="w-4 h-4" />
           </button>
           <button 
-            onClick={() => handleComingSoon('SMS Gönder')}
+            onClick={handleMessage}
             className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
           >
             <MessageSquare className="w-4 h-4" />
-            SMS
+            Mesaj Gönder
           </button>
         </div>
 

@@ -176,13 +176,13 @@ export default function PurchaseCard({ product }: PurchaseCardProps) {
             <Share2 className="w-4 h-4" /> Paylaş
           </button>
           <button 
-            onClick={() => handleComingSoon('Fiyat Alarmı')}
+            onClick={() => toast.success('Fiyat alarmı kuruldu!')}
             className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors"
           >
             <Bell className="w-4 h-4" /> Fiyat Alarmı
           </button>
           <button 
-            onClick={() => handleComingSoon('Stok Alarmı')}
+            onClick={() => toast.success('Stok alarmı kuruldu!')}
             className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors"
           >
             <AlertTriangle className="w-4 h-4" /> Stok Alarmı

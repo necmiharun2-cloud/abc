@@ -6,10 +6,6 @@ interface ProductDetailsProps {
 }
 
 export default function ProductDetails({ product }: ProductDetailsProps) {
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
-  };
-
   return (
     <div className="space-y-4">
       {/* Price History & Alternatives */}
@@ -40,7 +36,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           </div>
           <div className="space-y-3">
             <div 
-              onClick={() => handleComingSoon('Alternatif Ürün')}
+              onClick={() => toast.success('Alternatif ürünler yakında eklenecek!')}
               className="bg-[#2b3142] rounded p-3 flex justify-between items-center cursor-pointer hover:bg-[#32394d] transition-colors"
             >
               <div>
@@ -50,7 +46,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               <div className="text-emerald-500 font-bold text-sm">{(product.price * 0.9).toFixed(2)} ₺</div>
             </div>
             <div 
-              onClick={() => handleComingSoon('Alternatif Ürün')}
+              onClick={() => toast.success('Alternatif ürünler yakında eklenecek!')}
               className="bg-[#2b3142] rounded p-3 flex justify-between items-center cursor-pointer hover:bg-[#32394d] transition-colors"
             >
               <div>
@@ -70,19 +66,19 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             Açıklama
           </button>
           <button 
-            onClick={() => handleComingSoon('Değerlendirmeler')}
+            onClick={() => toast.success('Değerlendirmeler yakında eklenecek!')}
             className="flex-1 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2b3142] transition-colors"
           >
             Değerlendirme
           </button>
           <button 
-            onClick={() => handleComingSoon('Güvenli Ticaret')}
+            onClick={() => toast.success('Güvenli Ticaret bilgileri yakında eklenecek!')}
             className="flex-1 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2b3142] transition-colors"
           >
             Güvenli Ticaret
           </button>
           <button 
-            onClick={() => handleComingSoon('Soru & Cevap')}
+            onClick={() => toast.success('Soru & Cevap bölümü yakında eklenecek!')}
             className="flex-1 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-[#2b3142] transition-colors"
           >
             Soru & Cevap
@@ -140,7 +136,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           <h3 className="text-xl font-bold text-white mb-2">Duyurular ve sohbet için hemen Discord sunucumuza katılın!</h3>
           <p className="text-gray-400 text-sm mb-6">En yeni ilan duyuruları, özel kampanyalar ve 7/24 destek için mağaza Discord kanalımızda olun.</p>
           <button 
-            onClick={() => handleComingSoon('Discord Sunucusuna Katıl')}
+            onClick={() => window.open('https://discord.com', '_blank')}
             className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-2 rounded-full text-sm font-medium transition-colors"
           >
             Hemen Katıl!

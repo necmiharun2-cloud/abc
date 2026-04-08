@@ -1,7 +1,9 @@
 import { HelpCircle, PlusCircle, CreditCard, Wallet, Bitcoin, ChevronDown } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { db } from '../firebase';
+import { doc, getDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function Withdraw() {
@@ -12,8 +14,53 @@ export default function Withdraw() {
   const [bankAccount, setBankAccount] = useState('');
   const [isAgreed, setIsAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
 
-  const handleWithdraw = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchBankAccounts = async () => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            setBankAccounts(userData.bankAccounts || []);
+          }
+        } catch (error) {
+          console.error('Error fetching bank accounts:', error);
+        }
+      }
+    };
+    fetchBankAccounts();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchWithdrawals = async () => {
+      if (user) {
+        try {
+          const q = query(
+            collection(db, 'withdrawals'),
+            where('userId', '==', user.uid)
+          );
+          const querySnapshot = await getDocs(q);
+          const fetchedWithdrawals = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // Sort by createdAt descending manually since we might not have a composite index yet
+          fetchedWithdrawals.sort((a: any, b: any) => {
+            const dateA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+            const dateB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+            return dateB - dateA;
+          });
+          setWithdrawals(fetchedWithdrawals);
+        } catch (error) {
+          console.error('Error fetching withdrawals:', error);
+        }
+      }
+    };
+    fetchWithdrawals();
+  }, [user]);
+
+  const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bankAccount) {
       toast.error('Lütfen bir banka hesabı seçiniz.');
@@ -29,14 +76,36 @@ export default function Withdraw() {
     }
 
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const selectedBank = bankAccounts.find(b => b.iban === bankAccount);
+      
+      const newWithdrawal = {
+        userId: user?.uid,
+        amount: parseFloat(amount),
+        method: method,
+        bankName: selectedBank?.bankName || '',
+        iban: selectedBank?.iban || '',
+        accountHolder: selectedBank?.accountHolder || '',
+        status: 'Beklemede',
+        createdAt: new Date() // Use client date for immediate UI update, serverTimestamp() in production
+      };
+
+      // Add to Firestore
+      const docRef = await addDoc(collection(db, 'withdrawals'), newWithdrawal);
+      
+      // Update local state
+      setWithdrawals(prev => [{ id: docRef.id, ...newWithdrawal }, ...prev]);
+      
       toast.success('Para çekme talebiniz başarıyla oluşturuldu!');
       setAmount('');
       setBankAccount('');
       setIsAgreed(false);
-    }, 1500);
+    } catch (error) {
+      console.error('Error creating withdrawal:', error);
+      toast.error('Talep oluşturulurken bir hata oluştu.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
@@ -107,7 +176,11 @@ export default function Withdraw() {
                 className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-[#5b68f6] transition-colors"
               >
                 <option value="">Lütfen bir banka hesabı seçiniz</option>
-                <option value="1">TR63 0004 6002 4888 8000 1639 22 - Çağlar Özbunar</option>
+                {bankAccounts.map((bank, index) => (
+                  <option key={index} value={bank.iban}>
+                    {bank.iban} - {bank.accountHolder} ({bank.bankName})
+                  </option>
+                ))}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
             </div>
@@ -197,20 +270,31 @@ export default function Withdraw() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              <tr className="text-white hover:bg-white/5 transition-colors">
-                <td className="px-6 py-4">180410</td>
-                <td className="px-6 py-4">322.50₺</td>
-                <td className="px-6 py-4 text-gray-400">2 Şubat 2023 18:14</td>
-                <td className="px-6 py-4">
-                  <span className="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold">Onaylandı</span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-xs">AKBANK T.A.Ş.</div>
-                  <div className="text-[10px] text-gray-500">TR63 0004 6002 4888 8000 1639 22</div>
-                  <div className="text-[10px] text-gray-500">Çağlar Özbunar</div>
-                </td>
-                <td className="px-6 py-4 text-gray-400">3 Şubat 2023 16:14</td>
-              </tr>
+              {withdrawals.map((withdrawal) => (
+                <tr key={withdrawal.id} className="text-white hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-4">{withdrawal.id.slice(0, 8)}</td>
+                  <td className="px-6 py-4">{withdrawal.amount.toFixed(2)}₺</td>
+                  <td className="px-6 py-4 text-gray-400">{withdrawal.createdAt?.toDate ? withdrawal.createdAt.toDate().toLocaleString('tr-TR') : 'Yeni'}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${withdrawal.status === 'Onaylandı' ? 'bg-emerald-500/20 text-emerald-400' : withdrawal.status === 'Beklemede' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                      {withdrawal.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-xs">{withdrawal.bankName}</div>
+                    <div className="text-[10px] text-gray-500">{withdrawal.iban}</div>
+                    <div className="text-[10px] text-gray-500">{withdrawal.accountHolder}</div>
+                  </td>
+                  <td className="px-6 py-4 text-gray-400">{withdrawal.processedAt?.toDate ? withdrawal.processedAt.toDate().toLocaleString('tr-TR') : '-'}</td>
+                </tr>
+              ))}
+              {withdrawals.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
+                    Henüz bir para çekme talebiniz bulunmuyor.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

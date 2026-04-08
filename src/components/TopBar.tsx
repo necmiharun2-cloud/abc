@@ -3,10 +3,6 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export default function TopBar() {
-  const handleComingSoon = (name: string) => {
-    toast.success(`${name} bölümü yakında eklenecek!`);
-  };
-
   return (
     <div className="bg-[#181b26] border-b border-white/5 h-10">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between text-xs font-medium">
@@ -37,15 +33,9 @@ export default function TopBar() {
           </Link>
           <Link to="/blog" className="text-blue-400 hover:text-blue-300 transition-colors">Blog</Link>
           <Link to="/yayincilar" className="text-gray-300 hover:text-white transition-colors">Yayıncılar</Link>
+          <Link to="/destek-sistemi" className="text-gray-300 hover:text-white transition-colors">Destek Merkezi</Link>
           <button 
-            onClick={() => handleComingSoon('Destek Merkezi')}
-            className="flex items-center gap-1 cursor-pointer text-gray-300 hover:text-white transition-colors group relative"
-          >
-            Destek Merkezi
-            <ChevronDown className="w-3.5 h-3.5" />
-          </button>
-          <button 
-            onClick={() => handleComingSoon('Kurumsal')}
+            onClick={() => toast.success('Kurumsal bölümü yakında eklenecek!')}
             className="flex items-center gap-1 cursor-pointer text-gray-300 hover:text-white transition-colors group relative"
           >
             Kurumsal
