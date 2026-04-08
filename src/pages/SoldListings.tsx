@@ -55,7 +55,10 @@ export default function SoldListings() {
         <h2 className="text-lg font-bold text-white mb-4">Şubat 2023</h2>
         <div className="space-y-4">
           {/* Order 1 */}
-          <div className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer group">
+          <div 
+            onClick={() => handleComingSoon('Sipariş Detayı')}
+            className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer group"
+          >
             <img src="https://picsum.photos/seed/sold1/80/80" alt="Product" className="w-16 h-16 rounded-lg object-cover" />
             <div className="flex-1 w-full">
               <div className="text-gray-400 text-sm mb-1">Sipariş No : 1461229</div>

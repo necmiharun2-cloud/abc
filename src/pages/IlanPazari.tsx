@@ -223,7 +223,7 @@ export default function IlanPazari() {
         
         <div className="pt-8 border-t border-white/5">
           <h2 className="text-xl font-bold text-white mb-4">En Son Eklenen İlanlar</h2>
-          <CategoryListings />
+          <CategoryListings filters={filters} />
         </div>
       </div>
     </div>

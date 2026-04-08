@@ -1,17 +1,29 @@
 import { Users, Star, MessageSquare, Play, Heart } from 'lucide-react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function Streamers() {
+  const [streamers, setStreamers] = useState([
+    { id: 1, name: 'GamerX', avatar: 'https://picsum.photos/seed/u1/100/100', followers: '1.2M', platform: 'Twitch', status: 'Canlı', game: 'Valorant', isFollowing: false },
+    { id: 2, name: 'ProPlayer', avatar: 'https://picsum.photos/seed/u2/100/100', followers: '850K', platform: 'YouTube', status: 'Canlı', game: 'CS2', isFollowing: false },
+    { id: 3, name: 'NoobMaster', avatar: 'https://picsum.photos/seed/u3/100/100', followers: '450K', platform: 'Twitch', status: 'Çevrimdışı', game: 'LoL', isFollowing: false },
+    { id: 4, name: 'StreamQueen', avatar: 'https://picsum.photos/seed/u4/100/100', followers: '2.5M', platform: 'TikTok', status: 'Canlı', game: 'Sohbet', isFollowing: false },
+  ]);
+
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
   };
 
-  const streamers = [
-    { id: 1, name: 'GamerX', avatar: 'https://picsum.photos/seed/u1/100/100', followers: '1.2M', platform: 'Twitch', status: 'Canlı', game: 'Valorant' },
-    { id: 2, name: 'ProPlayer', avatar: 'https://picsum.photos/seed/u2/100/100', followers: '850K', platform: 'YouTube', status: 'Canlı', game: 'CS2' },
-    { id: 3, name: 'NoobMaster', avatar: 'https://picsum.photos/seed/u3/100/100', followers: '450K', platform: 'Twitch', status: 'Çevrimdışı', game: 'LoL' },
-    { id: 4, name: 'StreamQueen', avatar: 'https://picsum.photos/seed/u4/100/100', followers: '2.5M', platform: 'TikTok', status: 'Canlı', game: 'Sohbet' },
-  ];
+  const handleFollow = (id: number) => {
+    setStreamers(prev => prev.map(s => {
+      if (s.id === id) {
+        const newStatus = !s.isFollowing;
+        toast.success(newStatus ? `${s.name} takip edildi!` : `${s.name} takipten çıkarıldı.`);
+        return { ...s, isFollowing: newStatus };
+      }
+      return s;
+    }));
+  };
 
   return (
     <div className="space-y-8">
@@ -57,11 +69,11 @@ export default function Streamers() {
 
             <div className="flex gap-2 w-full">
               <button 
-                onClick={() => handleComingSoon('Takip Et')}
-                className="flex-1 bg-[#5b68f6] hover:bg-[#4a55d6] text-white py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                onClick={() => handleFollow(streamer.id)}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 ${streamer.isFollowing ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-[#5b68f6] hover:bg-[#4a55d6] text-white'}`}
               >
-                <Star className="w-3.5 h-3.5" />
-                Takip Et
+                <Star className={`w-3.5 h-3.5 ${streamer.isFollowing ? 'fill-current' : ''}`} />
+                {streamer.isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
               </button>
               <button 
                 onClick={() => handleComingSoon('Mesaj Gönder')}

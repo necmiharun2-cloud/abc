@@ -1,6 +1,6 @@
 import { ClipboardList } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export default function Favorites() {
@@ -35,12 +35,12 @@ export default function Favorites() {
           Favorilerinize eklediğiniz hiçbir ilan bulunamadı.<br/>
           İlanları yakından takip edebilmek için hemen bir kaç tane ilanı favorilerinize ekleyin.
         </p>
-        <button 
-          onClick={() => handleComingSoon('Favori Sistemi Bilgi')}
+        <Link 
+          to="/favori-sistemi"
           className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 border border-white/10 px-6 py-3 rounded-lg text-sm font-medium transition-colors"
         >
           Favori sistemi hakkında detaylı bilgi için tıklayınız.
-        </button>
+        </Link>
       </div>
     </div>
   );

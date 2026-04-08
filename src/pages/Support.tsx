@@ -1,150 +1,197 @@
-import { MessageSquare, PlusCircle, Headphones, Info, Eye } from 'lucide-react';
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
-import SupportAssistant from '../components/SupportAssistant';
+import { MessageSquare, PlusCircle, Headphones, ChevronRight, Clock, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function Support() {
-  const { user, loading } = useAuth();
-  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTicket, setNewTicket] = useState({ subject: '', category: 'Genel', message: '' });
+  const [tickets, setTickets] = useState([
+    { id: '180410', subject: 'Ödeme Sorunu', date: '2 Şubat 2023 18:14', status: 'Cevaplandı', statusColor: 'emerald' },
+    { id: '180411', subject: 'İlan Onayı Hakkında', date: '5 Şubat 2023 12:30', status: 'Beklemede', statusColor: 'yellow' },
+  ]);
 
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
   };
 
-  if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
-  if (!user) return <Navigate to="/login" />;
+  const handleCreateTicket = (e: any) => {
+    e.preventDefault();
+    if (!newTicket.subject || !newTicket.message) {
+      toast.error('Lütfen tüm alanları doldurun.');
+      return;
+    }
+
+    const ticket = {
+      id: Math.floor(100000 + Math.random() * 900000).toString(),
+      subject: newTicket.subject,
+      date: new Date().toLocaleString('tr-TR'),
+      status: 'Beklemede',
+      statusColor: 'yellow'
+    };
+
+    setTickets([ticket, ...tickets]);
+    setIsModalOpen(false);
+    setNewTicket({ subject: '', category: 'Genel', message: '' });
+    toast.success('Destek talebiniz başarıyla oluşturuldu!');
+  };
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-8">
       {/* Header Area */}
-      <div className="text-center space-y-4 py-8">
-        <h1 className="text-4xl font-bold text-white tracking-tight">Destek Sistemi</h1>
-        <p className="text-gray-400 text-sm max-w-2xl mx-auto leading-relaxed">
-          Destek talepleriniz 09:00 - 00:00 aralığında en geç 24 saat içerisinde cevaplanmaktadır.<br/>
-          İlan ve ürün şikayetleriniz için mutlaka video kaydı iletmelisiniz.
-        </p>
-      </div>
-
-      {/* Main Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        <div className="relative group">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-[#5b68f6]/10 rounded-2xl flex items-center justify-center border border-[#5b68f6]/20">
+            <Headphones className="w-8 h-8 text-[#5b68f6]" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-1">Destek Merkezi</h1>
+            <p className="text-gray-400 text-sm">Size nasıl yardımcı olabiliriz? Taleplerinizi buradan iletebilirsiniz.</p>
+          </div>
+        </div>
+        <div className="flex gap-3 w-full md:w-auto">
           <button 
-            onClick={() => setIsAssistantOpen(true)}
-            className="w-full bg-gradient-to-br from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white p-6 rounded-2xl flex flex-col items-center gap-3 transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] group-hover:-translate-y-1"
+            onClick={() => setIsModalOpen(true)}
+            className="flex-1 md:flex-none bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20"
           >
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-              <MessageSquare className="w-6 h-6" />
-            </div>
-            <span className="font-bold text-lg">İtemSatış Asistana Sor</span>
+            <PlusCircle className="w-5 h-5" />
+            Destek Talebi Oluştur
           </button>
-          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-orange-400 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-            Hızlı bilgi ve destek için tercih edilir
-          </div>
-        </div>
-
-        <button 
-          onClick={() => handleComingSoon('Destek Talebi Oluştur')}
-          className="w-full bg-[#10b981] hover:bg-[#059669] text-white p-6 rounded-2xl flex flex-col items-center gap-3 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:-translate-y-1"
-        >
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-            <PlusCircle className="w-6 h-6" />
-          </div>
-          <span className="font-bold text-lg">Destek Talebi Oluştur</span>
-        </button>
-
-        <button 
-          onClick={() => handleComingSoon('Canlı Destek')}
-          className="w-full bg-[#374151] hover:bg-[#4b5563] text-white p-6 rounded-2xl flex flex-col items-center gap-3 transition-all border border-white/5 hover:-translate-y-1"
-        >
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-            <Headphones className="w-6 h-6" />
-          </div>
-          <span className="font-bold text-lg">Canlı Desteğe Bağlan</span>
-        </button>
-      </div>
-
-      {/* Info Banner */}
-      <div className="bg-[#581c87]/30 border border-[#581c87]/50 rounded-xl p-4 flex items-center gap-4 text-[#d8b4fe] text-sm max-w-4xl mx-auto">
-        <div className="w-8 h-8 rounded-full bg-[#581c87]/50 flex items-center justify-center shrink-0">
-          <Info className="w-4 h-4" />
-        </div>
-        <p>Anlık destek ve bilgi almak için ekranın sağ alt kısmında bulunan canlı destek butonunu kullanabilir ve canlı destek personellerimizden destek alabilirsiniz.</p>
-      </div>
-
-      {/* Tickets Table */}
-      <div className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden max-w-[1400px] mx-auto">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="bg-[#1a1d27] text-gray-400">
-                <th className="px-6 py-4 font-medium">TALEP NO</th>
-                <th className="px-6 py-4 font-medium">BAŞLIK</th>
-                <th className="px-6 py-4 font-medium">KATEGORİ</th>
-                <th className="px-6 py-4 font-medium">DURUM</th>
-                <th className="px-6 py-4 font-medium">OLUŞTURULMA T.</th>
-                <th className="px-6 py-4 font-medium">İŞLEM</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              <tr className="text-white hover:bg-white/5 transition-colors">
-                <td className="px-6 py-4 text-[#5b68f6] font-bold">#98492</td>
-                <td className="px-6 py-4 font-medium">Satın aldığım hesap geri alindi</td>
-                <td className="px-6 py-4">
-                  <span className="bg-[#5b68f6]/10 text-[#5b68f6] px-3 py-1 rounded-lg text-xs font-bold border border-[#5b68f6]/20">İlanlar</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-lg text-xs font-bold border border-red-500/20 flex items-center gap-1.5 w-fit">
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
-                    Kapatıldı
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-gray-400 flex items-center gap-2">
-                  <ClockIcon className="w-4 h-4" />
-                  3 yıl önce
-                </td>
-                <td className="px-6 py-4">
-                  <button 
-                    onClick={() => handleComingSoon('Talep Detay')}
-                    className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    Talebi Gör
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <button 
+            onClick={() => handleComingSoon('Canlı Destek')}
+            className="flex-1 md:flex-none bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20"
+          >
+            <MessageSquare className="w-5 h-5" />
+            Canlı Desteğe Bağlan
+          </button>
         </div>
       </div>
 
-      {/* Assistant Modal */}
-      <SupportAssistant 
-        isOpen={isAssistantOpen} 
-        onClose={() => setIsAssistantOpen(false)} 
-        userName={user.displayName || user.email?.split('@')[0] || 'Kullanıcı'} 
-      />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-[#232736] p-6 rounded-2xl border border-white/5 flex items-center gap-4">
+          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
+            <Clock className="w-6 h-6 text-blue-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white">{tickets.length}</div>
+            <div className="text-xs text-gray-400">Toplam Talep</div>
+          </div>
+        </div>
+        <div className="bg-[#232736] p-6 rounded-2xl border border-white/5 flex items-center gap-4">
+          <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white">{tickets.filter(t => t.status === 'Cevaplandı').length}</div>
+            <div className="text-xs text-gray-400">Cevaplanan</div>
+          </div>
+        </div>
+        <div className="bg-[#232736] p-6 rounded-2xl border border-white/5 flex items-center gap-4">
+          <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center">
+            <AlertCircle className="w-6 h-6 text-yellow-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white">{tickets.filter(t => t.status === 'Beklemede').length}</div>
+            <div className="text-xs text-gray-400">Bekleyen</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tickets List */}
+      <div className="bg-[#232736] rounded-2xl border border-white/5 overflow-hidden">
+        <div className="p-6 border-b border-white/5 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">Geçmiş Destek Taleplerim</h2>
+          <div className="text-xs text-gray-400">Son 30 güne ait talepler gösterilmektedir.</div>
+        </div>
+        
+        <div className="divide-y divide-white/5">
+          {tickets.map((ticket) => (
+            <div key={ticket.id} className="p-6 hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-[#1a1d27] rounded-lg flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-gray-500">#{ticket.id}</span>
+                </div>
+                <div>
+                  <h3 className="text-white font-bold mb-1">{ticket.subject}</h3>
+                  <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {ticket.date}
+                    </span>
+                    <span className={`flex items-center gap-1 font-bold ${ticket.statusColor === 'emerald' ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${ticket.statusColor === 'emerald' ? 'bg-emerald-400' : 'bg-yellow-400'}`}></div>
+                      {ticket.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => handleComingSoon('Talebi Gör')}
+                className="flex items-center gap-2 text-[#5b68f6] hover:text-white transition-colors text-sm font-bold group"
+              >
+                Talebi Gör
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Create Ticket Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#232736] w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-white/5">
+              <h2 className="text-xl font-bold text-white">Yeni Destek Talebi</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateTicket} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Konu</label>
+                <input 
+                  type="text" 
+                  value={newTicket.subject}
+                  onChange={(e) => setNewTicket(prev => ({ ...prev, subject: e.target.value }))}
+                  className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+                  placeholder="Talebinizin konusunu giriniz..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Kategori</label>
+                <select 
+                  value={newTicket.category}
+                  onChange={(e) => setNewTicket(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+                >
+                  <option value="Genel">Genel</option>
+                  <option value="Ödeme İşlemleri">Ödeme İşlemleri</option>
+                  <option value="İlan İşlemleri">İlan İşlemleri</option>
+                  <option value="Hesap Güvenliği">Hesap Güvenliği</option>
+                  <option value="Şikayet">Şikayet</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Mesajınız</label>
+                <textarea 
+                  rows={5}
+                  value={newTicket.message}
+                  onChange={(e) => setNewTicket(prev => ({ ...prev, message: e.target.value }))}
+                  className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6] transition-colors resize-none"
+                  placeholder="Sorununuzu detaylıca açıklayınız..."
+                />
+              </div>
+              <button 
+                type="submit"
+                className="w-full bg-[#5b68f6] hover:bg-[#4a55d6] text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-blue-500/20"
+              >
+                Talebi Oluştur
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
-
-function ClockIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  )
 }

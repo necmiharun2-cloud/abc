@@ -35,6 +35,10 @@ import Terms from './pages/Terms';
 import Deals from './pages/Deals';
 import Blog from './pages/Blog';
 import Streamers from './pages/Streamers';
+import Giveaways from './pages/Giveaways';
+import CDKey from './pages/CDKey';
+import TopUp from './pages/TopUp';
+import GiftCards from './pages/GiftCards';
 import PlaceholderPage from './pages/PlaceholderPage';
 
 export default function App() {
@@ -58,11 +62,13 @@ export default function App() {
               <Route path="alim-ilanlari" element={<AlimIlanlari />} />
               <Route path="topluluk" element={<Topluluk />} />
               <Route path="magazalar" element={<Magazalar />} />
-              <Route path="cekilisler" element={<PlaceholderPage />} />
-              <Route path="cd-key" element={<PlaceholderPage />} />
-              <Route path="top-up" element={<PlaceholderPage />} />
-              <Route path="hediye-kartlari" element={<PlaceholderPage />} />
+              <Route path="cekilisler" element={<Giveaways />} />
+              <Route path="cd-key" element={<CDKey />} />
+              <Route path="top-up" element={<TopUp />} />
+              <Route path="hediye-kartlari" element={<GiftCards />} />
               <Route path="ilan-ekle" element={<PlaceholderPage />} />
+              <Route path="favori-sistemi" element={<PlaceholderPage />} />
+              <Route path="ilan-yukari-tasima" element={<PlaceholderPage />} />
               <Route path="gizlilik-politikasi" element={<PlaceholderPage />} />
               <Route path="mesafeli-satis-sozlesmesi" element={<PlaceholderPage />} />
               <Route path="iade-politikasi" element={<PlaceholderPage />} />

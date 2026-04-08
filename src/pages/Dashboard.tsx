@@ -2,12 +2,24 @@ import {
   Wallet, ArrowUpRight, ArrowDownRight, Package, Trophy, 
   ChevronDown, User, Shield, CreditCard, Settings, LifeBuoy
 } from 'lucide-react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
+  const [openSections, setOpenSections] = useState({
+    hesap: true,
+    profil: false,
+    guvenlik: false,
+    banka: false,
+    izinler: false
+  });
+
+  const toggleSection = (section: keyof typeof openSections) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
@@ -48,131 +60,139 @@ export default function Dashboard() {
             {/* Hesap Section */}
             <div>
               <button 
-                onClick={() => handleComingSoon('Hesap')}
-                className="w-full flex items-center justify-between p-4 bg-white/5 text-white hover:bg-white/10 transition-colors"
+                onClick={() => toggleSection('hesap')}
+                className={`w-full flex items-center justify-between p-4 transition-colors ${openSections.hesap ? 'bg-white/5 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
               >
                 <div className="flex items-center gap-3 font-medium">
-                  <User className="w-5 h-5 text-gray-400" />
+                  <User className="w-5 h-5" />
                   Hesap
                 </div>
-                <ChevronDown className="w-5 h-5 text-gray-400 rotate-180" />
+                <ChevronDown className={`w-5 h-5 transition-transform ${openSections.hesap ? 'rotate-180' : ''}`} />
               </button>
-              <div className="bg-[#1a1d27] py-2">
-                <button onClick={() => handleComingSoon('Hesap Özeti')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-white bg-white/5 border-l-2 border-[#5b68f6] text-left">
-                  Hesap Özeti
-                </button>
-                <button onClick={() => handleComingSoon('Oyuncu ID & URL')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Oyuncu ID & URL <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">YENİ</span>
-                </button>
-                <button onClick={() => handleComingSoon('Üyelik Paketleri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Üyelik Paketleri
-                </button>
-                <button onClick={() => handleComingSoon('Kişisel Bilgiler')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Kişisel Bilgiler
-                </button>
-                <button onClick={() => handleComingSoon('Referanslarım')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Referanslarım
-                </button>
-                <button onClick={() => handleComingSoon('Bağlantılı Hesaplar')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Bağlantılı Hesaplar
-                </button>
-                <button onClick={() => handleComingSoon('Değerlendirmelerim')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Değerlendirmelerim
-                </button>
-                <button onClick={() => handleComingSoon('Bildirim Ayarları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Bildirim Ayarları
-                </button>
-              </div>
+              {openSections.hesap && (
+                <div className="bg-[#1a1d27] py-2">
+                  <button onClick={() => handleComingSoon('Hesap Özeti')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-white bg-white/5 border-l-2 border-[#5b68f6] text-left">
+                    Hesap Özeti
+                  </button>
+                  <button onClick={() => handleComingSoon('Oyuncu ID & URL')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Oyuncu ID & URL <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">YENİ</span>
+                  </button>
+                  <button onClick={() => handleComingSoon('Üyelik Paketleri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Üyelik Paketleri
+                  </button>
+                  <button onClick={() => handleComingSoon('Kişisel Bilgiler')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Kişisel Bilgiler
+                  </button>
+                  <button onClick={() => handleComingSoon('Referanslarım')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Referanslarım
+                  </button>
+                  <button onClick={() => handleComingSoon('Bağlantılı Hesaplar')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Bağlantılı Hesaplar
+                  </button>
+                  <button onClick={() => handleComingSoon('Değerlendirmelerim')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Değerlendirmelerim
+                  </button>
+                  <button onClick={() => handleComingSoon('Bildirim Ayarları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Bildirim Ayarları
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Profil & Görünüm Section */}
             <div>
               <button 
-                onClick={() => handleComingSoon('Profil & Görünüm')}
-                className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5"
+                onClick={() => toggleSection('profil')}
+                className={`w-full flex items-center justify-between p-4 transition-colors border-t border-white/5 ${openSections.profil ? 'bg-white/5 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
               >
                 <div className="flex items-center gap-3 font-medium">
                   <User className="w-5 h-5" />
                   Profil & Görünüm
                 </div>
-                <ChevronDown className="w-5 h-5 rotate-180" />
+                <ChevronDown className={`w-5 h-5 transition-transform ${openSections.profil ? 'rotate-180' : ''}`} />
               </button>
-              <div className="bg-[#1a1d27] py-2">
-                <button onClick={() => handleComingSoon('Avatar')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Avatar
-                </button>
-                <button onClick={() => handleComingSoon('Kapak Fotoğrafı')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Kapak Fotoğrafı
-                </button>
-                <button onClick={() => handleComingSoon('Hızlı Erişim Menü')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Hızlı Erişim Menü
-                </button>
-                <button onClick={() => handleComingSoon('Rozet Sergileme')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Rozet Sergileme
-                </button>
-              </div>
+              {openSections.profil && (
+                <div className="bg-[#1a1d27] py-2">
+                  <button onClick={() => handleComingSoon('Avatar')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Avatar
+                  </button>
+                  <button onClick={() => handleComingSoon('Kapak Fotoğrafı')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Kapak Fotoğrafı
+                  </button>
+                  <button onClick={() => handleComingSoon('Hızlı Erişim Menü')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Hızlı Erişim Menü
+                  </button>
+                  <button onClick={() => handleComingSoon('Rozet Sergileme')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Rozet Sergileme
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Güvenlik Section */}
             <div>
               <button 
-                onClick={() => handleComingSoon('Güvenlik')}
-                className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5"
+                onClick={() => toggleSection('guvenlik')}
+                className={`w-full flex items-center justify-between p-4 transition-colors border-t border-white/5 ${openSections.guvenlik ? 'bg-white/5 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
               >
                 <div className="flex items-center gap-3 font-medium">
                   <Shield className="w-5 h-5" />
                   Güvenlik
                 </div>
-                <ChevronDown className="w-5 h-5 rotate-180" />
+                <ChevronDown className={`w-5 h-5 transition-transform ${openSections.guvenlik ? 'rotate-180' : ''}`} />
               </button>
-              <div className="bg-[#1a1d27] py-2">
-                <button onClick={() => handleComingSoon('Şifre Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Şifre Değiştir
-                </button>
-                <button onClick={() => handleComingSoon('Mail Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Mail Değiştir
-                </button>
-                <button onClick={() => handleComingSoon('Telefon Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Telefon Değiştir
-                </button>
-                <button onClick={() => handleComingSoon('Hesap Güvenliği')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Hesap Güvenliği
-                </button>
-                <button onClick={() => handleComingSoon('Erişim Kayıtları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Erişim Kayıtları
-                </button>
-              </div>
+              {openSections.guvenlik && (
+                <div className="bg-[#1a1d27] py-2">
+                  <button onClick={() => handleComingSoon('Şifre Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Şifre Değiştir
+                  </button>
+                  <button onClick={() => handleComingSoon('Mail Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Mail Değiştir
+                  </button>
+                  <button onClick={() => handleComingSoon('Telefon Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Telefon Değiştir
+                  </button>
+                  <button onClick={() => handleComingSoon('Hesap Güvenliği')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Hesap Güvenliği
+                  </button>
+                  <button onClick={() => handleComingSoon('Erişim Kayıtları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Erişim Kayıtları
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Banka & Bakiye Section */}
             <div>
               <button 
-                onClick={() => handleComingSoon('Banka & Bakiye')}
-                className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5"
+                onClick={() => toggleSection('banka')}
+                className={`w-full flex items-center justify-between p-4 transition-colors border-t border-white/5 ${openSections.banka ? 'bg-white/5 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
               >
                 <div className="flex items-center gap-3 font-medium">
                   <CreditCard className="w-5 h-5" />
                   Banka & Bakiye
                 </div>
-                <ChevronDown className="w-5 h-5 rotate-180" />
+                <ChevronDown className={`w-5 h-5 transition-transform ${openSections.banka ? 'rotate-180' : ''}`} />
               </button>
-              <div className="bg-[#1a1d27] py-2">
-                <button onClick={() => handleComingSoon('Banka Hesapları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Banka Hesapları
-                </button>
-                <button onClick={() => handleComingSoon('Bakiye Hareketleri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Bakiye Hareketleri
-                </button>
-                <button onClick={() => handleComingSoon('Fatura Bilgileri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Fatura Bilgileri
-                </button>
-                <button onClick={() => handleComingSoon('Bakiye Kuponu')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Bakiye Kuponu
-                </button>
-                <button onClick={() => handleComingSoon('Hediye Merkezi')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                  Hediye Merkezi
-                </button>
-              </div>
+              {openSections.banka && (
+                <div className="bg-[#1a1d27] py-2">
+                  <button onClick={() => handleComingSoon('Banka Hesapları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Banka Hesapları
+                  </button>
+                  <button onClick={() => handleComingSoon('Bakiye Hareketleri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Bakiye Hareketleri
+                  </button>
+                  <button onClick={() => handleComingSoon('Fatura Bilgileri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Fatura Bilgileri
+                  </button>
+                  <button onClick={() => handleComingSoon('Bakiye Kuponu')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Bakiye Kuponu
+                  </button>
+                  <button onClick={() => handleComingSoon('Hediye Merkezi')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    Hediye Merkezi
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Destek Section */}
@@ -186,16 +206,25 @@ export default function Dashboard() {
             </div>
 
             {/* Kullanıcı İzinleri Section */}
-            <button 
-              onClick={() => handleComingSoon('Kullanıcı İzinleri')}
-              className="w-full flex items-center justify-between p-4 text-gray-400 hover:text-white hover:bg-white/5 transition-colors border-t border-white/5"
-            >
-              <div className="flex items-center gap-3 font-medium">
-                <Settings className="w-5 h-5" />
-                Kullanıcı İzinleri
-              </div>
-              <ChevronDown className="w-5 h-5" />
-            </button>
+            <div>
+              <button 
+                onClick={() => toggleSection('izinler')}
+                className={`w-full flex items-center justify-between p-4 transition-colors border-t border-white/5 ${openSections.izinler ? 'bg-white/5 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+              >
+                <div className="flex items-center gap-3 font-medium">
+                  <Settings className="w-5 h-5" />
+                  Kullanıcı İzinleri
+                </div>
+                <ChevronDown className={`w-5 h-5 transition-transform ${openSections.izinler ? 'rotate-180' : ''}`} />
+              </button>
+              {openSections.izinler && (
+                <div className="bg-[#1a1d27] py-2">
+                  <button onClick={() => handleComingSoon('İzin Ayarları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                    İzin Ayarları
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
       </div>
 

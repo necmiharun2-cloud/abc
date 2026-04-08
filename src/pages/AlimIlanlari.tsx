@@ -1,7 +1,26 @@
-import { Filter, Search, PlusCircle } from 'lucide-react';
+import { Filter, Search, PlusCircle, RefreshCw } from 'lucide-react';
 import CategoryListings from '../components/CategoryListings';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function AlimIlanlari() {
+  const [filters, setFilters] = useState({
+    keyword: '',
+  });
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const applyFilters = () => {
+    toast.success('Filtreler uygulandı!');
+  };
+
+  const clearFilters = () => {
+    setFilters({ keyword: '' });
+    toast.success('Filtreler temizlendi!');
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-6">
       {/* Sidebar Filters */}
@@ -17,13 +36,31 @@ export default function AlimIlanlari() {
               <label className="text-xs text-gray-400 font-medium mb-1.5 block">Kategori Ara</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input type="text" placeholder="Kategori ara..." className="w-full bg-[#2b3142] border border-white/10 rounded-md py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#5b68f6]" />
+                <input 
+                  type="text" 
+                  placeholder="Kategori ara..." 
+                  value={filters.keyword}
+                  onChange={(e) => handleFilterChange('keyword', e.target.value)}
+                  className="w-full bg-[#2b3142] border border-white/10 rounded-md py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#5b68f6]" 
+                />
               </div>
             </div>
             
-            <button className="w-full bg-[#5b68f6] hover:bg-[#4a55d6] text-white font-medium py-2 rounded-md text-sm transition-colors">
-              Filtreleri Uygula
-            </button>
+            <div className="space-y-2">
+              <button 
+                onClick={applyFilters}
+                className="w-full bg-[#5b68f6] hover:bg-[#4a55d6] text-white font-medium py-2 rounded-md text-sm transition-colors"
+              >
+                Filtreleri Uygula
+              </button>
+              <button 
+                onClick={clearFilters}
+                className="w-full flex items-center justify-center gap-2 bg-[#1a1d27] hover:bg-[#2b3142] border border-white/5 text-gray-400 hover:text-white py-2 rounded-md text-sm transition-colors"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Temizle
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -43,7 +80,7 @@ export default function AlimIlanlari() {
         
         <div>
           <h2 className="text-xl font-bold text-white mb-4">En Son Alım İlanları</h2>
-          <CategoryListings />
+          <CategoryListings filters={filters} />
         </div>
       </div>
     </div>

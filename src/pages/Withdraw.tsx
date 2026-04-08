@@ -7,9 +7,39 @@ import toast from 'react-hot-toast';
 export default function Withdraw() {
   const { user, loading } = useAuth();
   const [method, setMethod] = useState<'bank' | 'tosla' | 'binance'>('bank');
+  const [amount, setAmount] = useState('');
+  const [bankAccount, setBankAccount] = useState('');
+  const [isAgreed, setIsAgreed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
+  };
+
+  const handleWithdraw = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bankAccount) {
+      toast.error('Lütfen bir banka hesabı seçiniz.');
+      return;
+    }
+    if (!amount || parseFloat(amount) < 30) {
+      toast.error('Minimum çekim tutarı 30.00 ₺\'dir.');
+      return;
+    }
+    if (!isAgreed) {
+      toast.error('Lütfen sözleşmeyi onaylayın.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitting(false);
+      toast.success('Para çekme talebiniz başarıyla oluşturuldu!');
+      setAmount('');
+      setBankAccount('');
+      setIsAgreed(false);
+    }, 1500);
   };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
@@ -67,14 +97,18 @@ export default function Withdraw() {
       </div>
 
       {/* Withdrawal Form */}
-      <div className="bg-[#232736] rounded-xl border border-white/5 p-8 space-y-6">
+      <form onSubmit={handleWithdraw} className="bg-[#232736] rounded-xl border border-white/5 p-8 space-y-6">
         <h2 className="text-white font-bold">Banka Para Çekim Talebi</h2>
         
         <div className="space-y-4">
           <div>
             <label className="block text-sm text-gray-400 mb-2">Banka Hesabınız</label>
             <div className="relative">
-              <select className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-[#5b68f6] transition-colors">
+              <select 
+                value={bankAccount}
+                onChange={(e) => setBankAccount(e.target.value)}
+                className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-[#5b68f6] transition-colors"
+              >
                 <option value="">Lütfen bir banka hesabı seçiniz</option>
                 <option value="1">TR63 0004 6002 4888 8000 1639 22 - Çağlar Özbunar</option>
               </select>
@@ -86,6 +120,8 @@ export default function Withdraw() {
             <label className="block text-sm text-gray-400 mb-2">Tutar</label>
             <input 
               type="number" 
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
               placeholder="0"
             />
@@ -94,7 +130,7 @@ export default function Withdraw() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-[#1a1d27] border border-white/5 rounded-lg p-4">
               <div className="text-xs text-gray-400 mb-1">Hesabınıza Geçecek Bakiye</div>
-              <div className="text-white font-bold">0.00 ₺</div>
+              <div className="text-white font-bold">{amount ? (Math.max(0, parseFloat(amount) - 20)).toFixed(2) : '0.00'} ₺</div>
             </div>
             <div className="bg-[#1a1d27] border border-white/5 rounded-lg p-4">
               <div className="text-xs text-gray-400 mb-1">İşlem Ücreti</div>
@@ -103,20 +139,26 @@ export default function Withdraw() {
           </div>
 
           <label className="flex items-start gap-3 cursor-pointer group">
-            <input type="checkbox" className="mt-1 w-4 h-4 rounded border-white/10 bg-[#1a1d27] text-[#5b68f6] focus:ring-0 focus:ring-offset-0" />
+            <input 
+              type="checkbox" 
+              checked={isAgreed}
+              onChange={(e) => setIsAgreed(e.target.checked)}
+              className="mt-1 w-4 h-4 rounded border-white/10 bg-[#1a1d27] text-[#5b68f6] focus:ring-0 focus:ring-offset-0" 
+            />
             <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
               Seçtiğim banka hesap bilgilerinin doğruluğunu ve bilgilerin hatalı olması durumunda oluşacak maddi zararın İtemSatış'ın sorumluluğunda olmadığını kabul ediyorum.
             </span>
           </label>
 
           <button 
-            onClick={() => handleComingSoon('Para Çekme Talebi')}
-            className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-4 rounded-xl transition-colors shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+            type="submit"
+            disabled={isSubmitting}
+            className={`w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-4 rounded-xl transition-colors shadow-[0_0_15px_rgba(59,130,246,0.3)] ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            Talebi Gönder
+            {isSubmitting ? 'Talebiniz Gönderiliyor...' : 'Talebi Gönder'}
           </button>
         </div>
-      </div>
+      </form>
 
       {/* Rules Section */}
       <div className="bg-[#232736] rounded-xl border border-white/5 p-8">
