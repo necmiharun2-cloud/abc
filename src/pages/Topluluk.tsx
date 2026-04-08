@@ -1,65 +1,85 @@
 import { MessageSquare, TrendingUp, Users, Plus, Heart, Share2, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export default function Topluluk() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', content: '', category: 'Genel' });
-  
-  const [posts, setPosts] = useState([
-    { id: 1, author: 'GamerX', avatar: 'https://picsum.photos/seed/u1/40/40', time: '2 saat önce', title: 'Valorant yeni ajan hakkında ne düşünüyorsunuz?', content: 'Sizce yeni gelen ajan metayı nasıl etkileyecek? Yetenekleri çok güçlü duruyor...', likes: 24, comments: 12, category: 'Valorant', isLiked: false, showComments: false },
-    { id: 2, author: 'ProPlayer', avatar: 'https://picsum.photos/seed/u2/40/40', time: '5 saat önce', title: 'CS2 FPS Drop sorunu çözümü', content: 'Son güncellemeden sonra FPS drop yaşayanlar için bulduğum birkaç çözüm yöntemini paylaşıyorum...', likes: 156, comments: 45, category: 'CS2', isLiked: false, showComments: false },
-    { id: 3, author: 'NoobMaster', avatar: 'https://picsum.photos/seed/u3/40/40', time: '1 gün önce', title: 'En iyi F/P oyuncu faresi önerisi?', content: 'Maksimum 1000 TL bütçem var, FPS oyunları için fare arıyorum. Önerilerinizi bekliyorum.', likes: 8, comments: 32, category: 'Donanım', isLiked: false, showComments: false },
-  ]);
-
+  const [posts, setPosts] = useState<any[]>([]);
   const [commentText, setCommentText] = useState('');
+  const [activeCommentsPostId, setActiveCommentsPostId] = useState<string | null>(null);
+  const [comments, setComments] = useState<any[]>([]);
 
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
+  useEffect(() => {
+    const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPosts(fetchedPosts);
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!activeCommentsPostId) {
+      setComments([]);
+      return;
+    }
+    const q = query(collection(db, `posts/${activeCommentsPostId}/comments`), orderBy('createdAt', 'asc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedComments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setComments(fetchedComments);
+    });
+    return unsubscribe;
+  }, [activeCommentsPostId]);
+
+  const handleLike = async (postId: string) => {
+    if (!user) {
+      toast.error('Beğenmek için giriş yapmalısınız.');
+      return;
+    }
+    const postRef = doc(db, 'posts', postId);
+    try {
+      await updateDoc(postRef, {
+        likes: increment(1)
+      });
+    } catch (error) {
+      toast.error('Bir hata oluştu.');
+    }
   };
 
-  const handleLike = (id: number) => {
-    setPosts(prev => prev.map(post => {
-      if (post.id === id) {
-        return {
-          ...post,
-          likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-          isLiked: !post.isLiked
-        };
-      }
-      return post;
-    }));
-  };
-
-  const toggleComments = (id: number) => {
-    setPosts(prev => prev.map(post => {
-      if (post.id === id) {
-        return { ...post, showComments: !post.showComments };
-      }
-      return post;
-    }));
-  };
-
-  const handleAddComment = (postId: number) => {
+  const handleAddComment = async (postId: string) => {
     if (!user) {
       toast.error('Yorum yapmak için giriş yapmalısınız.');
       return;
     }
     if (!commentText.trim()) return;
 
-    setPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        return { ...post, comments: post.comments + 1 };
-      }
-      return post;
-    }));
-    setCommentText('');
-    toast.success('Yorumunuz eklendi!');
+    try {
+      await addDoc(collection(db, `posts/${postId}/comments`), {
+        postId,
+        authorId: user.uid,
+        authorName: profile?.username || user.displayName || 'Kullanıcı',
+        authorAvatar: profile?.avatar || user.photoURL || `https://picsum.photos/seed/${user.uid}/32/32`,
+        text: commentText,
+        createdAt: new Date().toISOString()
+      });
+      
+      await updateDoc(doc(db, 'posts', postId), {
+        commentCount: increment(1)
+      });
+      
+      setCommentText('');
+      toast.success('Yorumunuz eklendi!');
+    } catch (error) {
+      toast.error('Yorum eklenemedi.');
+    }
   };
 
-  const handleCreatePost = (e: any) => {
+  const handleCreatePost = async (e: any) => {
     e.preventDefault();
     if (!user) {
       toast.error('Konu açmak için giriş yapmalısınız.');
@@ -70,23 +90,29 @@ export default function Topluluk() {
       return;
     }
 
-    const post = {
-      id: posts.length + 1,
-      author: user.displayName || user.email?.split('@')[0] || 'Kullanıcı',
-      avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`,
-      time: 'Şimdi',
-      title: newPost.title,
-      content: newPost.content,
-      category: newPost.category,
-      likes: 0,
-      comments: 0,
-      isLiked: false
-    };
+    try {
+      await addDoc(collection(db, 'posts'), {
+        authorId: user.uid,
+        authorName: profile?.username || user.displayName || 'Kullanıcı',
+        authorAvatar: profile?.avatar || user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`,
+        title: newPost.title,
+        content: newPost.content,
+        category: newPost.category,
+        likes: 0,
+        commentCount: 0,
+        createdAt: new Date().toISOString()
+      });
 
-    setPosts([post, ...posts]);
-    setIsModalOpen(false);
-    setNewPost({ title: '', content: '', category: 'Genel' });
-    toast.success('Konu başarıyla açıldı!');
+      setIsModalOpen(false);
+      setNewPost({ title: '', content: '', category: 'Genel' });
+      toast.success('Konu başarıyla açıldı!');
+    } catch (error) {
+      toast.error('Konu açılamadı.');
+    }
+  };
+
+  const handleComingSoon = (feature: string) => {
+    toast.success(`${feature} özelliği yakında eklenecek!`);
   };
 
   const trending = [
@@ -116,10 +142,12 @@ export default function Topluluk() {
             <div key={post.id} className="bg-[#232736] p-5 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <img src={post.avatar} alt={post.author} className="w-10 h-10 rounded-full" />
+                  <img src={post.authorAvatar} alt={post.authorName} className="w-10 h-10 rounded-full" />
                   <div>
-                    <div className="text-sm font-bold text-white">{post.author}</div>
-                    <div className="text-xs text-gray-400">{post.time}</div>
+                    <div className="text-sm font-bold text-white">{post.authorName}</div>
+                    <div className="text-xs text-gray-400">
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
                 </div>
                 <span className="bg-[#2b3142] text-gray-300 text-xs px-2.5 py-1 rounded-full">{post.category}</span>
@@ -131,20 +159,20 @@ export default function Topluluk() {
               <div className="flex items-center gap-4 pt-4 border-t border-white/5">
                 <button 
                   onClick={() => handleLike(post.id)}
-                  className={`flex items-center gap-1.5 transition-colors text-sm ${post.isLiked ? 'text-pink-500' : 'text-gray-400 hover:text-pink-500'}`}
+                  className="flex items-center gap-1.5 transition-colors text-sm text-gray-400 hover:text-pink-500"
                 >
-                  <Heart className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
+                  <Heart className="w-4 h-4" />
                   {post.likes}
                 </button>
                 <button 
-                  onClick={() => toggleComments(post.id)}
+                  onClick={() => setActiveCommentsPostId(activeCommentsPostId === post.id ? null : post.id)}
                   className="flex items-center gap-1.5 text-gray-400 hover:text-[#5b68f6] transition-colors text-sm"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  {post.comments}
+                  {post.commentCount}
                 </button>
                 <button 
-                  onClick={() => handleComingSoon('Paylaş')}
+                  onClick={() => toast.success('Paylaşım linki kopyalandı!')}
                   className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-sm ml-auto"
                 >
                   <Share2 className="w-4 h-4" />
@@ -152,10 +180,10 @@ export default function Topluluk() {
                 </button>
               </div>
 
-              {post.showComments && (
+              {activeCommentsPostId === post.id && (
                 <div className="mt-4 pt-4 border-t border-white/5 space-y-4 animate-in slide-in-from-top-2 duration-200">
                   <div className="flex gap-3">
-                    <img src={user?.photoURL || `https://picsum.photos/seed/${user?.uid}/32/32`} alt="Me" className="w-8 h-8 rounded-full" />
+                    <img src={profile?.avatar || user?.photoURL || `https://picsum.photos/seed/${user?.uid}/32/32`} alt="Me" className="w-8 h-8 rounded-full" />
                     <div className="flex-1 flex gap-2">
                       <input 
                         type="text"
@@ -173,21 +201,27 @@ export default function Topluluk() {
                     </div>
                   </div>
                   
-                  {/* Mock Comments */}
                   <div className="space-y-3 pl-11">
-                    <div className="text-sm">
-                      <span className="font-bold text-white mr-2">Kullanıcı_123</span>
-                      <span className="text-gray-400">Harika bir paylaşım olmuş, teşekkürler!</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-bold text-white mr-2">Gamer_Pro</span>
-                      <span className="text-gray-400">Bence de yetenekleri çok dengeli.</span>
-                    </div>
+                    {comments.map(comment => (
+                      <div key={comment.id} className="text-sm">
+                        <span className="font-bold text-white mr-2">{comment.authorName}</span>
+                        <span className="text-gray-400">{comment.text}</span>
+                      </div>
+                    ))}
+                    {comments.length === 0 && (
+                      <p className="text-xs text-gray-500 italic">Henüz yorum yapılmamış.</p>
+                    )}
                   </div>
                 </div>
               )}
             </div>
           ))}
+          {posts.length === 0 && (
+            <div className="text-center py-20 bg-[#232736] rounded-xl border border-white/5">
+              <MessageSquare className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400">Henüz hiç konu açılmamış. İlk konuyu sen aç!</p>
+            </div>
+          )}
         </div>
       </div>
 

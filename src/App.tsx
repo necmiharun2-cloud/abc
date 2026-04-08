@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { FavoritesProvider } from './contexts/FavoritesContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Roblox from './pages/Roblox';
@@ -26,6 +27,7 @@ import Orders from './pages/Orders';
 import SoldListings from './pages/SoldListings';
 import MyListings from './pages/MyListings';
 import Favorites from './pages/Favorites';
+import OrderDetail from './pages/OrderDetail';
 import Withdraw from './pages/Withdraw';
 import Support from './pages/Support';
 import ForgotPassword from './pages/ForgotPassword';
@@ -49,7 +51,8 @@ export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <BrowserRouter>
+        <FavoritesProvider>
+          <BrowserRouter>
           <Toaster position="top-center" toastOptions={{
             style: {
               background: '#232736',
@@ -91,6 +94,7 @@ export default function App() {
               <Route path="bildirimler" element={<Notifications />} />
               <Route path="sepet" element={<Cart />} />
               <Route path="siparislerim" element={<Orders />} />
+              <Route path="siparis/:id" element={<OrderDetail />} />
               <Route path="sattigim-ilanlar" element={<SoldListings />} />
               <Route path="ilanlarim" element={<MyListings />} />
               <Route path="favorilerim" element={<Favorites />} />
@@ -101,7 +105,8 @@ export default function App() {
             </Route>
           </Routes>
         </BrowserRouter>
-      </CartProvider>
-    </AuthProvider>
+      </FavoritesProvider>
+    </CartProvider>
+  </AuthProvider>
   );
 }

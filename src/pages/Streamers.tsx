@@ -1,8 +1,13 @@
 import { Users, Star, MessageSquare, Play, Heart, X } from 'lucide-react';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
+import { chatService } from '../services/chatService';
+import { useNavigate } from 'react-router-dom';
 
 export default function Streamers() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [streamers, setStreamers] = useState([
     { id: 1, name: 'GamerX', avatar: 'https://picsum.photos/seed/u1/100/100', followers: '1.2M', platform: 'Twitch', status: 'Canlı', game: 'Valorant', isFollowing: false },
@@ -31,6 +36,25 @@ export default function Streamers() {
       }
       return s;
     }));
+  };
+
+  const handleMessage = async (streamerId: string, streamerName: string) => {
+    if (!user) {
+      toast.error('Mesaj göndermek için giriş yapmalısınız.');
+      return;
+    }
+    try {
+      const chatId = await chatService.createChat(
+        [user.uid, streamerId],
+        {
+          [user.uid]: { name: profile?.username || user.displayName || 'Me', avatar: profile?.avatar || user.photoURL || '' },
+          [streamerId]: { name: streamerName, avatar: '' }
+        }
+      );
+      navigate('/mesajlar', { state: { activeChatId: chatId } });
+    } catch (error) {
+      toast.error('Sohbet başlatılamadı.');
+    }
   };
 
   const handleApply = (e: React.FormEvent) => {
@@ -95,7 +119,7 @@ export default function Streamers() {
                 {streamer.isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
               </button>
               <button 
-                onClick={() => handleComingSoon('Mesaj Gönder')}
+                onClick={() => handleMessage(streamer.id.toString(), streamer.name)}
                 className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2"
               >
                 <MessageSquare className="w-3.5 h-3.5" />

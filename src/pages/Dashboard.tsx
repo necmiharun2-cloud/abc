@@ -8,11 +8,12 @@ import { Navigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const [activeView, setActiveView] = useState('summary');
   const [openSections, setOpenSections] = useState({
     hesap: true,
     profil: false,
-    guvenlik: false,
+    guvenlik: true,
     banka: false,
     izinler: false
   });
@@ -71,7 +72,10 @@ export default function Dashboard() {
               </button>
               {openSections.hesap && (
                 <div className="bg-[#1a1d27] py-2">
-                  <button onClick={() => handleComingSoon('Hesap Özeti')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-white bg-white/5 border-l-2 border-[#5b68f6] text-left">
+                  <button 
+                    onClick={() => setActiveView('summary')} 
+                    className={`w-full flex items-center gap-3 px-12 py-2.5 text-sm text-left transition-colors ${activeView === 'summary' ? 'text-white bg-white/5 border-l-2 border-[#5b68f6]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  >
                     Hesap Özeti
                   </button>
                   <button onClick={() => handleComingSoon('Oyuncu ID & URL')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
@@ -143,10 +147,16 @@ export default function Dashboard() {
               </button>
               {openSections.guvenlik && (
                 <div className="bg-[#1a1d27] py-2">
-                  <button onClick={() => handleComingSoon('Şifre Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                  <button 
+                    onClick={() => setActiveView('security')} 
+                    className={`w-full flex items-center gap-3 px-12 py-2.5 text-sm text-left transition-colors ${activeView === 'security' ? 'text-white bg-white/5 border-l-2 border-[#5b68f6]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  >
                     Şifre Değiştir
                   </button>
-                  <button onClick={() => handleComingSoon('Mail Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                  <button 
+                    onClick={() => setActiveView('security')} 
+                    className={`w-full flex items-center gap-3 px-12 py-2.5 text-sm text-left transition-colors ${activeView === 'security' ? 'text-white bg-white/5 border-l-2 border-[#5b68f6]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  >
                     Mail Değiştir
                   </button>
                   <button onClick={() => handleComingSoon('Telefon Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
@@ -230,93 +240,138 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="flex-1 space-y-6">
-        {/* Hesap Özeti */}
-        <div>
-          <h2 className="text-xl font-bold text-white mb-4">Hesap Özeti</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Wallet className="w-6 h-6 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Hesap Bakiyesi</p>
-                <p className="text-xl font-bold text-white">0.00 ₺</p>
+        {activeView === 'summary' && (
+          <>
+            {/* Hesap Özeti */}
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">Hesap Özeti</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                    <Wallet className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Hesap Bakiyesi</p>
+                    <p className="text-xl font-bold text-white">{profile?.balance?.toFixed(2) || '0.00'} ₺</p>
+                  </div>
+                </div>
+                <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                    <Package className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Satılan Toplam İlan</p>
+                    <p className="text-xl font-bold text-white">0</p>
+                  </div>
+                </div>
+                <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <ArrowUpRight className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Çekilebilir Tutar</p>
+                    <p className="text-xl font-bold text-white">0.00 ₺</p>
+                  </div>
+                </div>
+                <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                    <ArrowDownRight className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Toplam Kazanç</p>
+                    <p className="text-xl font-bold text-white">0.00 ₺</p>
+                  </div>
+                </div>
+                <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-red-500/20 flex items-center justify-center">
+                    <ArrowUpRight className="w-6 h-6 text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Toplam Harcama Tutarı</p>
+                    <p className="text-xl font-bold text-white">0.00 ₺</p>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <Package className="w-6 h-6 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Satılan Toplam İlan</p>
-                <p className="text-xl font-bold text-white">0</p>
-              </div>
-            </div>
-            <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                <ArrowUpRight className="w-6 h-6 text-purple-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Çekilebilir Tutar</p>
-                <p className="text-xl font-bold text-white">0.00 ₺</p>
-              </div>
-            </div>
-            <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <ArrowDownRight className="w-6 h-6 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Toplam Kazanç</p>
-                <p className="text-xl font-bold text-white">0.00 ₺</p>
-              </div>
-            </div>
-            <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-red-500/20 flex items-center justify-center">
-                <ArrowUpRight className="w-6 h-6 text-red-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Toplam Harcama Tutarı</p>
-                <p className="text-xl font-bold text-white">0.00 ₺</p>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Topluluk Özeti */}
-        <div>
-          <h2 className="text-xl font-bold text-white mb-4">Topluluk Özeti</h2>
-          <div className="bg-[#232736] p-6 rounded-xl border border-white/5 flex items-center gap-6">
-            <div className="relative shrink-0">
-              <div className="w-20 h-20 rounded-full bg-[#1a1d27] border-4 border-blue-500 flex items-center justify-center flex-col">
-                <span className="text-[10px] text-gray-400 font-bold">SEVİYE</span>
-                <span className="text-2xl font-bold text-white leading-none">2</span>
-              </div>
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-yellow-400">
-                <Trophy className="w-6 h-6 fill-current" />
+            {/* Topluluk Özeti */}
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">Topluluk Özeti</h2>
+              <div className="bg-[#232736] p-6 rounded-xl border border-white/5 flex items-center gap-6">
+                <div className="relative shrink-0">
+                  <div className="w-20 h-20 rounded-full bg-[#1a1d27] border-4 border-blue-500 flex items-center justify-center flex-col">
+                    <span className="text-[10px] text-gray-400 font-bold">SEVİYE</span>
+                    <span className="text-2xl font-bold text-white leading-none">2</span>
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-yellow-400">
+                    <Trophy className="w-6 h-6 fill-current" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-300">+45 EXP seviye atlamak için gerekiyor</span>
+                    <span className="text-gray-400">45 toplam exp</span>
+                  </div>
+                  <div className="h-2 bg-[#1a1d27] rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 w-[50%]"></div>
+                  </div>
+                  <div className="text-right text-xs text-gray-500 mt-1">50%</div>
+                </div>
               </div>
             </div>
-            <div className="flex-1">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-300">+45 EXP seviye atlamak için gerekiyor</span>
-                <span className="text-gray-400">45 toplam exp</span>
-              </div>
-              <div className="h-2 bg-[#1a1d27] rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 w-[50%]"></div>
-              </div>
-              <div className="text-right text-xs text-gray-500 mt-1">50%</div>
-            </div>
-          </div>
-        </div>
 
-        {/* İlan Özeti */}
-        <div>
-          <h2 className="text-xl font-bold text-white mb-4">İlan Özeti</h2>
-          <div className="bg-[#232736] p-12 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
-            <Package className="w-16 h-16 text-yellow-500 mb-4 opacity-80" />
-            <h3 className="text-lg font-bold text-white mb-2">İlan bulunamadı</h3>
-            <p className="text-gray-400">Aktif ilanınız bulunmamaktadır.</p>
+            {/* İlan Özeti */}
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">İlan Özeti</h2>
+              <div className="bg-[#232736] p-12 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
+                <Package className="w-16 h-16 text-yellow-500 mb-4 opacity-80" />
+                <h3 className="text-lg font-bold text-white mb-2">İlan bulunamadı</h3>
+                <p className="text-gray-400">Aktif ilanınız bulunmamaktadır.</p>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeView === 'security' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-white mb-4">Güvenlik Ayarları</h2>
+            <div className="bg-[#232736] rounded-xl border border-white/5 p-6 space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-white font-bold">Şifre Değiştir</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Mevcut Şifre</label>
+                    <input type="password" placeholder="••••••••" className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Yeni Şifre</label>
+                    <input type="password" placeholder="••••••••" className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
+                  </div>
+                </div>
+                <button 
+                  onClick={() => toast.success('Şifreniz başarıyla güncellendi.')}
+                  className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                >
+                  Şifreyi Güncelle
+                </button>
+              </div>
+
+              <div className="pt-6 border-t border-white/5 space-y-4">
+                <h3 className="text-white font-bold">E-Posta Değiştir</h3>
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-400">Yeni E-Posta Adresi</label>
+                  <input type="email" placeholder={user.email || ''} className="w-full max-w-md bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
+                </div>
+                <button 
+                  onClick={() => toast.success('Doğrulama e-postası gönderildi.')}
+                  className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                >
+                  E-Postayı Güncelle
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

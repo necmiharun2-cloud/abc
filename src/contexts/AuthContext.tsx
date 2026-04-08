@@ -1,29 +1,82 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+
+interface UserProfile {
+  uid: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  balance: number;
+  role: 'admin' | 'user';
+  createdAt: string;
+  listingCount: number;
+  soldCount: number;
+  rating: number;
+  reviewCount: number;
+}
 
 interface AuthContextType {
   user: User | null;
+  profile: UserProfile | null;
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextType>({ user: null, profile: null, loading: true });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      
+      if (firebaseUser) {
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        
+        // Listen to profile changes
+        const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setProfile(docSnap.data() as UserProfile);
+          } else {
+            // Create profile if it doesn't exist
+            const newProfile: UserProfile = {
+              uid: firebaseUser.uid,
+              username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+              email: firebaseUser.email || '',
+              avatar: firebaseUser.photoURL || '',
+              balance: 0,
+              role: 'user',
+              createdAt: new Date().toISOString(),
+              listingCount: 0,
+              soldCount: 0,
+              rating: 0,
+              reviewCount: 0
+            };
+            setDoc(userDocRef, newProfile);
+            setProfile(newProfile);
+          }
+          setLoading(false);
+        }, (error) => {
+          console.error("Error fetching profile:", error);
+          setLoading(false);
+        });
+
+        return () => unsubscribeProfile();
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
     });
 
-    return unsubscribe;
+    return () => unsubscribeAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, profile, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

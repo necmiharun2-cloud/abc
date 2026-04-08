@@ -1,6 +1,11 @@
 import { valorantListings, showcaseListings } from '../data/mockData';
-import { Link } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { Heart, MessageSquare } from 'lucide-react';
+import { useFavorites } from '../contexts/FavoritesContext';
+import { useAuth } from '../contexts/AuthContext';
+import { chatService } from '../services/chatService';
+import toast from 'react-hot-toast';
 
 interface Filters {
   category?: string;
@@ -22,6 +27,37 @@ interface CategoryListingsProps {
 
 export default function CategoryListings({ filters, initialCategory }: CategoryListingsProps) {
   const [activeTab, setActiveTab] = useState(initialCategory || 'Valorant');
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleMessageSeller = async (e: React.MouseEvent, sellerId: string, sellerName: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error('Mesaj göndermek için giriş yapmalısınız.');
+      return;
+    }
+
+    if (user.uid === sellerId) {
+      toast.error('Kendi ilanınıza mesaj gönderemezsiniz.');
+      return;
+    }
+
+    try {
+      const chatId = await chatService.createChat(
+        [user.uid, sellerId],
+        {
+          [user.uid]: { name: profile?.username || user.displayName || 'Me', avatar: profile?.avatar || user.photoURL || '' },
+          [sellerId]: { name: sellerName, avatar: '' }
+        }
+      );
+      navigate('/mesajlar', { state: { activeChatId: chatId } });
+    } catch (error) {
+      toast.error('Sohbet başlatılamadı.');
+    }
+  };
 
   const tabs = [
     { name: 'Valorant', icon: 'https://picsum.photos/seed/t4/20/20' },
@@ -100,6 +136,23 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
                     YENİ İLAN
                   </div>
                 )}
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleFavorite(listing.id.toString());
+                  }}
+                  className="absolute bottom-2 right-2 p-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-red-500 transition-colors group/fav"
+                >
+                  <Heart className={`w-4 h-4 ${isFavorite(listing.id.toString()) ? 'fill-current text-white' : 'text-white'}`} />
+                </button>
+                <button 
+                  onClick={(e) => handleMessageSeller(e, listing.sellerId, listing.sellerName)}
+                  className="absolute bottom-2 left-2 p-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-[#5b68f6] transition-colors"
+                  title="Satıcıya Mesaj Gönder"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </button>
               </div>
 
               {/* Seller Info Bar */}

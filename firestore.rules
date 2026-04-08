@@ -6,19 +6,32 @@ service cloud.firestore {
     // ===============================================================
     //
     // Collection: users
-    // Document ID: {userId}
-    // Fields:
-    //   - uid: string (required, immutable) - The unique identifier of the user
-    //   - username: string (required) - The display name of the user
-    //   - email: string (required) - The email address of the user
-    //   - createdAt: string (required, immutable) - The time the user was created
-    //   - role: string (required) - The role of the user ('admin' or 'user')
+    // Fields: uid, username, email, avatar, balance, role, createdAt, listingCount, soldCount, rating, reviewCount
+    //
+    // Collection: products
+    // Fields: id, title, description, price, category, image, sellerId, sellerName, createdAt, status
+    //
+    // Collection: orders
+    // Fields: id, productId, productTitle, buyerId, sellerId, price, status, createdAt
+    //
+    // Collection: chats/{chatId}/messages
+    // Fields: id, chatId, senderId, text, createdAt
+    //
+    // Collection: favorites
+    // Fields: userId, productId, createdAt
+    //
+    // Collection: posts
+    // Fields: authorId, authorName, authorAvatar, title, content, category, likes, commentCount, createdAt
+    //
+    // Collection: posts/{postId}/comments
+    // Fields: postId, authorId, authorName, authorAvatar, text, createdAt
     //
     // ===============================================================
 
     // ===============================================================
     // Helper Functions
     // ===============================================================
+    
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -28,25 +41,9 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() &&
+      return isAuthenticated() && 
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "necmiharun3@gmail.com" && request.auth.token.email_verified == true));
-    }
-
-    function uidUnchanged() {
-      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid;
-    }
-
-    function uidNotModified() {
-      return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
-    }
-
-    function hasRequiredFields(fields) {
-      return request.resource.data.keys().hasAll(fields);
-    }
-
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
+         (request.auth.token.email == "necmiharun3@gmail.com" && request.auth.token.email_verified == true));
     }
 
     function isValidEmail(email) {
@@ -57,37 +54,124 @@ service cloud.firestore {
       return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
     }
 
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
     // ===============================================================
     // Domain Validators
     // ===============================================================
+
     function isValidUser(data) {
-      return hasOnlyAllowedFields(['uid', 'username', 'email', 'createdAt', 'role']) &&
-             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
-             data.username is string && data.username.size() > 0 && data.username.size() < 50 &&
+      return hasOnlyAllowedFields(['uid', 'username', 'email', 'avatar', 'balance', 'role', 'createdAt', 'listingCount', 'soldCount', 'rating', 'reviewCount']) &&
+             data.uid is string && data.username is string && data.username.size() > 0 && data.username.size() < 50 &&
              isValidEmail(data.email) &&
-             isValidDateString(data.createdAt) &&
-             data.role in ['admin', 'user'];
+             data.balance is number && data.balance >= 0 &&
+             data.role in ['admin', 'user'] &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidProduct(data) {
+      return hasOnlyAllowedFields(['id', 'title', 'description', 'price', 'category', 'image', 'sellerId', 'sellerName', 'createdAt', 'status']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 100 &&
+             data.price is number && data.price >= 0 &&
+             data.sellerId is string &&
+             data.status in ['active', 'sold', 'inactive'] &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidOrder(data) {
+      return hasOnlyAllowedFields(['id', 'productId', 'productTitle', 'buyerId', 'sellerId', 'price', 'status', 'createdAt']) &&
+             data.productId is string &&
+             data.buyerId is string &&
+             data.sellerId is string &&
+             data.price is number &&
+             data.status in ['pending', 'delivered', 'cancelled'] &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidMessage(data) {
+      return hasOnlyAllowedFields(['id', 'chatId', 'senderId', 'text', 'createdAt']) &&
+             data.chatId is string &&
+             data.senderId is string &&
+             data.text is string && data.text.size() > 0 && data.text.size() < 2000 &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidFavorite(data) {
+      return hasOnlyAllowedFields(['userId', 'productId', 'createdAt']) &&
+             data.userId is string &&
+             data.productId is string &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidPost(data) {
+      return hasOnlyAllowedFields(['authorId', 'authorName', 'authorAvatar', 'title', 'content', 'category', 'likes', 'commentCount', 'createdAt']) &&
+             data.authorId is string &&
+             data.authorName is string &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 5000 &&
+             data.category is string &&
+             data.likes is number &&
+             data.commentCount is number &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidComment(data) {
+      return hasOnlyAllowedFields(['postId', 'authorId', 'authorName', 'authorAvatar', 'text', 'createdAt']) &&
+             data.postId is string &&
+             data.authorId is string &&
+             data.authorName is string &&
+             data.text is string && data.text.size() > 0 && data.text.size() < 1000 &&
+             isValidDateString(data.createdAt);
     }
 
     // ===============================================================
     // Rules
     // ===============================================================
+
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      
-      allow create: if isAuthenticated() && 
-                    isValidUser(request.resource.data) && 
-                    uidUnchanged() && 
-                    isOwner(userId) &&
-                    ((request.resource.data.role == 'user') || isAdmin());
-                    
-      allow update: if isAuthenticated() && 
-                    isValidUser(request.resource.data) && 
-                    uidNotModified() && 
-                    request.resource.data.createdAt == resource.data.createdAt &&
-                    ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin());
-                    
-      allow delete: if isAdmin();
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user' && request.resource.data.balance == 0;
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role && request.resource.data.balance == resource.data.balance) || isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidProduct(request.resource.data) && request.resource.data.sellerId == request.auth.uid;
+      allow update: if (isAuthenticated() && isValidProduct(request.resource.data) && resource.data.sellerId == request.auth.uid) || isAdmin();
+      allow delete: if (isAuthenticated() && resource.data.sellerId == request.auth.uid) || isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId || isAdmin());
+      allow create: if isAuthenticated() && isValidOrder(request.resource.data) && request.resource.data.buyerId == request.auth.uid;
+      allow update: if (isAuthenticated() && isValidOrder(request.resource.data) && (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId)) || isAdmin();
+    }
+
+    match /chats/{chatId}/messages/{messageId} {
+      allow read: if isAuthenticated() && (chatId.matches(".*" + request.auth.uid + ".*") || isAdmin());
+      allow create: if isAuthenticated() && isValidMessage(request.resource.data) && request.resource.data.senderId == request.auth.uid;
+    }
+
+    match /favorites/{favoriteId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && isValidFavorite(request.resource.data) && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidPost(request.resource.data) && request.resource.data.authorId == request.auth.uid;
+      allow update: if (isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin())) || 
+                      (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'commentCount']));
+      allow delete: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidComment(request.resource.data) && request.resource.data.authorId == request.auth.uid;
+        allow delete: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
+      }
     }
   }
 }

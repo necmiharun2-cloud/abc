@@ -92,9 +92,9 @@ export default function SoldListings() {
         {filteredSales.length > 0 ? (
           <div className="space-y-4">
             {filteredSales.map((sale) => (
-              <div 
+              <Link 
                 key={sale.id}
-                onClick={() => handleComingSoon('Satış Detayı')}
+                to={`/siparis/${sale.id}`}
                 className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer group"
               >
                 <img src={sale.image} alt={sale.title} className="w-16 h-16 rounded-lg object-cover" />
@@ -121,7 +121,7 @@ export default function SoldListings() {
                     <ChevronDown className="w-5 h-5" />
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (
