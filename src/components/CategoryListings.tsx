@@ -28,7 +28,7 @@ interface CategoryListingsProps {
 export default function CategoryListings({ filters, initialCategory }: CategoryListingsProps) {
   const [activeTab, setActiveTab] = useState(initialCategory || 'Valorant');
   const { toggleFavorite, isFavorite } = useFavorites();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
   const handleMessageSeller = async (e: React.MouseEvent, sellerId: string, sellerName: string) => {

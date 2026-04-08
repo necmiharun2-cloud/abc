@@ -6,7 +6,7 @@ import { chatService } from '../services/chatService';
 import { useNavigate } from 'react-router-dom';
 
 export default function Streamers() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [streamers, setStreamers] = useState([
