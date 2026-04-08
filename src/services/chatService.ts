@@ -32,10 +32,11 @@ export const chatService = {
     });
 
     await setDoc(chatRef, {
+      id: chatId,
       participants,
       participantNames,
       participantAvatars,
-      createdAt: serverTimestamp()
+      createdAt: new Date().toISOString()
     }, { merge: true });
 
     return chatId;
@@ -61,11 +62,12 @@ export const chatService = {
   },
 
   async sendMessage(chatId: string, senderId: string, text: string) {
+    const now = new Date().toISOString();
     const messageData = {
       chatId,
       senderId,
       text,
-      createdAt: serverTimestamp()
+      createdAt: now
     };
     
     await addDoc(collection(db, `chats/${chatId}/messages`), messageData);
@@ -73,7 +75,7 @@ export const chatService = {
     // Update last message in chat doc
     await setDoc(doc(db, 'chats', chatId), {
       lastMessage: text,
-      lastMessageAt: serverTimestamp()
+      lastMessageAt: now
     }, { merge: true });
   }
 };

@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -36,10 +36,6 @@ export default function Product() {
     fetchProduct();
   }, [id]);
 
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
-  };
-
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!product) return <div className="text-center py-20 text-white">Ürün bulunamadı.</div>;
 
@@ -65,23 +61,23 @@ export default function Product() {
               ?
             </div>
             <h3 className="text-white font-bold mb-2">Yardıma mı ihtiyacınız var?</h3>
-            <p 
-              onClick={() => handleComingSoon('Yardım Merkezi')}
-              className="text-gray-400 text-xs mb-6 underline cursor-pointer hover:text-white"
+            <Link 
+              to="/destek-sistemi"
+              className="text-gray-400 text-xs mb-6 underline cursor-pointer hover:text-white block"
             >
               Buraya tıklayarak yardım merkezi sayfamıza ulaşabilirsiniz.
-            </p>
-            <button 
-              onClick={() => handleComingSoon('Akıllı Sorun Bildir')}
-              className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 font-medium py-2.5 rounded text-sm transition-colors border border-red-500/20"
+            </Link>
+            <Link 
+              to="/destek-sistemi"
+              className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 font-medium py-2.5 rounded text-sm transition-colors border border-red-500/20 block"
             >
               Akıllı Sorun Bildir (Ses/Ekran Kaydı)
-            </button>
+            </Link>
           </div>
         </div>
       </div>
 
-      <SimilarProducts category={product.category} />
+      <SimilarProducts category={product.category} currentProductId={product.id} />
     </div>
   );
 }

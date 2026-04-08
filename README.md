@@ -1,20 +1,42 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# İtemsatış Clone
 
-# Run and deploy your AI Studio app
+Bu proje, İtemsatış platformunun bir klonudur. React, Vite, Tailwind CSS ve Firebase kullanılarak geliştirilmiştir.
 
-This contains everything you need to run your app locally.
+## Özellikler
+- Kullanıcı Kaydı ve Girişi (Firebase Auth)
+- İlan Ekleme, Düzenleme ve Silme
+- Sepet ve Favori Sistemi
+- Gerçek Zamanlı Mesajlaşma (Firestore)
+- Destek Sistemi
+- Mağaza Profilleri
 
-View your app in AI Studio: https://ai.studio/apps/18e69ddc-3f6c-48f9-97fc-5084bbc31dac
+## Kurulum
 
-## Run Locally
+1. Projeyi klonlayın.
+2. Bağımlılıkları yükleyin:
+   ```bash
+   npm install
+   ```
+3. `.env` dosyasını oluşturun ve Firebase yapılandırmanızı ekleyin:
+   ```env
+   VITE_FIREBASE_API_KEY=your_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   VITE_FIREBASE_APP_ID=your_app_id
+   ```
+4. Geliştirme sunucusunu başlatın:
+   ```bash
+   npm run dev
+   ```
 
-**Prerequisites:**  Node.js
+## Firebase Kuralları
+`firestore.rules` dosyası, veritabanı güvenliğini sağlamak için yapılandırılmıştır. Projeyi deploy etmeden önce bu kuralları Firebase konsolundan uyguladığınızdan emin olun.
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Deploy
+Projeyi build etmek için:
+```bash
+npm run build
+```
+Oluşan `dist` klasörünü herhangi bir statik hosting servisine (Vercel, Netlify, Firebase Hosting vb.) yükleyebilirsiniz.

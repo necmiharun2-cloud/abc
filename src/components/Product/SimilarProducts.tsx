@@ -1,18 +1,56 @@
-import { showcaseListings, valorantListings } from '../../data/mockData';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { collection, query, where, limit, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 interface SimilarProductsProps {
   category?: string;
+  currentProductId?: string;
 }
 
-export default function SimilarProducts({ category }: SimilarProductsProps) {
-  const allListings = [...showcaseListings, ...valorantListings];
-  const products = allListings
-    .filter(p => p.category === category)
-    .slice(0, 4);
+export default function SimilarProducts({ category, currentProductId }: SimilarProductsProps) {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fallback if no similar products found
-  const displayProducts = products.length > 0 ? products : allListings.slice(0, 4);
+  useEffect(() => {
+    const fetchSimilar = async () => {
+      setLoading(true);
+      try {
+        let q;
+        if (category) {
+          q = query(
+            collection(db, 'products'),
+            where('category', '==', category),
+            where('status', '==', 'active'),
+            limit(5) // Fetch 5 to filter out current product
+          );
+        } else {
+          q = query(
+            collection(db, 'products'),
+            where('status', '==', 'active'),
+            limit(4)
+          );
+        }
+
+        const snapshot = await getDocs(q);
+        let fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        if (currentProductId) {
+          fetchedProducts = fetchedProducts.filter(p => p.id !== currentProductId);
+        }
+        
+        setProducts(fetchedProducts.slice(0, 4));
+      } catch (error) {
+        console.error('Error fetching similar products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSimilar();
+  }, [category, currentProductId]);
+
+  if (loading || products.length === 0) return null;
 
   return (
     <div className="mt-12 mb-12">
@@ -24,7 +62,7 @@ export default function SimilarProducts({ category }: SimilarProductsProps) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {displayProducts.map((product) => (
+        {products.map((product) => (
           <Link 
             to={`/product/${product.id}`} 
             key={product.id} 

@@ -29,13 +29,20 @@ export default function Register() {
       await updateProfile(user, { displayName: username });
 
       // Save user to Firestore
-      await setDoc(doc(db, 'users', user.uid), {
+      const newProfile = {
         uid: user.uid,
         username,
         email,
+        avatar: '',
+        balance: 0,
+        role: 'user',
         createdAt: new Date().toISOString(),
-        role: 'user'
-      });
+        listingCount: 0,
+        soldCount: 0,
+        rating: 0,
+        reviewCount: 0
+      };
+      await setDoc(doc(db, 'users', user.uid), newProfile);
 
       toast.success('Kayıt başarılı! Yönlendiriliyorsunuz...');
       navigate('/');

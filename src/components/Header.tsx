@@ -26,7 +26,7 @@ export default function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      toast.success(`"${searchQuery}" için arama sonuçları yakında eklenecek!`);
+      navigate(`/ilan-pazari?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
