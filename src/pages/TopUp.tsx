@@ -27,8 +27,7 @@ export default function TopUp() {
       title: product.title,
       price: product.price,
       image: product.image,
-      sellerId: 'system',
-      sellerName: 'İtemsatış'
+      seller: 'system'
     });
     toast.success(`${product.title} sepete eklendi!`);
   };

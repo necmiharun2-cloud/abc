@@ -1,11 +1,12 @@
-import { valorantListings, showcaseListings } from '../data/mockData';
 import { Link, useNavigate } from 'react-router-dom';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Heart, MessageSquare } from 'lucide-react';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useAuth } from '../contexts/AuthContext';
 import { chatService } from '../services/chatService';
 import toast from 'react-hot-toast';
+import { db } from '../firebase';
+import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 
 interface Filters {
   category?: string;
@@ -26,10 +27,29 @@ interface CategoryListingsProps {
 }
 
 export default function CategoryListings({ filters, initialCategory }: CategoryListingsProps) {
-  const [activeTab, setActiveTab] = useState(initialCategory || 'Valorant');
+  const [activeTab, setActiveTab] = useState(initialCategory || 'VALORANT');
   const { toggleFavorite, isFavorite } = useFavorites();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const [allListings, setAllListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      setLoading(true);
+      try {
+        const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAllListings(fetched);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchListings();
+  }, []);
 
   const handleMessageSeller = async (e: React.MouseEvent, sellerId: string, sellerName: string) => {
     e.preventDefault();
@@ -60,39 +80,26 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
   };
 
   const tabs = [
-    { name: 'Valorant', icon: 'https://picsum.photos/seed/t4/20/20' },
-    { name: 'Roblox', icon: 'https://picsum.photos/seed/t9/20/20' },
-    { name: 'Discord', icon: 'https://picsum.photos/seed/t10/20/20' },
-    { name: 'Valorant Random Hesap', icon: 'https://picsum.photos/seed/t11/20/20' },
-    { name: 'PUBG Mobile', icon: 'https://picsum.photos/seed/t7/20/20' },
-    { name: 'Steam', icon: 'https://picsum.photos/seed/t2/20/20' },
+    { name: 'VALORANT', icon: 'https://picsum.photos/seed/t4/20/20' },
+    { name: 'ROBLOX', icon: 'https://picsum.photos/seed/t9/20/20' },
+    { name: 'DISCORD', icon: 'https://picsum.photos/seed/t10/20/20' },
+    { name: 'PUBG MOBILE', icon: 'https://picsum.photos/seed/t7/20/20' },
+    { name: 'STEAM', icon: 'https://picsum.photos/seed/t2/20/20' },
   ];
-
-  const allListings = useMemo(() => [...valorantListings, ...showcaseListings], []);
 
   const filteredListings = useMemo(() => {
     return allListings.filter(listing => {
       // Tab filter
-      if (activeTab && listing.category.toLowerCase() !== activeTab.toLowerCase()) {
-        // Special case for "Valorant Random Hesap" if it's in the same list
-        if (activeTab === 'Valorant' && listing.category === 'VALORANT') return true;
-        if (activeTab === 'Valorant Random Hesap' && listing.category === 'VALORANT RANDOM HESAP') return true;
-        if (activeTab === 'Discord' && listing.category === 'DISCORD') return true;
-        if (activeTab === 'Steam' && (listing.category === 'STEAM' || listing.category === 'STEAM RANDOM KEY')) return true;
-        if (activeTab === 'Roblox' && listing.category === 'ROBLOX') return true;
-        
-        // If not matched any of the above, filter out
-        if (listing.category.toLowerCase() !== activeTab.toLowerCase()) return false;
+      if (activeTab && listing.category !== activeTab) {
+        return false;
       }
 
       // Sidebar filters
       if (filters) {
         if (filters.minPrice && listing.price < parseFloat(filters.minPrice)) return false;
         if (filters.maxPrice && listing.price > parseFloat(filters.maxPrice)) return false;
-        if (filters.seller && !listing.sellerName.toLowerCase().includes(filters.seller.toLowerCase())) return false;
-        if (filters.keyword && !listing.title.toLowerCase().includes(filters.keyword.toLowerCase())) return false;
-        // Mocking boolean filters as they are not in mockData
-        if (filters.autoDelivery && !listing.isVitrin) return false; // Just for demo
+        if (filters.seller && !listing.sellerName?.toLowerCase().includes(filters.seller.toLowerCase())) return false;
+        if (filters.keyword && !listing.title?.toLowerCase().includes(filters.keyword.toLowerCase())) return false;
       }
 
       return true;

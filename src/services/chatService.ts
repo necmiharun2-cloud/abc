@@ -1,4 +1,4 @@
-import { collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, where, onSnapshot, orderBy, doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export interface ChatMessage {
@@ -19,6 +19,29 @@ export interface Chat {
 }
 
 export const chatService = {
+  async createOrGetChat(participants: string[], participantData: { [key: string]: { name: string, avatar: string } }) {
+    const chatId = participants.sort().join('_');
+    const chatRef = doc(db, 'chats', chatId);
+    
+    const participantNames: { [key: string]: string } = {};
+    const participantAvatars: { [key: string]: string } = {};
+    
+    participants.forEach(uid => {
+      participantNames[uid] = participantData[uid].name;
+      participantAvatars[uid] = participantData[uid].avatar;
+    });
+
+    await setDoc(chatRef, {
+      id: chatId,
+      participants,
+      participantNames,
+      participantAvatars,
+      createdAt: new Date().toISOString()
+    }, { merge: true });
+
+    return chatId;
+  },
+
   async createChat(participants: string[], participantData: { [key: string]: { name: string, avatar: string } }) {
     const chatId = participants.sort().join('_');
     const chatRef = doc(db, 'chats', chatId);

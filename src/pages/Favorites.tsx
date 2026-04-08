@@ -2,18 +2,52 @@ import { ClipboardList, Heart, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { Navigate, Link } from 'react-router-dom';
-import { valorantListings, showcaseListings } from '../data/mockData';
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, query, getDocs, documentId, where } from 'firebase/firestore';
 
 export default function Favorites() {
   const { user, loading } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
+  const [favoriteProducts, setFavoriteProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
-  const allListings = useMemo(() => [...valorantListings, ...showcaseListings], []);
-  
-  const favoriteProducts = useMemo(() => {
-    return allListings.filter(listing => favorites.includes(listing.id.toString()));
-  }, [allListings, favorites]);
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (favorites.length === 0) {
+        setFavoriteProducts([]);
+        setLoadingProducts(false);
+        return;
+      }
+
+      setLoadingProducts(true);
+      try {
+        // Firestore 'in' query has a limit of 10 items.
+        // For a real app, you might need to chunk the array or fetch individually if > 10.
+        // Here we'll chunk it to be safe.
+        const chunks = [];
+        for (let i = 0; i < favorites.length; i += 10) {
+          chunks.push(favorites.slice(i, i + 10));
+        }
+
+        let allFetched: any[] = [];
+        for (const chunk of chunks) {
+          const q = query(collection(db, 'products'), where(documentId(), 'in', chunk));
+          const snapshot = await getDocs(q);
+          const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          allFetched = [...allFetched, ...fetched];
+        }
+        
+        setFavoriteProducts(allFetched);
+      } catch (error) {
+        console.error('Error fetching favorites:', error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchFavorites();
+  }, [favorites]);
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;

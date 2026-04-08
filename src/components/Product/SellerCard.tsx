@@ -36,7 +36,13 @@ export default function SellerCard({ sellerName = 'ValoKing', sellerAvatar, sell
     }
 
     try {
-      const chatId = await chatService.createOrGetChat(user.uid, sellerId);
+      const chatId = await chatService.createOrGetChat(
+        [user.uid, sellerId],
+        {
+          [user.uid]: { name: user.displayName || 'Kullanıcı', avatar: user.photoURL || '' },
+          [sellerId]: { name: sellerName, avatar: sellerAvatar || '' }
+        }
+      );
       navigate('/mesajlarim', { state: { activeChatId: chatId } });
     } catch (error) {
       toast.error('Sohbet başlatılamadı.');

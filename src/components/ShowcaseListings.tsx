@@ -1,8 +1,28 @@
-import { showcaseListings } from '../data/mockData';
 import { Rocket } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, query, getDocs, limit, orderBy } from 'firebase/firestore';
 
 export default function ShowcaseListings() {
+  const [showcaseListings, setShowcaseListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(12));
+        const snapshot = await getDocs(q);
+        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setShowcaseListings(fetched);
+      } catch (error) {
+        console.error('Error fetching showcase listings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchListings();
+  }, []);
   return (
     <section className="space-y-4">
       {/* Banner */}

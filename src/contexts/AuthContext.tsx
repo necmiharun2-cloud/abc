@@ -15,6 +15,12 @@ export interface UserProfile {
   soldCount: number;
   rating: number;
   reviewCount: number;
+  notifications?: {
+    orders: boolean;
+    messages: boolean;
+    system: boolean;
+    marketing: boolean;
+  };
 }
 
 interface AuthContextType {
