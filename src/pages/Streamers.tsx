@@ -51,7 +51,7 @@ export default function Streamers() {
           [streamerId]: { name: streamerName, avatar: '' }
         }
       );
-      navigate('/mesajlar', { state: { activeChatId: chatId } });
+      navigate('/mesajlarim', { state: { activeChatId: chatId } });
     } catch (error) {
       toast.error('Sohbet başlatılamadı.');
     }

@@ -97,13 +97,13 @@ export default function MyListings() {
             <HelpCircle className="w-4 h-4" />
             İlan Yukarı Taşıma Nedir?
           </Link>
-          <button 
-            onClick={() => handleComingSoon('Otomatik İlan Yukarı Taşıma')}
+          <Link 
+            to="/ilan-yukari-tasima"
             className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-full font-medium transition-colors flex items-center justify-center gap-2 text-sm shadow-[0_0_15px_rgba(168,85,247,0.4)]"
           >
             <Rocket className="w-4 h-4" />
             Otomatik İlan Yukarı Taşıma
-          </button>
+          </Link>
         </div>
       </div>
 

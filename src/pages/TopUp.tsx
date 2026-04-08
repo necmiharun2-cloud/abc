@@ -27,7 +27,8 @@ export default function TopUp() {
       title: product.title,
       price: product.price,
       image: product.image,
-      seller: 'system'
+      seller: 'system',
+      originalPrice: product.oldPrice || product.price
     });
     toast.success(`${product.title} sepete eklendi!`);
   };

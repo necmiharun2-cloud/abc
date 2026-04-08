@@ -115,7 +115,7 @@ export default function Magazalar() {
                   </div>
                   
                   <Link 
-                    to={`/profil/${store.id}`}
+                    to={`/profile/${store.id}`}
                     className="block w-full bg-[#2b3142] hover:bg-[#32394d] text-white text-sm font-medium py-2 rounded transition-colors text-center"
                   >
                     Mağazaya Git

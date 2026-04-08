@@ -92,7 +92,7 @@ export default function SellerCard({ sellerName = 'ValoKing', sellerAvatar, sell
         <div className="flex gap-2 mb-6">
           {sellerId ? (
             <Link 
-              to={`/profil/${sellerId}`}
+              to={`/profile/${sellerId}`}
               className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white text-xs font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
             >
               Satıcı Profili

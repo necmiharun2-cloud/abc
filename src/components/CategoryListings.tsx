@@ -73,7 +73,7 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
           [sellerId]: { name: sellerName, avatar: '' }
         }
       );
-      navigate('/mesajlar', { state: { activeChatId: chatId } });
+      navigate('/mesajlarim', { state: { activeChatId: chatId } });
     } catch (error) {
       toast.error('Sohbet başlatılamadı.');
     }

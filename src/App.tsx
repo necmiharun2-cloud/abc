@@ -92,7 +92,7 @@ export default function App() {
               <Route path="blog" element={<Blog />} />
               <Route path="yayincilar" element={<Streamers />} />
               <Route path="profile" element={<Profile />} />
-              <Route path="profil/:id" element={<Profile />} />
+              <Route path="profile/:id" element={<Profile />} />
               <Route path="mesajlarim" element={<Messages />} />
               <Route path="kontrol-merkezi" element={<Dashboard />} />
               <Route path="bildirimler" element={<Notifications />} />
