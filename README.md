@@ -1,6 +1,6 @@
-# İtemsatış Clone
+# İtemtrClone
 
-Bu proje, İtemsatış platformunun bir klonudur. React, Vite, Tailwind CSS ve Firebase kullanılarak geliştirilmiştir.
+Bu proje, İtemtr platformunun bir klonudur. React, Vite, Tailwind CSS ve Firebase kullanılarak geliştirilmiştir.
 
 ## Özellikler
 - Kullanıcı Kaydı ve Girişi (Firebase Auth)
