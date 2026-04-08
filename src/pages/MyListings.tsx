@@ -5,12 +5,14 @@ import { Navigate, Link } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 export default function MyListings() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<'active' | 'passive'>('active');
   const [listings, setListings] = useState<any[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -37,7 +39,6 @@ export default function MyListings() {
   }, [user, activeTab]);
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Bu ilanı silmek istediğinize emin misiniz?')) return;
     try {
       await deleteDoc(doc(db, 'products', id));
       setListings(listings.filter(l => l.id !== id));
@@ -117,7 +118,7 @@ export default function MyListings() {
               <img src={listing.image} alt={listing.title} className="w-full h-48 object-cover" />
               <div className="p-4 flex-1 flex flex-col">
                 <h3 className="text-white font-bold mb-2 line-clamp-2">{listing.title}</h3>
-                <div className="text-emerald-400 font-bold text-lg mb-4">{listing.price.toFixed(2)} ₺</div>
+                <div className="text-emerald-400 font-bold text-lg mb-4">{(Number(listing.price) || 0).toFixed(2)} ₺</div>
                 <div className="mt-auto flex gap-2">
                   <button 
                     onClick={() => handleToggleStatus(listing.id, listing.status)}
@@ -126,7 +127,7 @@ export default function MyListings() {
                     {listing.status === 'active' ? 'Pasife Al' : 'Aktife Al'}
                   </button>
                   <button 
-                    onClick={() => handleDelete(listing.id)}
+                    onClick={() => setDeleteModal({ isOpen: true, id: listing.id })}
                     className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -152,6 +153,16 @@ export default function MyListings() {
           </p>
         </div>
       )}
+
+      <ConfirmationModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, id: '' })}
+        onConfirm={() => handleDelete(deleteModal.id)}
+        title="İlanı Sil"
+        message="Bu ilanı silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        confirmText="Evet, Sil"
+        cancelText="Vazgeç"
+      />
     </div>
   );
 }

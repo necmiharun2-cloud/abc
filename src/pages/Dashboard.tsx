@@ -8,8 +8,10 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { updatePassword, updateEmail } from 'firebase/auth';
+import { doc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, deleteDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
@@ -44,6 +46,7 @@ export default function Dashboard() {
   const [banks, setBanks] = useState<any[]>([]);
   const [isAddingBank, setIsAddingBank] = useState(false);
   const [newBank, setNewBank] = useState({ bankName: '', iban: '', accountHolder: '' });
+  const [isSeedModalOpen, setIsSeedModalOpen] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -88,12 +91,55 @@ export default function Dashboard() {
 
   const handleUpdatePassword = async (e: FormEvent) => {
     e.preventDefault();
-    toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
+    if (!user) return;
+    const form = e.target as HTMLFormElement;
+    const newPassword = (form.elements.namedItem('newPassword') as HTMLInputElement).value;
+    const confirmPassword = (form.elements.namedItem('confirmPassword') as HTMLInputElement).value;
+
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Şifre en az 6 karakter olmalıdır.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Şifreler uyuşmuyor.');
+      return;
+    }
+
+    try {
+      await updatePassword(user, newPassword);
+      toast.success('Şifreniz başarıyla güncellendi.');
+      form.reset();
+    } catch (error: any) {
+      if (error.code === 'auth/requires-recent-login') {
+        toast.error('Bu işlem için yakın zamanda giriş yapmış olmalısınız. Lütfen tekrar giriş yapın.');
+      } else {
+        toast.error('Şifre güncellenirken bir hata oluştu.');
+      }
+    }
   };
 
   const handleUpdateEmail = async (e: FormEvent) => {
     e.preventDefault();
-    toast.success('E-posta doğrulama bağlantısı gönderildi.');
+    if (!user) return;
+    const form = e.target as HTMLFormElement;
+    const newEmail = (form.elements.namedItem('newEmail') as HTMLInputElement).value;
+
+    if (!newEmail || !newEmail.includes('@')) {
+      toast.error('Geçersiz e-posta adresi.');
+      return;
+    }
+
+    try {
+      await updateEmail(user, newEmail);
+      toast.success('E-posta adresiniz güncellendi.');
+      form.reset();
+    } catch (error: any) {
+      if (error.code === 'auth/requires-recent-login') {
+        toast.error('Bu işlem için yakın zamanda giriş yapmış olmalısınız. Lütfen tekrar giriş yapın.');
+      } else {
+        toast.error('E-posta güncellenirken bir hata oluştu.');
+      }
+    }
   };
 
   const handleUpdateNotifications = async () => {
@@ -167,10 +213,9 @@ export default function Dashboard() {
 
   const handleSeedData = async () => {
     if (!user) return;
-    const confirm = window.confirm('Test verileri (örnek ilanlar) oluşturulsun mu?');
-    if (!confirm) return;
-
+    
     try {
+      const batch = writeBatch(db);
       const sampleProducts = [
         {
           title: '100-150 Skinli Valorant Hesabı',
@@ -184,7 +229,8 @@ export default function Dashboard() {
           image: 'https://picsum.photos/seed/v1/400/300',
           status: 'active',
           isVitrin: true,
-          createdAt: new Date().toISOString()
+          type: 'sell',
+          createdAt: serverTimestamp()
         },
         {
           title: 'Roblox 10.000 Robux - Hızlı Teslimat',
@@ -197,7 +243,8 @@ export default function Dashboard() {
           image: 'https://picsum.photos/seed/r1/400/300',
           status: 'active',
           isVitrin: true,
-          createdAt: new Date().toISOString()
+          type: 'sell',
+          createdAt: serverTimestamp()
         },
         {
           title: 'Steam 50 TL Cüzdan Kodu',
@@ -211,7 +258,8 @@ export default function Dashboard() {
           image: 'https://picsum.photos/seed/s1/400/300',
           status: 'active',
           isVitrin: false,
-          createdAt: new Date().toISOString()
+          type: 'sell',
+          createdAt: serverTimestamp()
         },
         {
           title: 'Discord 1 Aylık Nitro Boost',
@@ -224,13 +272,17 @@ export default function Dashboard() {
           image: 'https://picsum.photos/seed/d1/400/300',
           status: 'active',
           isVitrin: true,
-          createdAt: new Date().toISOString()
+          type: 'sell',
+          createdAt: serverTimestamp()
         }
       ];
 
-      for (const product of sampleProducts) {
-        await addDoc(collection(db, 'products'), product);
-      }
+      sampleProducts.forEach(product => {
+        const newDocRef = doc(collection(db, 'products'));
+        batch.set(newDocRef, product);
+      });
+
+      await batch.commit();
       toast.success('Örnek ilanlar başarıyla oluşturuldu! Anasayfayı kontrol edebilirsiniz.');
     } catch (error) {
       console.error('Seed error:', error);
@@ -273,7 +325,7 @@ export default function Dashboard() {
             </Link>
           </div>
           <button 
-            onClick={handleSeedData}
+            onClick={() => setIsSeedModalOpen(true)}
             className="w-full mt-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-amber-500/20"
           >
             <Plus className="w-4 h-4" />
@@ -483,11 +535,11 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm text-gray-400">Yeni Şifre</label>
-                    <input type="password" placeholder="••••••••" className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
+                    <input name="newPassword" type="password" placeholder="••••••••" className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm text-gray-400">Yeni Şifre (Tekrar)</label>
-                    <input type="password" placeholder="••••••••" className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
+                    <input name="confirmPassword" type="password" placeholder="••••••••" className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
                   </div>
                 </div>
                 <button 
@@ -502,7 +554,7 @@ export default function Dashboard() {
                 <h3 className="text-white font-bold">E-Posta Değiştir</h3>
                 <div className="space-y-2">
                   <label className="text-sm text-gray-400">Yeni E-Posta Adresi</label>
-                  <input type="email" placeholder={user.email || ''} className="w-full max-w-md bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
+                  <input name="newEmail" type="email" placeholder={user.email || ''} className="w-full max-w-md bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
                 </div>
                 <button 
                   type="submit"
@@ -691,6 +743,17 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <ConfirmationModal 
+        isOpen={isSeedModalOpen}
+        onClose={() => setIsSeedModalOpen(false)}
+        onConfirm={handleSeedData}
+        title="Test Verisi Oluştur"
+        message="Hesabınız için örnek ilanlar oluşturulacaktır. Onaylıyor musunuz?"
+        confirmText="Evet, Oluştur"
+        cancelText="Vazgeç"
+        type="info"
+      />
     </div>
   );
 }

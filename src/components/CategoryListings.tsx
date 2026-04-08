@@ -38,7 +38,29 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
   useEffect(() => {
     setLoading(true);
     // Base query: only active listings
-    let q = query(collection(db, 'products'), where('status', '==', 'active'), orderBy('createdAt', 'desc'));
+    let constraints: any[] = [where('status', '==', 'active')];
+
+    if (filters) {
+      if (filters.category) {
+        constraints.push(where('category', '==', filters.category));
+      }
+      if (filters.type) {
+        constraints.push(where('type', '==', filters.type));
+      }
+      if (filters.minPrice) {
+        constraints.push(where('price', '>=', parseFloat(filters.minPrice)));
+      }
+      if (filters.maxPrice) {
+        constraints.push(where('price', '<=', parseFloat(filters.maxPrice)));
+      }
+      if (filters.autoDelivery) {
+        constraints.push(where('deliveryType', '==', 'Otomatik Teslimat'));
+      }
+    } else if (activeTab) {
+      constraints.push(where('category', '==', activeTab));
+    }
+
+    let q = query(collection(db, 'products'), ...constraints, orderBy('createdAt', 'desc'));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
@@ -46,11 +68,20 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
       setLoading(false);
     }, (error) => {
       console.error('Error fetching listings:', error);
-      setLoading(false);
+      // Fallback for index errors
+      if (error.message.includes('index')) {
+        const fallbackQ = query(collection(db, 'products'), where('status', '==', 'active'), orderBy('createdAt', 'desc'));
+        onSnapshot(fallbackQ, (s) => {
+          setAllListings(s.docs.map(d => ({ id: d.id, ...(d.data() as object) })));
+          setLoading(false);
+        });
+      } else {
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [filters, activeTab]);
 
   const handleMessageSeller = async (e: React.MouseEvent, sellerId: string, sellerName: string) => {
     e.preventDefault();
@@ -90,20 +121,12 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
 
   const filteredListings = useMemo(() => {
     return allListings.filter(listing => {
-      // Type filter (default to sell if not specified)
-      const filterType = filters?.type || 'sell';
-      const listingType = listing.type || 'sell';
-      if (listingType !== filterType) return false;
-
-      // Tab filter
-      if (activeTab && listing.category !== activeTab) {
-        return false;
-      }
-
-      // Sidebar filters
+      // Sidebar filters that are harder to do in Firestore or already done
       if (filters) {
+        // These are already handled in Firestore if possible, but we keep them here for safety
         if (filters.minPrice && listing.price < parseFloat(filters.minPrice)) return false;
         if (filters.maxPrice && listing.price > parseFloat(filters.maxPrice)) return false;
+        
         if (filters.seller && !listing.sellerName?.toLowerCase().includes(filters.seller.toLowerCase())) return false;
         if (filters.keyword) {
           const searchIn = filters.includeDescription 
@@ -111,12 +134,11 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
             : listing.title?.toLowerCase();
           if (!searchIn?.includes(filters.keyword.toLowerCase())) return false;
         }
-        if (filters.autoDelivery && listing.deliveryType !== 'Otomatik Teslimat') return false;
       }
 
       return true;
     });
-  }, [allListings, activeTab, filters]);
+  }, [allListings, filters]);
 
   if (loading) {
     return (
@@ -212,9 +234,9 @@ export default function CategoryListings({ filters, initialCategory }: CategoryL
                 </h4>
                 
                 <div className="mt-auto flex items-end gap-2">
-                  <span className="text-yellow-500 font-bold text-lg leading-none">{(listing.price || 0).toFixed(2)} ₺</span>
+                  <span className="text-yellow-500 font-bold text-lg leading-none">{(Number(listing.price) || 0).toFixed(2)} ₺</span>
                   {listing.oldPrice && (
-                    <span className="text-gray-500 text-xs line-through leading-none mb-0.5">{(listing.oldPrice || 0).toFixed(2)} ₺</span>
+                    <span className="text-gray-500 text-xs line-through leading-none mb-0.5">{(Number(listing.oldPrice) || 0).toFixed(2)} ₺</span>
                   )}
                 </div>
               </div>

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function IlanPazari() {
-  const [filters, setFilters] = useState({
+  const [localFilters, setLocalFilters] = useState({
     category: '',
     minPrice: '',
     maxPrice: '',
@@ -18,17 +18,19 @@ export default function IlanPazari() {
     corporateOnly: false
   });
 
+  const [appliedFilters, setAppliedFilters] = useState<any>(null);
+
   const handleFilterChange = (key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setLocalFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const applyFilters = () => {
-    console.log('Applying filters:', filters);
-    toast.success('Filtreler uygulandı! (Demo modunda sonuçlar değişmeyebilir)');
+    setAppliedFilters({ ...localFilters });
+    toast.success('Filtreler uygulandı!');
   };
 
   const clearFilters = () => {
-    setFilters({
+    const initial = {
       category: '',
       minPrice: '',
       maxPrice: '',
@@ -39,7 +41,9 @@ export default function IlanPazari() {
       autoDelivery: false,
       trustedOnly: false,
       corporateOnly: false
-    });
+    };
+    setLocalFilters(initial);
+    setAppliedFilters(null);
     toast.success('Filtreler temizlendi!');
   };
 
@@ -65,7 +69,7 @@ export default function IlanPazari() {
                 <input 
                   type="text" 
                   placeholder="Kategori ara..." 
-                  value={filters.category}
+                  value={localFilters.category}
                   onChange={(e) => handleFilterChange('category', e.target.value)}
                   className="w-full bg-[#181b26] border border-white/5 rounded-lg py-2.5 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#5b68f6] transition-colors" 
                 />
@@ -75,7 +79,7 @@ export default function IlanPazari() {
                   <button 
                     key={cat}
                     onClick={() => handleFilterChange('category', cat)}
-                    className={`flex items-center gap-3 w-full p-2 rounded-lg transition-colors text-sm ${filters.category === cat ? 'bg-[#5b68f6]/20 text-white border border-[#5b68f6]/30' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
+                    className={`flex items-center gap-3 w-full p-2 rounded-lg transition-colors text-sm ${localFilters.category === cat ? 'bg-[#5b68f6]/20 text-white border border-[#5b68f6]/30' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
                   >
                     <img src={`https://picsum.photos/seed/${cat}/24/24`} className="w-6 h-6 rounded-full" alt="" />
                     {cat}
@@ -96,7 +100,7 @@ export default function IlanPazari() {
                   <input 
                     type="number" 
                     placeholder="En az" 
-                    value={filters.minPrice}
+                    value={localFilters.minPrice}
                     onChange={(e) => handleFilterChange('minPrice', e.target.value)}
                     className="w-full bg-[#181b26] border border-white/5 rounded-lg py-2.5 pl-7 pr-3 text-sm text-white focus:outline-none focus:border-[#5b68f6] transition-colors" 
                   />
@@ -106,7 +110,7 @@ export default function IlanPazari() {
                   <input 
                     type="number" 
                     placeholder="En çok" 
-                    value={filters.maxPrice}
+                    value={localFilters.maxPrice}
                     onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
                     className="w-full bg-[#181b26] border border-white/5 rounded-lg py-2.5 pl-7 pr-3 text-sm text-white focus:outline-none focus:border-[#5b68f6] transition-colors" 
                   />
@@ -125,7 +129,7 @@ export default function IlanPazari() {
                 <input 
                   type="text" 
                   placeholder="Satıcı adı..." 
-                  value={filters.seller}
+                  value={localFilters.seller}
                   onChange={(e) => handleFilterChange('seller', e.target.value)}
                   className="w-full bg-[#181b26] border border-white/5 rounded-lg py-2.5 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#5b68f6] transition-colors" 
                 />
@@ -143,7 +147,7 @@ export default function IlanPazari() {
                 <input 
                   type="text" 
                   placeholder="Arama kelimesi..." 
-                  value={filters.keyword}
+                  value={localFilters.keyword}
                   onChange={(e) => handleFilterChange('keyword', e.target.value)}
                   className="w-full bg-[#181b26] border border-white/5 rounded-lg py-2.5 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#5b68f6] transition-colors" 
                 />
@@ -152,11 +156,11 @@ export default function IlanPazari() {
                 <input 
                   type="checkbox" 
                   className="hidden" 
-                  checked={filters.includeDescription}
+                  checked={localFilters.includeDescription}
                   onChange={(e) => handleFilterChange('includeDescription', e.target.checked)}
                 />
-                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${filters.includeDescription ? 'bg-[#5b68f6] border-[#5b68f6]' : 'border-white/20 bg-[#181b26] group-hover:border-[#5b68f6]'}`}>
-                  {filters.includeDescription && <div className="w-1.5 h-1.5 rounded-full bg-white"></div>}
+                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${localFilters.includeDescription ? 'bg-[#5b68f6] border-[#5b68f6]' : 'border-white/20 bg-[#181b26] group-hover:border-[#5b68f6]'}`}>
+                  {localFilters.includeDescription && <div className="w-1.5 h-1.5 rounded-full bg-white"></div>}
                 </div>
                 <span className="text-sm text-gray-300 group-hover:text-white transition-colors">İlan açıklamalarını dahil et</span>
               </label>
@@ -179,11 +183,11 @@ export default function IlanPazari() {
                     <input 
                       type="checkbox" 
                       className="hidden" 
-                      checked={(filters as any)[opt.id]}
+                      checked={(localFilters as any)[opt.id]}
                       onChange={(e) => handleFilterChange(opt.id, e.target.checked)}
                     />
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${(filters as any)[opt.id] ? 'bg-[#5b68f6] border-[#5b68f6]' : 'border-white/20 bg-[#232736]'}`}>
-                      {(filters as any)[opt.id] && <div className="w-1.5 h-1.5 rounded-full bg-white"></div>}
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${(localFilters as any)[opt.id] ? 'bg-[#5b68f6] border-[#5b68f6]' : 'border-white/20 bg-[#232736]'}`}>
+                      {(localFilters as any)[opt.id] && <div className="w-1.5 h-1.5 rounded-full bg-white"></div>}
                     </div>
                     {opt.icon}
                     <span className="text-sm text-gray-300 font-medium">{opt.label}</span>
@@ -223,7 +227,7 @@ export default function IlanPazari() {
         
         <div className="pt-8 border-t border-white/5">
           <h2 className="text-xl font-bold text-white mb-4">En Son Eklenen İlanlar</h2>
-          <CategoryListings filters={filters} />
+          <CategoryListings filters={appliedFilters} />
         </div>
       </div>
     </div>

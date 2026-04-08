@@ -74,9 +74,9 @@ export default function ShowcaseListings() {
               </h4>
               
               <div className="mt-auto flex items-end gap-2">
-                <span className="text-yellow-500 font-bold text-lg leading-none">{listing.price.toFixed(2)} ₺</span>
+                <span className="text-yellow-500 font-bold text-lg leading-none">{(Number(listing.price) || 0).toFixed(2)} ₺</span>
                 {listing.oldPrice && (
-                  <span className="text-gray-500 text-xs line-through leading-none mb-0.5">{listing.oldPrice.toFixed(2)} ₺</span>
+                  <span className="text-gray-500 text-xs line-through leading-none mb-0.5">{(Number(listing.oldPrice) || 0).toFixed(2)} ₺</span>
                 )}
               </div>
             </div>

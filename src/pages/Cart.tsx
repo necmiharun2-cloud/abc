@@ -92,8 +92,8 @@ export default function Cart() {
                     >+</button>
                   </div>
                   <div className="text-right">
-                    <div className="text-gray-500 line-through text-sm">{item.originalPrice.toFixed(2)} ₺</div>
-                    <div className="text-emerald-400 font-bold text-lg">{item.price.toFixed(2)} ₺</div>
+                    <div className="text-gray-500 line-through text-sm">{(Number(item.originalPrice) || 0).toFixed(2)} ₺</div>
+                    <div className="text-emerald-400 font-bold text-lg">{(Number(item.price) || 0).toFixed(2)} ₺</div>
                   </div>
                   <button 
                     onClick={() => removeFromCart(item.id)}
@@ -115,15 +115,15 @@ export default function Cart() {
             <div className="space-y-4 mb-6">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Sepet Toplamı</span>
-                <span className="text-white font-medium">{totalOriginalPrice.toFixed(2)} ₺</span>
+                <span className="text-white font-medium">{(Number(totalOriginalPrice) || 0).toFixed(2)} ₺</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">İndirim Tutarı</span>
-                <span className="text-emerald-400 font-medium">-{discount.toFixed(2)} ₺</span>
+                <span className="text-emerald-400 font-medium">-{(Number(discount) || 0).toFixed(2)} ₺</span>
               </div>
               <div className="pt-4 border-t border-white/5 flex justify-between items-center">
                 <span className="text-white font-bold">Toplam</span>
-                <span className="text-white font-bold text-xl">{totalPrice.toFixed(2)} ₺</span>
+                <span className="text-white font-bold text-xl">{(Number(totalPrice) || 0).toFixed(2)} ₺</span>
               </div>
             </div>
 

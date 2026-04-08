@@ -39,8 +39,12 @@ export default function Support() {
       toast.error('Giriş yapmalısınız.');
       return;
     }
-    if (!newTicket.subject || !newTicket.message) {
-      toast.error('Lütfen tüm alanları doldurun.');
+    if (!newTicket.subject || newTicket.subject.length < 5) {
+      toast.error('Konu en az 5 karakter olmalıdır.');
+      return;
+    }
+    if (!newTicket.message || newTicket.message.length < 20) {
+      toast.error('Mesaj en az 20 karakter olmalıdır.');
       return;
     }
 

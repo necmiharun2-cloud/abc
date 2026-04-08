@@ -139,7 +139,7 @@ export default function Orders() {
                 <div className="flex items-center justify-between w-full md:w-auto gap-6 mt-4 md:mt-0">
                   <div className="text-right">
                     <div className="text-gray-400 text-sm mb-1">{order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString('tr-TR') : 'Yeni'}</div>
-                    <div className="text-yellow-500 font-bold text-lg">{order.price?.toFixed(2) || '0.00'} ₺</div>
+                    <div className="text-yellow-500 font-bold text-lg">{(Number(order.price) || 0).toFixed(2)} ₺</div>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-[#5b68f6] group-hover:text-white transition-colors">
                     <ChevronDown className="w-5 h-5" />
