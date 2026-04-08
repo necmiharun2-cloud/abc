@@ -126,6 +126,42 @@ service cloud.firestore {
              isValidDateString(data.createdAt);
     }
 
+    function isValidShop(data) {
+      return hasOnlyAllowedFields(['ownerId', 'name', 'description', 'avatar', 'banner', 'rating', 'sales', 'isVerified', 'isPro', 'createdAt']) &&
+             data.ownerId is string &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.rating is number &&
+             data.sales is number &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidSupportTicket(data) {
+      return hasOnlyAllowedFields(['userId', 'subject', 'message', 'status', 'createdAt']) &&
+             data.userId is string &&
+             data.subject is string && data.subject.size() > 0 && data.subject.size() < 200 &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 5000 &&
+             data.status in ['open', 'closed', 'pending'] &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidGroup(data) {
+      return hasOnlyAllowedFields(['name', 'description', 'avatar', 'memberCount', 'category', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.memberCount is number &&
+             data.category is string &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidNotification(data) {
+      return hasOnlyAllowedFields(['userId', 'title', 'message', 'type', 'isRead', 'createdAt']) &&
+             data.userId is string &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 1000 &&
+             data.type in ['info', 'success', 'warning', 'error'] &&
+             data.isRead is bool &&
+             isValidDateString(data.createdAt);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -172,6 +208,30 @@ service cloud.firestore {
         allow create: if isAuthenticated() && isValidComment(request.resource.data) && request.resource.data.authorId == request.auth.uid;
         allow delete: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
       }
+    }
+
+    match /shops/{shopId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidShop(request.resource.data) && request.resource.data.ownerId == request.auth.uid;
+      allow update: if (isAuthenticated() && isValidShop(request.resource.data) && resource.data.ownerId == request.auth.uid) || isAdmin();
+    }
+
+    match /supportTickets/{ticketId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && isValidSupportTicket(request.resource.data) && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    match /groups/{groupId} {
+      allow read: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount']));
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAdmin();
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
     }
   }
 }

@@ -1,40 +1,62 @@
-import { useParams, Link, Navigate } from 'react-router-dom';
+import { useParams, Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Package, Truck, CheckCircle2, AlertCircle, ArrowLeft, MessageSquare } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { chatService } from '../services/chatService';
 import toast from 'react-hot-toast';
 
 export default function OrderDetail() {
   const { id } = useParams();
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const navigate = useNavigate();
   const [order, setOrder] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    // In a real app, we'd fetch from Firestore
-    // For now, we'll simulate it or use mock data if ID matches
     const fetchOrder = async () => {
+      if (!id) return;
       setFetching(true);
-      // Simulating fetch
-      setTimeout(() => {
-        setOrder({
-          id: id,
-          productTitle: 'Valorant 1000 VP',
-          price: 150,
-          status: 'delivered',
-          createdAt: new Date().toISOString(),
-          sellerName: 'GamerX',
-          buyerName: 'User123',
-          image: 'https://picsum.photos/seed/p1/200/200'
-        });
+      try {
+        const orderDoc = await getDoc(doc(db, 'orders', id));
+        if (orderDoc.exists()) {
+          setOrder({ id: orderDoc.id, ...orderDoc.data() });
+        } else {
+          toast.error('Sipariş bulunamadı.');
+        }
+      } catch (error) {
+        console.error('Error fetching order:', error);
+        toast.error('Sipariş yüklenirken bir hata oluştu.');
+      } finally {
         setFetching(false);
-      }, 500);
+      }
     };
 
     fetchOrder();
   }, [id]);
+
+  const handleMessageSeller = async () => {
+    if (!user || !profile || !order) return;
+    try {
+      const chatId = await chatService.createChat(
+        [user.uid, order.sellerId],
+        {
+          [user.uid]: {
+            name: profile.username || user.displayName || 'Alıcı',
+            avatar: profile.avatar || ''
+          },
+          [order.sellerId]: {
+            name: order.sellerName || 'Satıcı',
+            avatar: ''
+          }
+        }
+      );
+      navigate('/mesajlarim', { state: { activeChatId: chatId } });
+    } catch (error) {
+      toast.error('Sohbet başlatılamadı.');
+    }
+  };
 
   if (loading || fetching) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -130,7 +152,7 @@ export default function OrderDetail() {
               Sorun Bildir
             </button>
             <button 
-              onClick={() => toast.success('Sohbet başlatılıyor...')}
+              onClick={handleMessageSeller}
               className="flex-1 bg-[#5b68f6] hover:bg-[#4a55d6] text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
             >
               <MessageSquare className="w-5 h-5" />

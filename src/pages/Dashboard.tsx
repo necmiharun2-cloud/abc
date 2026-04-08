@@ -1,15 +1,26 @@
 import { 
   Wallet, ArrowUpRight, ArrowDownRight, Package, Trophy, 
-  ChevronDown, User, Shield, CreditCard, Settings, LifeBuoy
+  ChevronDown, User, Shield, CreditCard, Settings, LifeBuoy,
+  Bell, History, Landmark, UserCircle, Image, Link as LinkIcon,
+  Star, Lock, Smartphone, Globe, Receipt, Gift, Eye
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, Link, useLocation } from 'react-router-dom';
+import { db } from '../firebase';
+import { doc, updateDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
+  const location = useLocation();
   const [activeView, setActiveView] = useState('summary');
+
+  useEffect(() => {
+    if (location.state?.activeView) {
+      setActiveView(location.state.activeView);
+    }
+  }, [location.state]);
   const [openSections, setOpenSections] = useState({
     hesap: true,
     profil: false,
@@ -18,12 +29,52 @@ export default function Dashboard() {
     izinler: false
   });
 
+  const [personalInfo, setPersonalInfo] = useState({
+    username: '',
+    avatar: '',
+  });
+
+  const [balanceHistory, setBalanceHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (profile) {
+      setPersonalInfo({
+        username: profile.username || '',
+        avatar: profile.avatar || '',
+      });
+    }
+  }, [profile]);
+
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
+  const handleUpdateProfile = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        username: personalInfo.username,
+        avatar: personalInfo.avatar
+      });
+      toast.success('Profil bilgileriniz güncellendi.');
+    } catch (error) {
+      toast.error('Güncelleme başarısız oldu.');
+    }
+  };
+
+  const handleAddBalance = async () => {
+    if (!user || !profile) return;
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        balance: profile.balance + 100
+      });
+      toast.success('Bakiyenize 100 ₺ eklendi! (Test Modu)');
+    } catch (error) {
+      toast.error('Bakiye eklenemedi.');
+    }
   };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
@@ -35,15 +86,21 @@ export default function Dashboard() {
       <div className="w-full lg:w-[280px] shrink-0 space-y-4">
         {/* User Card */}
         <div className="bg-[#232736] rounded-xl border border-white/5 p-6 flex flex-col items-center text-center">
-          <div className="w-20 h-20 rounded-full bg-[#5b68f6] flex items-center justify-center text-3xl text-white font-bold mb-3 border-4 border-[#1a1d27]">
-            {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+          <div className="w-20 h-20 rounded-full overflow-hidden mb-3 border-4 border-[#1a1d27]">
+            {profile?.avatar ? (
+              <img src={profile.avatar} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-[#5b68f6] flex items-center justify-center text-3xl text-white font-bold">
+                {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
-          <h2 className="text-lg font-bold text-white">{user.displayName || 'Kullanıcı'}</h2>
-          <p className="text-emerald-400 font-semibold text-lg mt-1">0.00 ₺</p>
+          <h2 className="text-lg font-bold text-white">{profile?.username || user.displayName || 'Kullanıcı'}</h2>
+          <p className="text-emerald-400 font-semibold text-lg mt-1">{profile?.balance?.toFixed(2) || '0.00'} ₺</p>
           
           <div className="flex gap-2 w-full mt-4">
             <button 
-              onClick={() => handleComingSoon('Bakiye Yükle')}
+              onClick={handleAddBalance}
               className="flex-1 bg-[#3b82f6] hover:bg-[#2563eb] text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               <Wallet className="w-4 h-4" />
@@ -78,56 +135,11 @@ export default function Dashboard() {
                   >
                     Hesap Özeti
                   </button>
-                  <button onClick={() => handleComingSoon('Oyuncu ID & URL')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Oyuncu ID & URL <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">YENİ</span>
-                  </button>
-                  <button onClick={() => handleComingSoon('Üyelik Paketleri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Üyelik Paketleri
-                  </button>
-                  <button onClick={() => handleComingSoon('Kişisel Bilgiler')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                  <button onClick={() => setActiveView('personal-info')} className={`w-full flex items-center gap-3 px-12 py-2.5 text-sm text-left transition-colors ${activeView === 'personal-info' ? 'text-white bg-white/5 border-l-2 border-[#5b68f6]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                     Kişisel Bilgiler
                   </button>
-                  <button onClick={() => handleComingSoon('Referanslarım')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Referanslarım
-                  </button>
-                  <button onClick={() => handleComingSoon('Bağlantılı Hesaplar')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Bağlantılı Hesaplar
-                  </button>
-                  <button onClick={() => handleComingSoon('Değerlendirmelerim')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Değerlendirmelerim
-                  </button>
-                  <button onClick={() => handleComingSoon('Bildirim Ayarları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                  <button onClick={() => setActiveView('notifications')} className={`w-full flex items-center gap-3 px-12 py-2.5 text-sm text-left transition-colors ${activeView === 'notifications' ? 'text-white bg-white/5 border-l-2 border-[#5b68f6]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                     Bildirim Ayarları
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Profil & Görünüm Section */}
-            <div>
-              <button 
-                onClick={() => toggleSection('profil')}
-                className={`w-full flex items-center justify-between p-4 transition-colors border-t border-white/5 ${openSections.profil ? 'bg-white/5 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-              >
-                <div className="flex items-center gap-3 font-medium">
-                  <User className="w-5 h-5" />
-                  Profil & Görünüm
-                </div>
-                <ChevronDown className={`w-5 h-5 transition-transform ${openSections.profil ? 'rotate-180' : ''}`} />
-              </button>
-              {openSections.profil && (
-                <div className="bg-[#1a1d27] py-2">
-                  <button onClick={() => handleComingSoon('Avatar')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Avatar
-                  </button>
-                  <button onClick={() => handleComingSoon('Kapak Fotoğrafı')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Kapak Fotoğrafı
-                  </button>
-                  <button onClick={() => handleComingSoon('Hızlı Erişim Menü')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Hızlı Erişim Menü
-                  </button>
-                  <button onClick={() => handleComingSoon('Rozet Sergileme')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Rozet Sergileme
                   </button>
                 </div>
               )}
@@ -151,22 +163,7 @@ export default function Dashboard() {
                     onClick={() => setActiveView('security')} 
                     className={`w-full flex items-center gap-3 px-12 py-2.5 text-sm text-left transition-colors ${activeView === 'security' ? 'text-white bg-white/5 border-l-2 border-[#5b68f6]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                   >
-                    Şifre Değiştir
-                  </button>
-                  <button 
-                    onClick={() => setActiveView('security')} 
-                    className={`w-full flex items-center gap-3 px-12 py-2.5 text-sm text-left transition-colors ${activeView === 'security' ? 'text-white bg-white/5 border-l-2 border-[#5b68f6]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-                  >
-                    Mail Değiştir
-                  </button>
-                  <button onClick={() => handleComingSoon('Telefon Değiştir')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Telefon Değiştir
-                  </button>
-                  <button onClick={() => handleComingSoon('Hesap Güvenliği')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Hesap Güvenliği
-                  </button>
-                  <button onClick={() => handleComingSoon('Erişim Kayıtları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Erişim Kayıtları
+                    Şifre & Mail Değiştir
                   </button>
                 </div>
               )}
@@ -186,20 +183,11 @@ export default function Dashboard() {
               </button>
               {openSections.banka && (
                 <div className="bg-[#1a1d27] py-2">
-                  <button onClick={() => handleComingSoon('Banka Hesapları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                  <button onClick={() => setActiveView('banks')} className={`w-full flex items-center gap-3 px-12 py-2.5 text-sm text-left transition-colors ${activeView === 'banks' ? 'text-white bg-white/5 border-l-2 border-[#5b68f6]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                     Banka Hesapları
                   </button>
-                  <button onClick={() => handleComingSoon('Bakiye Hareketleri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
+                  <button onClick={() => setActiveView('balance')} className={`w-full flex items-center gap-3 px-12 py-2.5 text-sm text-left transition-colors ${activeView === 'balance' ? 'text-white bg-white/5 border-l-2 border-[#5b68f6]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                     Bakiye Hareketleri
-                  </button>
-                  <button onClick={() => handleComingSoon('Fatura Bilgileri')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Fatura Bilgileri
-                  </button>
-                  <button onClick={() => handleComingSoon('Bakiye Kuponu')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Bakiye Kuponu
-                  </button>
-                  <button onClick={() => handleComingSoon('Hediye Merkezi')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    Hediye Merkezi
                   </button>
                 </div>
               )}
@@ -213,27 +201,6 @@ export default function Dashboard() {
                   Destek Sistemi
                 </div>
               </Link>
-            </div>
-
-            {/* Kullanıcı İzinleri Section */}
-            <div>
-              <button 
-                onClick={() => toggleSection('izinler')}
-                className={`w-full flex items-center justify-between p-4 transition-colors border-t border-white/5 ${openSections.izinler ? 'bg-white/5 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-              >
-                <div className="flex items-center gap-3 font-medium">
-                  <Settings className="w-5 h-5" />
-                  Kullanıcı İzinleri
-                </div>
-                <ChevronDown className={`w-5 h-5 transition-transform ${openSections.izinler ? 'rotate-180' : ''}`} />
-              </button>
-              {openSections.izinler && (
-                <div className="bg-[#1a1d27] py-2">
-                  <button onClick={() => handleComingSoon('İzin Ayarları')} className="w-full flex items-center gap-3 px-12 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors text-left">
-                    İzin Ayarları
-                  </button>
-                </div>
-              )}
             </div>
           </div>
       </div>
@@ -261,7 +228,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Satılan Toplam İlan</p>
-                    <p className="text-xl font-bold text-white">0</p>
+                    <p className="text-xl font-bold text-white">{profile?.soldCount || 0}</p>
                   </div>
                 </div>
                 <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
@@ -270,25 +237,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Çekilebilir Tutar</p>
-                    <p className="text-xl font-bold text-white">0.00 ₺</p>
-                  </div>
-                </div>
-                <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                    <ArrowDownRight className="w-6 h-6 text-emerald-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Toplam Kazanç</p>
-                    <p className="text-xl font-bold text-white">0.00 ₺</p>
-                  </div>
-                </div>
-                <div className="bg-[#232736] p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-red-500/20 flex items-center justify-center">
-                    <ArrowUpRight className="w-6 h-6 text-red-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Toplam Harcama Tutarı</p>
-                    <p className="text-xl font-bold text-white">0.00 ₺</p>
+                    <p className="text-xl font-bold text-white">{profile?.balance?.toFixed(2) || '0.00'} ₺</p>
                   </div>
                 </div>
               </div>
@@ -319,17 +268,42 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-
-            {/* İlan Özeti */}
-            <div>
-              <h2 className="text-xl font-bold text-white mb-4">İlan Özeti</h2>
-              <div className="bg-[#232736] p-12 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
-                <Package className="w-16 h-16 text-yellow-500 mb-4 opacity-80" />
-                <h3 className="text-lg font-bold text-white mb-2">İlan bulunamadı</h3>
-                <p className="text-gray-400">Aktif ilanınız bulunmamaktadır.</p>
-              </div>
-            </div>
           </>
+        )}
+
+        {activeView === 'personal-info' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-white mb-4">Kişisel Bilgiler</h2>
+            <form onSubmit={handleUpdateProfile} className="bg-[#232736] rounded-xl border border-white/5 p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-400">Kullanıcı Adı</label>
+                  <input 
+                    type="text" 
+                    value={personalInfo.username}
+                    onChange={(e) => setPersonalInfo({ ...personalInfo, username: e.target.value })}
+                    className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-400">Avatar URL</label>
+                  <input 
+                    type="text" 
+                    value={personalInfo.avatar}
+                    onChange={(e) => setPersonalInfo({ ...personalInfo, avatar: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" 
+                  />
+                </div>
+              </div>
+              <button 
+                type="submit"
+                className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-8 py-2.5 rounded-lg font-bold transition-colors"
+              >
+                Bilgileri Kaydet
+              </button>
+            </form>
+          </div>
         )}
 
         {activeView === 'security' && (
@@ -340,15 +314,16 @@ export default function Dashboard() {
                 <h3 className="text-white font-bold">Şifre Değiştir</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm text-gray-400">Mevcut Şifre</label>
+                    <label className="text-sm text-gray-400">Yeni Şifre</label>
                     <input type="password" placeholder="••••••••" className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm text-gray-400">Yeni Şifre</label>
+                    <label className="text-sm text-gray-400">Yeni Şifre (Tekrar)</label>
                     <input type="password" placeholder="••••••••" className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
                   </div>
                 </div>
                 <button 
+                  type="button"
                   onClick={() => toast.success('Şifreniz başarıyla güncellendi.')}
                   className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors"
                 >
@@ -363,12 +338,93 @@ export default function Dashboard() {
                   <input type="email" placeholder={user.email || ''} className="w-full max-w-md bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]" />
                 </div>
                 <button 
+                  type="button"
                   onClick={() => toast.success('Doğrulama e-postası gönderildi.')}
                   className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors"
                 >
                   E-Postayı Güncelle
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeView === 'notifications' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-white mb-4">Bildirim Ayarları</h2>
+            <div className="bg-[#232736] rounded-xl border border-white/5 p-6 space-y-4">
+              {[
+                { id: 'orders', label: 'Yeni Sipariş Bildirimleri', desc: 'Bir ürününüz satıldığında bildirim alın.' },
+                { id: 'messages', label: 'Mesaj Bildirimleri', desc: 'Yeni bir mesaj aldığınızda bildirim alın.' },
+                { id: 'system', label: 'Sistem Duyuruları', desc: 'Önemli güncellemeler ve duyurular hakkında bilgi alın.' },
+                { id: 'marketing', label: 'Kampanya ve Fırsatlar', desc: 'Size özel indirimlerden haberdar olun.' }
+              ].map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-4 bg-[#1a1d27] rounded-lg border border-white/5">
+                  <div>
+                    <h4 className="text-white font-medium">{item.label}</h4>
+                    <p className="text-xs text-gray-500">{item.desc}</p>
+                  </div>
+                  <div className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-[#5b68f6]">
+                    <span className="translate-x-5 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                  </div>
+                </div>
+              ))}
+              <button 
+                onClick={() => toast.success('Bildirim ayarlarınız kaydedildi.')}
+                className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-8 py-2.5 rounded-lg font-bold transition-colors mt-4"
+              >
+                Ayarları Kaydet
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeView === 'banks' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-white mb-4">Banka Hesapları</h2>
+            <div className="bg-[#232736] rounded-xl border border-white/5 p-6">
+              <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
+                  <Landmark className="w-8 h-8 text-gray-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold">Kayıtlı banka hesabı bulunamadı</h3>
+                  <p className="text-sm text-gray-400">Para çekme işlemleri için bir banka hesabı eklemelisiniz.</p>
+                </div>
+                <button className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-6 py-2 rounded-lg font-bold transition-colors">
+                  Yeni Hesap Ekle
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeView === 'balance' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-white mb-4">Bakiye Hareketleri</h2>
+            <div className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden">
+              <table className="w-full text-left">
+                <thead className="bg-white/5 text-xs text-gray-400 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4 font-bold">İşlem</th>
+                    <th className="px-6 py-4 font-bold">Tarih</th>
+                    <th className="px-6 py-4 font-bold">Tutar</th>
+                    <th className="px-6 py-4 font-bold">Durum</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  <tr className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-white">Bakiye Yükleme (Test)</div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-400">Bugün</td>
+                    <td className="px-6 py-4 text-sm text-emerald-500 font-bold">+100.00 ₺</td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded uppercase">Tamamlandı</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         )}

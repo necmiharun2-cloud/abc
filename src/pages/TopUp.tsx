@@ -1,65 +1,101 @@
-import { Zap, ShieldCheck, CreditCard, ShoppingCart } from 'lucide-react';
+import { Smartphone, ShieldCheck, Zap, ShoppingCart, Search } from 'lucide-react';
+import { useState } from 'react';
+import { useCart } from '../contexts/CartContext';
 import toast from 'react-hot-toast';
 
 export default function TopUp() {
+  const { addToCart } = useCart();
+  const [search, setSearch] = useState('');
+
   const products = [
-    { id: 1, title: 'Valorant 1200 VP', price: 245.00, image: 'https://picsum.photos/seed/vp1/300/200' },
-    { id: 2, title: 'PUBG Mobile 660 UC', price: 350.00, image: 'https://picsum.photos/seed/uc1/300/200' },
-    { id: 3, title: 'Roblox 800 Robux', price: 180.00, image: 'https://picsum.photos/seed/rb1/300/200' },
-    { id: 4, title: 'League of Legends 1600 RP', price: 290.00, image: 'https://picsum.photos/seed/rp1/300/200' },
+    { id: 'tu1', title: 'Valorant 1200 VP', price: 185.00, category: 'VALORANT', image: 'https://picsum.photos/seed/vp1/300/200' },
+    { id: 'tu2', title: 'Valorant 2850 VP', price: 425.00, category: 'VALORANT', image: 'https://picsum.photos/seed/vp2/300/200' },
+    { id: 'tu3', title: 'League of Legends 1600 RP', price: 210.00, category: 'LOL', image: 'https://picsum.photos/seed/rp1/300/200' },
+    { id: 'tu4', title: 'PUBG Mobile 660 UC', price: 245.00, category: 'PUBG', image: 'https://picsum.photos/seed/uc1/300/200' },
+    { id: 'tu5', title: 'Roblox 800 Robux', price: 190.00, category: 'ROBLOX', image: 'https://picsum.photos/seed/rbx1/300/200' },
+    { id: 'tu6', title: 'Steam 10 USD Wallet', price: 340.00, category: 'STEAM', image: 'https://picsum.photos/seed/stm1/300/200' },
   ];
 
-  const handleBuy = (title: string) => {
-    toast.success(`${title} başarıyla satın alındı!`);
+  const filteredProducts = products.filter(p => 
+    p.title.toLowerCase().includes(search.toLowerCase()) || 
+    p.category.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleAddToCart = (product: any) => {
+    addToCart({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.image,
+      sellerId: 'system',
+      sellerName: 'İtemsatış'
+    });
+    toast.success(`${product.title} sepete eklendi!`);
   };
 
   return (
     <div className="space-y-8">
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-10 text-white flex flex-col md:flex-row items-center justify-between gap-8">
+      <div className="bg-[#232736] rounded-2xl p-10 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Zap className="w-8 h-8" />
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+            <Smartphone className="w-8 h-8 text-blue-500" />
             E-Pin & Top-Up
           </h1>
-          <p className="max-w-xl opacity-90">Favori oyunlarınız için en ucuz E-Pin ve bakiye yükleme servisleri burada. 7/24 anında teslimat.</p>
+          <p className="text-gray-400 max-w-xl">En popüler oyunların E-Pin ve yükleme kodları en uygun fiyatlarla burada. Anında teslimat garantisi!</p>
           <div className="flex gap-4">
-            <div className="flex items-center gap-2 text-xs font-bold">
+            <div className="flex items-center gap-2 text-xs text-emerald-400 font-bold">
               <ShieldCheck className="w-4 h-4" />
               Resmi Distribütör
             </div>
-            <div className="flex items-center gap-2 text-xs font-bold">
-              <CreditCard className="w-4 h-4" />
-              Tüm Kartlar Geçerli
+            <div className="flex items-center gap-2 text-xs text-yellow-400 font-bold">
+              <Zap className="w-4 h-4" />
+              Anında Teslimat
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="w-24 h-24 bg-white/10 rounded-2xl backdrop-blur-md flex items-center justify-center">
-            <img src="https://picsum.photos/seed/v1/48/48" className="w-12 h-12" alt="" />
-          </div>
-          <div className="w-24 h-24 bg-white/10 rounded-2xl backdrop-blur-md flex items-center justify-center">
-            <img src="https://picsum.photos/seed/p1/48/48" className="w-12 h-12" alt="" />
+        <div className="w-full md:w-auto">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <input 
+              type="text" 
+              placeholder="Oyun veya paket ara..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full md:w-80 bg-[#1a1d27] border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+            />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((p) => (
-          <div key={p.id} className="bg-[#232736] rounded-xl border border-white/5 p-5 hover:border-emerald-500/50 transition-all group">
-            <img src={p.image} alt={p.title} className="w-full aspect-video object-cover rounded-lg mb-4" />
-            <h3 className="text-white font-bold text-sm mb-4">{p.title}</h3>
+        {filteredProducts.map((p) => (
+          <div key={p.id} className="bg-[#232736] rounded-xl border border-white/5 p-5 hover:border-blue-500/50 transition-all group">
+            <div className="relative aspect-[4/3] mb-4 overflow-hidden rounded-lg">
+              <img src={p.image} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <div className="absolute top-2 left-2 bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded uppercase">
+                {p.category}
+              </div>
+            </div>
+            <h3 className="text-white font-bold text-sm mb-2 line-clamp-1">{p.title}</h3>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-emerald-400 font-bold text-lg">{p.price.toFixed(2)} ₺</span>
+              <span className="text-emerald-400 font-bold">{p.price.toFixed(2)} ₺</span>
+              <span className="text-[10px] text-gray-500">Anında Teslim</span>
             </div>
             <button 
-              onClick={() => handleBuy(p.title)}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+              onClick={() => handleAddToCart(p)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
-              Hemen Al
+              Satın Al
             </button>
           </div>
         ))}
+
+        {filteredProducts.length === 0 && (
+          <div className="col-span-full py-20 text-center text-gray-500">
+            Aradığınız kriterlere uygun ürün bulunamadı.
+          </div>
+        )}
       </div>
     </div>
   );

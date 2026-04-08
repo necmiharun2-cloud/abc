@@ -45,6 +45,9 @@ import Giveaways from './pages/Giveaways';
 import CDKey from './pages/CDKey';
 import TopUp from './pages/TopUp';
 import GiftCards from './pages/GiftCards';
+import IlanEkle from './pages/IlanEkle';
+import IlanYukariTasima from './pages/IlanYukariTasima';
+import FavoriSistemi from './pages/FavoriSistemi';
 import PlaceholderPage from './pages/PlaceholderPage';
 
 export default function App() {
@@ -73,9 +76,9 @@ export default function App() {
               <Route path="cd-key" element={<CDKey />} />
               <Route path="top-up" element={<TopUp />} />
               <Route path="hediye-kartlari" element={<GiftCards />} />
-              <Route path="ilan-ekle" element={<PlaceholderPage />} />
-              <Route path="favori-sistemi" element={<PlaceholderPage />} />
-              <Route path="ilan-yukari-tasima" element={<PlaceholderPage />} />
+              <Route path="ilan-ekle" element={<IlanEkle />} />
+              <Route path="favori-sistemi" element={<FavoriSistemi />} />
+              <Route path="ilan-yukari-tasima" element={<IlanYukariTasima />} />
               <Route path="gizlilik-politikasi" element={<Privacy />} />
               <Route path="mesafeli-satis-sozlesmesi" element={<DistanceSales />} />
               <Route path="iade-politikasi" element={<RefundPolicy />} />

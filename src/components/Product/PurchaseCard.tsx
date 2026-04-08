@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { ShoppingCart, Heart, Share2, Bell, AlertTriangle, ShieldCheck, CheckCircle2, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useCart } from '../../contexts/CartContext';
+import { useFavorites } from '../../contexts/FavoritesContext';
 
 interface PurchaseCardProps {
   product: any;
@@ -11,6 +12,8 @@ interface PurchaseCardProps {
 export default function PurchaseCard({ product }: PurchaseCardProps) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const navigate = useNavigate();
   const price = product.price;
 
   const handleAddToCart = () => {
@@ -58,9 +61,28 @@ export default function PurchaseCard({ product }: PurchaseCardProps) {
     ), { duration: 5000, position: 'top-right' });
   };
 
+  const handleBuyNow = () => {
+    addToCart({
+      id: product.id.toString(),
+      title: product.title,
+      price: price,
+      originalPrice: product.oldPrice,
+      seller: product.sellerName,
+      image: product.image
+    });
+    navigate('/sepet');
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Ürün bağlantısı kopyalandı!');
+  };
+
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
   };
+
+  const isFav = isFavorite(product.id.toString());
 
   return (
     <div className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden">
@@ -114,7 +136,7 @@ export default function PurchaseCard({ product }: PurchaseCardProps) {
         {/* Actions */}
         <div className="space-y-3 mb-6">
           <button 
-            onClick={() => handleComingSoon('Hemen Satın Al')}
+            onClick={handleBuyNow}
             className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-3.5 rounded flex items-center justify-center gap-2 transition-colors"
           >
             <ShoppingCart className="w-5 h-5" />
@@ -142,13 +164,13 @@ export default function PurchaseCard({ product }: PurchaseCardProps) {
         {/* Secondary Actions */}
         <div className="grid grid-cols-2 gap-2 mb-6">
           <button 
-            onClick={() => handleComingSoon('Favori')}
-            className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors"
+            onClick={() => toggleFavorite(product.id.toString())}
+            className={`bg-[#2b3142] hover:bg-[#32394d] text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors ${isFav ? 'text-red-500' : 'text-gray-300'}`}
           >
-            <Heart className="w-4 h-4" /> Favori
+            <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} /> Favori
           </button>
           <button 
-            onClick={() => handleComingSoon('Paylaş')}
+            onClick={handleShare}
             className="bg-[#2b3142] hover:bg-[#32394d] text-gray-300 text-xs py-2.5 rounded flex items-center justify-center gap-2 transition-colors"
           >
             <Share2 className="w-4 h-4" /> Paylaş

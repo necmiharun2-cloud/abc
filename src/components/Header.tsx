@@ -1,6 +1,6 @@
 import { Search, User, LogOut, Sliders, ShoppingCart, ShoppingBag, List, Heart, Wallet, LifeBuoy, MessageSquare, ChevronDown, ShieldCheck, PlusCircle, Bell, Package, Tag, Star } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { signOut } from 'firebase/auth';
@@ -14,9 +14,10 @@ export default function Header() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { cartCount } = useCart();
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const toggleLang = () => {
     setLang(prev => prev === 'TR' ? 'EN' : 'TR');
@@ -27,6 +28,11 @@ export default function Header() {
     if (searchQuery.trim()) {
       toast.success(`"${searchQuery}" için arama sonuçları yakında eklenecek!`);
     }
+  };
+
+  const handleAction = (path: string, state?: any) => {
+    navigate(path, { state });
+    setIsDropdownOpen(false);
   };
 
   const handleComingSoon = (feature: string) => {
@@ -175,8 +181,8 @@ export default function Header() {
                     </div>
                   </div>
                   <div className="flex flex-col items-start text-sm">
-                    <span className="font-medium text-white">{user.displayName || 'Kullanıcı'}</span>
-                    <span className="text-emerald-400 text-xs font-semibold">0.00 ₺</span>
+                    <span className="font-medium text-white">{profile?.username || user.displayName || 'Kullanıcı'}</span>
+                    <span className="text-emerald-400 text-xs font-semibold">{profile?.balance?.toFixed(2) || '0.00'} ₺</span>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -195,21 +201,21 @@ export default function Header() {
                           </div>
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-bold text-white">{user.displayName || 'Kullanıcı'}</span>
-                          <span className="text-gray-400 text-xs">0.00 ₺</span>
+                          <span className="font-bold text-white">{profile?.username || user.displayName || 'Kullanıcı'}</span>
+                          <span className="text-gray-400 text-xs">{profile?.balance?.toFixed(2) || '0.00'} ₺</span>
                         </div>
                       </div>
                       
                       <div className="space-y-2">
                         <button 
-                          onClick={() => handleComingSoon('Bakiye Yükle')}
+                          onClick={() => handleAction('/kontrol-merkezi', { activeView: 'balance' })}
                           className="w-full flex items-center justify-center gap-2 bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-[#60a5fa] py-2 rounded-lg text-sm font-medium transition-colors border border-[#3b82f6]/30"
                         >
                           <PlusCircle className="w-4 h-4" />
                           Bakiye Yükle
                         </button>
                         <button 
-                          onClick={() => handleComingSoon('Güvenli Hesaba Yükselt')}
+                          onClick={() => handleAction('/kontrol-merkezi', { activeView: 'security' })}
                           className="w-full flex items-center justify-center gap-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 py-2 rounded-lg text-sm font-medium transition-colors border border-emerald-500/30"
                         >
                           <ShieldCheck className="w-4 h-4" />

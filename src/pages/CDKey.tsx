@@ -1,15 +1,25 @@
 import { Key, ShieldCheck, Zap, ShoppingCart } from 'lucide-react';
+import { useCart } from '../contexts/CartContext';
 import toast from 'react-hot-toast';
 
 export default function CDKey() {
+  const { addToCart } = useCart();
   const keys = [
-    { id: 1, title: 'Windows 11 Pro Retail Key', price: 49.90, stock: '100+', image: 'https://picsum.photos/seed/k1/300/200' },
-    { id: 2, title: 'Office 2026 Pro Plus Key', price: 89.90, stock: '50+', image: 'https://picsum.photos/seed/k2/300/200' },
-    { id: 3, title: 'Kaspersky Total Security 1 Yıl', price: 129.90, stock: '20+', image: 'https://picsum.photos/seed/k3/300/200' },
+    { id: 'ck1', title: 'Windows 11 Pro Retail Key', price: 49.90, stock: '100+', image: 'https://picsum.photos/seed/k1/300/200' },
+    { id: 'ck2', title: 'Office 2026 Pro Plus Key', price: 89.90, stock: '50+', image: 'https://picsum.photos/seed/k2/300/200' },
+    { id: 'ck3', title: 'Kaspersky Total Security 1 Yıl', price: 129.90, stock: '20+', image: 'https://picsum.photos/seed/k3/300/200' },
   ];
 
-  const handleBuy = (title: string) => {
-    toast.success(`${title} sepete eklendi!`);
+  const handleBuy = (product: any) => {
+    addToCart({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.image,
+      sellerId: 'system',
+      sellerName: 'İtemsatış'
+    });
+    toast.success(`${product.title} sepete eklendi!`);
   };
 
   return (
@@ -45,7 +55,7 @@ export default function CDKey() {
               <span className="text-[10px] text-gray-500">Stok: {k.stock}</span>
             </div>
             <button 
-              onClick={() => handleBuy(k.title)}
+              onClick={() => handleBuy(k)}
               className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />

@@ -111,12 +111,29 @@ export default function Topluluk() {
     }
   };
 
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
+  const [joinedGroups, setJoinedGroups] = useState<number[]>([]);
+  const [filterTag, setFilterTag] = useState<string | null>(null);
+
+  const handleJoinGroup = (groupId: number) => {
+    if (!user) {
+      toast.error('Gruplara katılmak için giriş yapmalısınız.');
+      return;
+    }
+    if (joinedGroups.includes(groupId)) {
+      setJoinedGroups(joinedGroups.filter(id => id !== groupId));
+      toast.success('Gruptan ayrıldınız.');
+    } else {
+      setJoinedGroups([...joinedGroups, groupId]);
+      toast.success('Gruba başarıyla katıldınız!');
+    }
   };
 
+  const filteredPosts = filterTag 
+    ? posts.filter(p => p.title.toLowerCase().includes(filterTag.toLowerCase().replace('#', '')) || p.content.toLowerCase().includes(filterTag.toLowerCase().replace('#', '')))
+    : posts;
+
   const trending = [
-    '#ValorantChampions', '#CS2Update', '#GTA6Fragman', '#Steamİndirimleri', '#LoLWorlds'
+    '#Valorant', '#CS2', '#GTA6', '#Steam', '#LoL'
   ];
 
   return (
@@ -138,7 +155,20 @@ export default function Topluluk() {
         </div>
 
         <div className="space-y-4">
-          {posts.map(post => (
+          {filterTag && (
+            <div className="flex items-center justify-between bg-[#232736] p-3 rounded-xl border border-[#5b68f6]/30">
+              <span className="text-sm text-gray-400">
+                <span className="text-[#5b68f6] font-bold">{filterTag}</span> etiketi için sonuçlar
+              </span>
+              <button 
+                onClick={() => setFilterTag(null)}
+                className="text-xs text-gray-500 hover:text-white transition-colors"
+              >
+                Filtreyi Temizle
+              </button>
+            </div>
+          )}
+          {filteredPosts.map(post => (
             <div key={post.id} className="bg-[#232736] p-5 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -236,8 +266,8 @@ export default function Topluluk() {
             {trending.map((tag, i) => (
               <button 
                 key={i} 
-                onClick={() => handleComingSoon(tag)}
-                className="block text-sm text-gray-400 hover:text-[#5b68f6] transition-colors text-left w-full"
+                onClick={() => setFilterTag(tag)}
+                className={`block text-sm transition-colors text-left w-full ${filterTag === tag ? 'text-[#5b68f6] font-bold' : 'text-gray-400 hover:text-[#5b68f6]'}`}
               >
                 {tag}
               </button>
@@ -259,10 +289,10 @@ export default function Topluluk() {
                   <div className="text-xs text-gray-400">{i * 1200} Üye</div>
                 </div>
                 <button 
-                  onClick={() => handleComingSoon('Gruba Katıl')}
-                  className="ml-auto bg-[#2b3142] hover:bg-[#32394d] text-white text-xs px-3 py-1.5 rounded transition-colors"
+                  onClick={() => handleJoinGroup(i)}
+                  className={`ml-auto text-xs px-3 py-1.5 rounded transition-colors font-bold ${joinedGroups.includes(i) ? 'bg-emerald-500/20 text-emerald-500' : 'bg-[#2b3142] hover:bg-[#32394d] text-white'}`}
                 >
-                  Katıl
+                  {joinedGroups.includes(i) ? 'Katıldın' : 'Katıl'}
                 </button>
               </div>
             ))}
