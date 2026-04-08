@@ -229,3 +229,4 @@ export default function IlanEkle() {
     </div>
   );
 }
+// Değişiklik tetikleyici: Bu yorum dosyanın güncellendiğini sisteme bildirmek için eklendi.
