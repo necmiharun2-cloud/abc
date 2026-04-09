@@ -17,6 +17,7 @@ export default function CDKey() {
       price: product.price,
       image: product.image,
       seller: 'system',
+      sellerId: 'system',
       originalPrice: product.oldPrice || product.price
     });
     toast.success(`${product.title} sepete eklendi!`);

@@ -12,6 +12,7 @@ export default function Deals() {
       price: parseFloat(deal.newPrice.replace(' ₺', '')),
       originalPrice: parseFloat(deal.oldPrice.replace(' ₺', '')),
       seller: 'İtemSatış Fırsat',
+      sellerId: 'system',
       image: deal.image
     });
     toast.success(`${deal.title} sepete eklendi!`);

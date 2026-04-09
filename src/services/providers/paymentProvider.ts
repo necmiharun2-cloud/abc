@@ -18,11 +18,13 @@ export type PaymentConfirmInput = {
 };
 
 export type PaymentCaptureInput = {
+  userId: string;
   providerRef: string;
   amount: number;
 };
 
 export type PaymentRefundInput = {
+  userId: string;
   providerRef: string;
   amount: number;
   reason: string;

@@ -89,12 +89,13 @@ service cloud.firestore {
     }
 
     function isValidOrder(data) {
-      return hasOnlyAllowedFields(['id', 'productId', 'productTitle', 'buyerId', 'sellerId', 'price', 'status', 'createdAt']) &&
+      return hasOnlyAllowedFields(['id', 'productId', 'productTitle', 'productImage', 'buyerId', 'sellerId', 'sellerName', 'price', 'status', 'paymentStatus', 'paymentProviderRef', 'createdAt', 'updatedAt']) &&
              data.productId is string &&
              data.buyerId is string &&
              data.sellerId is string &&
              data.price is number &&
-             data.status in ['pending', 'delivered', 'cancelled'] &&
+             data.status in ['created', 'pending', 'processing', 'delivered', 'completed', 'cancelled', 'disputed'] &&
+             data.paymentStatus in ['pending', 'captured', 'refunded', 'failed'] &&
              isValidCreatedAt(data.createdAt);
     }
 
@@ -188,14 +189,26 @@ service cloud.firestore {
     }
 
     function isValidTransaction(data) {
-      return hasOnlyAllowedFields(['userId', 'type', 'amount', 'fee', 'status', 'relatedId', 'createdAt']) &&
+      return hasOnlyAllowedFields(['userId', 'type', 'amount', 'fee', 'status', 'relatedId', 'reason', 'createdAt']) &&
              data.userId is string &&
              data.type is string &&
              data.amount is number &&
              data.fee is number &&
              data.status is string &&
              data.relatedId is string &&
-             isValidDateString(data.createdAt);
+             isValidCreatedAt(data.createdAt);
+    }
+
+    function isValidPaymentIntent(data) {
+      return data.keys().hasOnly(['userId', 'orderId', 'amount', 'currency', 'method', 'status', 'provider', 'createdAt', 'authorizedAt', 'capturedAt', 'refundedAt']) &&
+             data.userId is string &&
+             data.orderId is string &&
+             data.amount is number &&
+             data.currency == 'TRY' &&
+             data.method in ['card', 'bank_transfer', 'wallet'] &&
+             data.status in ['requires_action', 'authorized', 'captured', 'refunded'] &&
+             data.provider is string &&
+             isValidCreatedAt(data.createdAt);
     }
 
     function isValidGroup(data) {
@@ -318,6 +331,12 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
       allow create: if isAuthenticated() && isValidTransaction(request.resource.data) && request.resource.data.userId == request.auth.uid;
       allow update: if isAdmin();
+    }
+
+    match /paymentIntents/{intentId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && isValidPaymentIntent(request.resource.data) && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
     match /disputes/{disputeId} {

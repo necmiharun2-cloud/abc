@@ -23,6 +23,7 @@ export default function PurchaseCard({ product }: PurchaseCardProps) {
       price: price,
       originalPrice: product.oldPrice,
       seller: product.sellerName,
+      sellerId: product.sellerId || '',
       image: product.image
     });
 
@@ -68,6 +69,7 @@ export default function PurchaseCard({ product }: PurchaseCardProps) {
       price: price,
       originalPrice: product.oldPrice,
       seller: product.sellerName,
+      sellerId: product.sellerId || '',
       image: product.image
     });
     navigate('/sepet');

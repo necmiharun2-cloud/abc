@@ -125,10 +125,19 @@ export default function OrderDetail() {
             <p className="text-sm text-gray-400">#{order.id}</p>
           </div>
           <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-            order.status === 'delivered' ? 'bg-emerald-500/20 text-emerald-500' : 
-            order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-red-500/20 text-red-500'
+            order.status === 'delivered' || order.status === 'completed' ? 'bg-emerald-500/20 text-emerald-500' :
+            order.status === 'disputed' || order.status === 'cancelled' ? 'bg-red-500/20 text-red-500' :
+            'bg-yellow-500/20 text-yellow-500'
           }`}>
-            {order.status === 'delivered' ? 'Teslim Edildi' : order.status === 'pending' ? 'Beklemede' : 'İptal Edildi'}
+            {order.status === 'delivered' || order.status === 'completed'
+              ? 'Teslim Edildi'
+              : order.status === 'disputed'
+                ? 'Uyuşmazlıkta'
+                : order.status === 'cancelled'
+                  ? 'İptal Edildi'
+                  : order.status === 'created'
+                    ? 'Oluşturuldu'
+                    : 'İşleniyor'}
           </div>
         </div>
 

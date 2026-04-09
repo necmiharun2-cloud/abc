@@ -1,13 +1,111 @@
 import { Trash2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { tradeOrchestrator } from '../services/tradeOrchestrator';
+import toast from 'react-hot-toast';
+import { useState } from 'react';
 
 export default function Cart() {
-  const { items, updateQuantity, removeFromCart } = useCart();
+  const { items, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { user } = useAuth();
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer' | 'wallet'>('card');
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const totalPrice = items.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0);
   const totalOriginalPrice = items.reduce((sum, item) => sum + (Number(item.originalPrice) * item.quantity), 0);
   const discount = totalOriginalPrice - totalPrice;
+
+  const handleCheckout = async () => {
+    if (!user) {
+      toast.error('Ödeme için giriş yapmalısınız.');
+      return;
+    }
+    if (items.length === 0) {
+      toast.error('Sepetiniz boş.');
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      for (const item of items) {
+        for (let i = 0; i < item.quantity; i++) {
+          const orderRef = await addDoc(collection(db, 'orders'), {
+            productId: item.id,
+            productTitle: item.title,
+            productImage: item.image || '',
+            buyerId: user.uid,
+            sellerId: item.sellerId || '',
+            sellerName: item.seller || 'Satıcı',
+            price: Number(item.price || 0),
+            status: 'created',
+            paymentStatus: 'pending',
+            createdAt: serverTimestamp(),
+          });
+
+          const paymentIntent = await tradeOrchestrator.paymentProvider.initPayment({
+            userId: user.uid,
+            orderId: orderRef.id,
+            amount: Number(item.price || 0),
+            currency: 'TRY',
+            method: paymentMethod,
+          });
+
+          if (paymentIntent.status === 'requires_action') {
+            toast.success('3D Secure doğrulaması başlatıldı.');
+            const threeDsResult = await tradeOrchestrator.paymentProvider.confirm3DS({
+              providerRef: paymentIntent.providerRef,
+            });
+            if (threeDsResult.status !== 'authorized') {
+              toast.error('3D Secure doğrulaması başarısız.');
+              continue;
+            }
+          }
+
+          const captureResult = await tradeOrchestrator.paymentProvider.capture({
+            userId: user.uid,
+            providerRef: paymentIntent.providerRef,
+            amount: Number(item.price || 0),
+          });
+
+          if (captureResult.status === 'captured') {
+            await updateDoc(doc(db, 'orders', orderRef.id), {
+              paymentStatus: 'captured',
+              status: 'processing',
+              paymentProviderRef: paymentIntent.providerRef,
+              updatedAt: serverTimestamp(),
+            });
+            await addDoc(collection(db, 'notifications'), {
+              userId: user.uid,
+              title: 'Ödeme Başarılı',
+              message: `${item.title} için ödemeniz başarıyla alındı.`,
+              type: 'success',
+              isRead: false,
+              createdAt: serverTimestamp(),
+            });
+            if (item.sellerId) {
+              await addDoc(collection(db, 'notifications'), {
+                userId: item.sellerId,
+                title: 'Yeni Sipariş',
+                message: `${item.title} ürünü için yeni siparişiniz var.`,
+                type: 'info',
+                isRead: false,
+                createdAt: serverTimestamp(),
+              });
+            }
+          }
+        }
+      }
+      clearCart();
+      toast.success('Ödeme tamamlandı, siparişleriniz oluşturuldu.');
+    } catch (error) {
+      console.error(error);
+      toast.error('Ödeme işlemi başarısız oldu.');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-8">
@@ -67,14 +165,18 @@ export default function Cart() {
           ) : (
             items.map((item) => (
               <div key={item.id} className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <img src={item.image} alt="Product" className="w-20 h-20 rounded-lg object-cover" />
+                {item.image ? (
+                  <img src={item.image} alt="Product" className="w-20 h-20 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-20 h-20 rounded-lg bg-[#1a1d27] flex items-center justify-center text-[10px] text-gray-400">Görsel Yok</div>
+                )}
                 <div className="flex-1">
                   <h3 className="text-white font-medium mb-1">{item.title}</h3>
                   <p className="text-gray-400 text-sm mb-2">Stoklardan anında teslim edilecektir.</p>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-400">Satıcı :</span>
                     <span className="text-white bg-white/5 px-2 py-1 rounded flex items-center gap-1">
-                      <img src={`https://picsum.photos/seed/${item.seller}/16/16`} alt="Seller" className="w-4 h-4 rounded" />
+                      <span className="w-4 h-4 rounded bg-[#2b3142] inline-block" />
                       {item.seller}
                     </span>
                   </div>
@@ -141,8 +243,21 @@ export default function Cart() {
               </div>
             </div>
 
-            <button className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white py-3 rounded-xl font-bold transition-colors shadow-[0_0_15px_rgba(59,130,246,0.3)]">
-              Ödeme Adımına Geç
+            <div className="bg-[#1a1d27] rounded-lg p-4 mb-6 border border-white/5">
+              <h3 className="text-white font-medium text-sm mb-2">Ödeme Yöntemi</h3>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <button onClick={() => setPaymentMethod('card')} className={`py-2 rounded ${paymentMethod === 'card' ? 'bg-[#5b68f6] text-white' : 'bg-[#232736] text-gray-300'}`}>Kart (3DS)</button>
+                <button onClick={() => setPaymentMethod('wallet')} className={`py-2 rounded ${paymentMethod === 'wallet' ? 'bg-[#5b68f6] text-white' : 'bg-[#232736] text-gray-300'}`}>Cüzdan</button>
+                <button onClick={() => setPaymentMethod('bank_transfer')} className={`py-2 rounded ${paymentMethod === 'bank_transfer' ? 'bg-[#5b68f6] text-white' : 'bg-[#232736] text-gray-300'}`}>Havale</button>
+              </div>
+            </div>
+
+            <button
+              onClick={handleCheckout}
+              disabled={checkoutLoading || items.length === 0}
+              className="w-full bg-[#3b82f6] hover:bg-[#2563eb] disabled:opacity-60 text-white py-3 rounded-xl font-bold transition-colors shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+            >
+              {checkoutLoading ? 'Ödeme İşleniyor...' : 'Ödeme Adımına Geç'}
             </button>
           </div>
         </div>
