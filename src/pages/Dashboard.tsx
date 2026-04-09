@@ -9,9 +9,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
 import { updatePassword, updateEmail } from 'firebase/auth';
-import { doc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, deleteDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
-import ConfirmationModal from '../components/ConfirmationModal';
 import { tradeOrchestrator } from '../services/tradeOrchestrator';
 
 export default function Dashboard() {
@@ -49,7 +48,6 @@ export default function Dashboard() {
   const [financialRows, setFinancialRows] = useState<any[]>([]);
   const [isAddingBank, setIsAddingBank] = useState(false);
   const [newBank, setNewBank] = useState({ bankName: '', iban: '', accountHolder: '' });
-  const [isSeedModalOpen, setIsSeedModalOpen] = useState(false);
   const [kycForm, setKycForm] = useState({ fullName: '', nationalId: '' });
   const [kycBusy, setKycBusy] = useState(false);
 
@@ -234,101 +232,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleAddBalance = async () => {
-    if (!user) return;
-    const amountToAdd = 100;
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      const currentBalance = Number(profile?.balance || displayBalance || 0);
-      await updateDoc(userRef, {
-        balance: currentBalance + amountToAdd
-      });
-      setDisplayBalance(currentBalance + amountToAdd);
-      toast.success('Bakiyenize 100 ₺ eklendi! (Test Modu)');
-    } catch (error) {
-      toast.error('Bakiye eklenemedi.');
-    }
-  };
-
-  const handleSeedData = async () => {
-    if (!user) return;
-    
-    try {
-      const batch = writeBatch(db);
-      const sampleProducts = [
-        {
-          title: '100-150 Skinli Valorant Hesabı',
-          category: 'VALORANT',
-          price: 450,
-          oldPrice: 550,
-          description: 'İçinde ejder vandal ve yağmacı bıçak bulunan dolu hesap.',
-          sellerId: user.uid,
-          sellerName: profile?.username || user.displayName || 'Test Satıcı',
-          sellerAvatar: profile?.avatar || '',
-          image: '',
-          status: 'active',
-          isVitrin: true,
-          type: 'sell',
-          createdAt: serverTimestamp()
-        },
-        {
-          title: 'Roblox 10.000 Robux - Hızlı Teslimat',
-          category: 'ROBLOX',
-          price: 250,
-          description: 'Anında teslimat garantili robux.',
-          sellerId: user.uid,
-          sellerName: profile?.username || user.displayName || 'Test Satıcı',
-          sellerAvatar: profile?.avatar || '',
-          image: '',
-          status: 'active',
-          isVitrin: true,
-          type: 'sell',
-          createdAt: serverTimestamp()
-        },
-        {
-          title: 'Steam 50 TL Cüzdan Kodu',
-          category: 'STEAM',
-          price: 45,
-          oldPrice: 50,
-          description: 'Global geçerli steam cüzdan kodu.',
-          sellerId: user.uid,
-          sellerName: profile?.username || user.displayName || 'Test Satıcı',
-          sellerAvatar: profile?.avatar || '',
-          image: '',
-          status: 'active',
-          isVitrin: false,
-          type: 'sell',
-          createdAt: serverTimestamp()
-        },
-        {
-          title: 'Discord 1 Aylık Nitro Boost',
-          category: 'DISCORD',
-          price: 35,
-          description: 'Kendi hesabınıza tanımlanan nitro boost.',
-          sellerId: user.uid,
-          sellerName: profile?.username || user.displayName || 'Test Satıcı',
-          sellerAvatar: profile?.avatar || '',
-          image: '',
-          status: 'active',
-          isVitrin: true,
-          type: 'sell',
-          createdAt: serverTimestamp()
-        }
-      ];
-
-      sampleProducts.forEach(product => {
-        const newDocRef = doc(collection(db, 'products'));
-        batch.set(newDocRef, product);
-      });
-
-      await batch.commit();
-      toast.success('Örnek ilanlar başarıyla oluşturuldu! Anasayfayı kontrol edebilirsiniz.');
-    } catch (error) {
-      console.error('Seed error:', error);
-      toast.error('Veri oluşturulurken bir hata oluştu.');
-    }
-  };
-
   const handleStartKyc = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -404,25 +307,11 @@ export default function Dashboard() {
           <p className="text-emerald-400 font-semibold text-lg mt-1">{Number(displayBalance).toFixed(2)} ₺</p>
           
           <div className="flex gap-2 w-full mt-4">
-            <button 
-              onClick={handleAddBalance}
-              className="flex-1 bg-[#3b82f6] hover:bg-[#2563eb] text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <Wallet className="w-4 h-4" />
-              Bakiye Yükle
-            </button>
-            <Link to="/para-cek" className="flex-1 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+            <Link to="/para-cek" className="w-full bg-[#8b5cf6] hover:bg-[#7c3aed] text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
               <ArrowUpRight className="w-4 h-4" />
               Para Çek
             </Link>
           </div>
-          <button 
-            onClick={() => setIsSeedModalOpen(true)}
-            className="w-full mt-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-amber-500/20"
-          >
-            <Plus className="w-4 h-4" />
-            Örnek İlanları Yükle
-          </button>
         </div>
 
           {/* Navigation Menu */}
@@ -912,16 +801,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      <ConfirmationModal 
-        isOpen={isSeedModalOpen}
-        onClose={() => setIsSeedModalOpen(false)}
-        onConfirm={handleSeedData}
-        title="Test Verisi Oluştur"
-        message="Hesabınız için örnek ilanlar oluşturulacaktır. Onaylıyor musunuz?"
-        confirmText="Evet, Oluştur"
-        cancelText="Vazgeç"
-        type="info"
-      />
     </div>
   );
 }

@@ -48,6 +48,7 @@ import GiftCards from './pages/GiftCards';
 import IlanEkle from './pages/IlanEkle';
 import IlanYukariTasima from './pages/IlanYukariTasima';
 import FavoriSistemi from './pages/FavoriSistemi';
+import AdminPanel from './pages/AdminPanel';
 
 export default function App() {
   return (
@@ -103,6 +104,7 @@ export default function App() {
               <Route path="favorilerim" element={<Favorites />} />
               <Route path="para-cek" element={<Withdraw />} />
               <Route path="destek-sistemi" element={<Support />} />
+              <Route path="admin" element={<AdminPanel />} />
               {/* Fallback for other routes */}
               <Route path="*" element={<NotFound />} />
             </Route>

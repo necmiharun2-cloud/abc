@@ -9,7 +9,11 @@ export interface UserProfile {
   email: string;
   avatar?: string;
   balance: number;
-  role: 'admin' | 'user';
+  role: 'admin' | 'moderator' | 'user';
+  bio?: string;
+  accountStatus?: 'active' | 'frozen' | 'banned';
+  salesEnabled?: boolean;
+  riskNote?: string;
   createdAt: string;
   listingCount: number;
   soldCount: number;
@@ -66,6 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               avatar: firebaseUser.photoURL || '',
               balance: 0,
               role: 'user',
+              bio: '',
+              accountStatus: 'active',
+              salesEnabled: true,
+              riskNote: '',
               createdAt: new Date().toISOString(), // Keeping string for now as it's easier for simple display, but using Timestamp is better. Actually, I'll use ISO string to match the interface.
               listingCount: 0,
               soldCount: 0,

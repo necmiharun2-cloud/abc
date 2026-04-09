@@ -46,6 +46,14 @@ service cloud.firestore {
          (request.auth.token.email == "necmiharun3@gmail.com" && request.auth.token.email_verified == true));
     }
 
+    function isModerator() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'moderator';
+    }
+
+    function isStaff() {
+      return isAdmin() || isModerator();
+    }
+
     function isValidEmail(email) {
       return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
@@ -67,11 +75,14 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidUser(data) {
-      return hasOnlyAllowedFields(['uid', 'username', 'email', 'avatar', 'balance', 'role', 'createdAt', 'listingCount', 'soldCount', 'rating', 'reviewCount', 'storeLevel', 'isVerifiedSeller', 'kycStatus', 'kycReferenceId']) &&
+      return hasOnlyAllowedFields(['uid', 'username', 'email', 'avatar', 'bio', 'balance', 'role', 'accountStatus', 'salesEnabled', 'riskNote', 'createdAt', 'listingCount', 'soldCount', 'rating', 'reviewCount', 'storeLevel', 'isVerifiedSeller', 'kycStatus', 'kycReferenceId', 'notifications']) &&
              data.uid is string && data.username is string && data.username.size() > 0 && data.username.size() < 50 &&
              isValidEmail(data.email) &&
              data.balance is number && data.balance >= 0 &&
-             data.role in ['admin', 'user'] &&
+             data.role in ['admin', 'moderator', 'user'] &&
+             data.accountStatus in ['active', 'frozen', 'banned'] &&
+             data.salesEnabled is bool &&
+             data.riskNote is string &&
              data.storeLevel in ['standard', 'pro', 'corporate'] &&
              data.isVerifiedSeller is bool &&
              data.kycStatus in ['none', 'pending', 'verified', 'rejected'] &&
@@ -80,11 +91,13 @@ service cloud.firestore {
     }
 
     function isValidProduct(data) {
-      return hasOnlyAllowedFields(['id', 'title', 'description', 'price', 'category', 'subcategory', 'deliveryType', 'stock', 'image', 'sellerId', 'sellerName', 'createdAt', 'status']) &&
+      return hasOnlyAllowedFields(['id', 'title', 'description', 'price', 'category', 'subcategory', 'deliveryType', 'stock', 'image', 'sellerId', 'sellerName', 'createdAt', 'status', 'isVitrin', 'moderationStatus', 'moderationReason']) &&
              data.title is string && data.title.size() > 0 && data.title.size() < 100 &&
              data.price is number && data.price >= 0 &&
              data.sellerId is string &&
-             data.status in ['active', 'sold', 'inactive'] &&
+             data.status in ['active', 'sold', 'inactive', 'rejected', 'suspended'] &&
+             (!(data.keys().hasAny(['moderationStatus'])) || data.moderationStatus in ['pending', 'approved', 'rejected', 'suspended', 'removed_from_showcase']) &&
+             (!(data.keys().hasAny(['moderationReason'])) || data.moderationReason is string) &&
              isValidCreatedAt(data.createdAt);
     }
 
@@ -153,7 +166,7 @@ service cloud.firestore {
     }
 
     function isValidSupportTicket(data) {
-      return hasOnlyAllowedFields(['userId', 'subject', 'category', 'message', 'status', 'channel', 'createdAt']) &&
+      return hasOnlyAllowedFields(['userId', 'subject', 'category', 'message', 'status', 'channel', 'assignedTo', 'createdAt', 'updatedAt']) &&
              data.userId is string &&
              data.subject is string && data.subject.size() > 0 && data.subject.size() < 200 &&
              data.category is string && data.category.size() > 0 && data.category.size() < 100 &&
@@ -163,11 +176,11 @@ service cloud.firestore {
     }
 
     function isValidWithdrawal(data) {
-      return hasOnlyAllowedFields(['userId', 'amount', 'fee', 'method', 'bankName', 'iban', 'accountHolder', 'status', 'createdAt', 'processedAt']) &&
+      return hasOnlyAllowedFields(['userId', 'amount', 'fee', 'method', 'bankName', 'iban', 'accountHolder', 'status', 'rejectionReason', 'processedBy', 'createdAt', 'processedAt']) &&
              data.userId is string &&
              data.amount is number && data.amount >= 30 &&
              data.fee is number && data.fee >= 0 &&
-             data.status in ['Beklemede', 'Onaylandı', 'Reddedildi'] &&
+             data.status in ['Beklemede', 'Onaylandı', 'Reddedildi', 'pending', 'approved', 'rejected'] &&
              isValidCreatedAt(data.createdAt);
     }
 
@@ -236,13 +249,22 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user' && request.resource.data.balance == 0;
-      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role && request.resource.data.balance == resource.data.balance) || isAdmin();
+      allow update: if (
+        isOwner(userId) &&
+        isValidUser(request.resource.data) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['username', 'avatar', 'bio', 'notifications']) &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.balance == resource.data.balance &&
+        request.resource.data.accountStatus == resource.data.accountStatus &&
+        request.resource.data.salesEnabled == resource.data.salesEnabled &&
+        request.resource.data.riskNote == resource.data.riskNote
+      ) || isStaff();
     }
 
     match /kycRequests/{requestId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
       allow create: if isAuthenticated() &&
-        request.resource.data.keys().hasOnly(['userId', 'fullName', 'nationalId', 'status', 'createdAt']) &&
+        request.resource.data.keys().hasOnly(['userId', 'fullName', 'nationalId', 'status', 'createdAt', 'reviewedBy', 'reviewNote', 'reviewedAt']) &&
         request.resource.data.userId == request.auth.uid &&
         request.resource.data.fullName is string &&
         request.resource.data.fullName.size() > 2 &&
@@ -250,7 +272,7 @@ service cloud.firestore {
         request.resource.data.nationalId.size() == 11 &&
         request.resource.data.status == 'pending' &&
         isValidCreatedAt(request.resource.data.createdAt);
-      allow update: if isAdmin();
+      allow update: if isStaff();
     }
 
     match /products/{productId} {
@@ -306,13 +328,13 @@ service cloud.firestore {
     match /supportTickets/{ticketId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
       allow create: if isAuthenticated() && isValidSupportTicket(request.resource.data) && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
+      allow update: if isStaff() || (isAuthenticated() && request.auth.uid == resource.data.userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
     }
 
     match /withdrawals/{withdrawalId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
       allow create: if isAuthenticated() && isValidWithdrawal(request.resource.data) && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin();
+      allow update: if isStaff();
     }
 
     match /reviews/{reviewId} {
@@ -329,8 +351,11 @@ service cloud.firestore {
 
     match /transactions/{transactionId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
-      allow create: if isAuthenticated() && isValidTransaction(request.resource.data) && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin();
+      allow create: if isAuthenticated() && (
+        (request.resource.data.userId == request.auth.uid && isValidTransaction(request.resource.data)) ||
+        (isStaff() && isValidTransaction(request.resource.data))
+      );
+      allow update: if isStaff();
     }
 
     match /paymentIntents/{intentId} {
@@ -342,7 +367,7 @@ service cloud.firestore {
     match /disputes/{disputeId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId || isAdmin());
       allow create: if isAuthenticated() && request.resource.data.keys().hasAll(['orderId', 'buyerId', 'sellerId', 'reason', 'status', 'createdAt']);
-      allow update: if isAdmin();
+      allow update: if isStaff();
     }
 
     match /groups/{groupId} {
@@ -353,8 +378,19 @@ service cloud.firestore {
 
     match /notifications/{notificationId} {
       allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
-      allow create: if isAdmin();
+      allow create: if isStaff();
       allow update: if isAuthenticated() && request.auth.uid == resource.data.userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+    }
+
+    match /supportTicketReplies/{replyId} {
+      allow read: if isStaff() || (isAuthenticated() && request.auth.uid == resource.data.actorId);
+      allow create: if isStaff() && request.resource.data.keys().hasAll(['ticketId', 'actorId', 'actorRole', 'message', 'createdAt']);
+    }
+
+    match /adminLogs/{logId} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+      allow update, delete: if false;
     }
   }
 }
