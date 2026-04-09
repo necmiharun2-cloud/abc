@@ -99,6 +99,9 @@ export default function Profile() {
   }
 
   const isOwnProfile = !id || id === user?.uid;
+  const ratingValue = Number(viewedUser.rating || 0);
+  const reviewCount = Number(viewedUser.reviewCount || 0);
+  const followerCount = Number(viewedUser.followerCount || 0);
 
   return (
     <div className="max-w-[1400px] mx-auto">
@@ -106,11 +109,7 @@ export default function Profile() {
       
       {/* Cover Photo Area */}
       <div className="h-[300px] w-full bg-[#1a1d27] relative overflow-hidden rounded-t-xl border-x border-t border-white/5">
-        <img 
-          src={`https://picsum.photos/seed/cover${viewedUser.id}/1400/300`} 
-          alt="Cover" 
-          className="w-full h-full object-cover opacity-50"
-        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1a1d27] via-[#232736] to-[#1a1d27]" />
         <div className="absolute top-4 right-4 text-xs text-gray-400 bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm">
           Üyelik Tarihi : {viewedUser.createdAt?.toDate ? viewedUser.createdAt.toDate().toLocaleDateString('tr-TR') : 'Bilinmiyor'}
         </div>
@@ -122,7 +121,13 @@ export default function Profile() {
         <div className="flex gap-6 -mt-16 relative z-10">
           <div className="relative">
             <div className="w-32 h-32 rounded-xl bg-[#1a1d27] border-4 border-[#232736] overflow-hidden flex items-center justify-center">
-              <img src={viewedUser.avatar || `https://picsum.photos/seed/avatar${viewedUser.id}/128/128`} alt="Avatar" className="w-full h-full object-cover" />
+              {viewedUser.avatar ? (
+                <img src={viewedUser.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl font-bold text-white">
+                  {(viewedUser.username || viewedUser.displayName || viewedUser.email?.[0] || 'U').toString().charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full border-4 border-[#232736]"></div>
           </div>
@@ -159,10 +164,10 @@ export default function Profile() {
         <div className="flex flex-col items-end gap-4 w-full md:w-auto">
           <div className="flex items-center gap-2">
             <Star className="w-6 h-6 text-yellow-500 fill-current" />
-            <span className="text-xl font-bold text-white">{(Math.random() * 1 + 4).toFixed(1)}</span>
+            <span className="text-xl font-bold text-white">{ratingValue.toFixed(1)}</span>
             <span className="text-gray-400">/ 10</span>
           </div>
-          <div className="text-sm text-gray-400">12 Değerlendirme</div>
+          <div className="text-sm text-gray-400">{reviewCount} Değerlendirme</div>
           <div className="w-full md:w-48 bg-emerald-500/20 text-emerald-400 text-center py-2 rounded-lg text-sm font-medium border border-emerald-500/30">
             {viewedUser.soldCount || 0} Başarılı İşlem
           </div>
@@ -177,7 +182,7 @@ export default function Profile() {
         >
           <Package className="w-4 h-4" />
           İlanlar
-          <span className="bg-[#5b68f6]/20 text-[#5b68f6] px-2 py-0.5 rounded-full text-xs">0</span>
+          <span className="bg-[#5b68f6]/20 text-[#5b68f6] px-2 py-0.5 rounded-full text-xs">{listings.length}</span>
         </button>
         <button 
           onClick={() => setActiveTab('degerlendirmeler')}
@@ -185,7 +190,7 @@ export default function Profile() {
         >
           <Star className="w-4 h-4" />
           Değerlendirmeler
-          <span className="bg-white/10 text-gray-400 px-2 py-0.5 rounded-full text-xs">12</span>
+          <span className="bg-white/10 text-gray-400 px-2 py-0.5 rounded-full text-xs">{reviewCount}</span>
         </button>
         <button 
           onClick={() => setActiveTab('basarimlar')}
@@ -200,7 +205,7 @@ export default function Profile() {
         >
           <Users className="w-4 h-4" />
           Takipçiler
-          <span className="bg-white/10 text-gray-400 px-2 py-0.5 rounded-full text-xs">45</span>
+          <span className="bg-white/10 text-gray-400 px-2 py-0.5 rounded-full text-xs">{followerCount}</span>
         </button>
       </div>
 
@@ -215,7 +220,13 @@ export default function Profile() {
                 {listings.map((listing) => (
                   <Link key={listing.id} to={`/product/${listing.id}`} className="bg-[#1a1d27] rounded-xl border border-white/5 overflow-hidden hover:border-white/20 transition-colors group flex flex-col">
                     <div className="relative h-40">
-                      <img src={listing.image || `https://picsum.photos/seed/${listing.id}/400/300`} alt={listing.title} className="w-full h-full object-cover" />
+                      {listing.image ? (
+                        <img src={listing.image} alt={listing.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-[#2b3142] flex items-center justify-center text-gray-400 text-xs">
+                          Görsel Yok
+                        </div>
+                      )}
                       <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-white">
                         {listing.category}
                       </div>
@@ -244,24 +255,10 @@ export default function Profile() {
           </div>
         )}
         {activeTab === 'degerlendirmeler' && (
-          <div className="w-full max-w-2xl space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-[#1a1d27] p-6 rounded-xl border border-white/5 text-left">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <img src={`https://picsum.photos/seed/u${i}/40/40`} alt="User" className="w-10 h-10 rounded-lg" />
-                    <div>
-                      <div className="text-white font-bold text-sm">Kullanıcı_{i}</div>
-                      <div className="text-gray-500 text-xs">2 gün önce</div>
-                    </div>
-                  </div>
-                  <div className="flex text-yellow-500">
-                    {[1, 2, 3, 4, 5].map((star) => <Star key={star} className="w-4 h-4 fill-current" />)}
-                  </div>
-                </div>
-                <p className="text-gray-300 text-sm italic">"Hızlı teslimat, güvenilir satıcı. Teşekkürler!"</p>
-              </div>
-            ))}
+          <div className="w-full max-w-2xl p-8 rounded-xl border border-white/5 bg-[#1a1d27] text-center">
+            <p className="text-gray-300">
+              Değerlendirme verisi henüz entegre edilmedi.
+            </p>
           </div>
         )}
         {activeTab === 'basarimlar' && (
@@ -280,14 +277,10 @@ export default function Profile() {
           </div>
         )}
         {activeTab === 'takipciler' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 w-full">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-[#1a1d27] p-4 rounded-xl border border-white/5 flex flex-col items-center gap-3">
-                <img src={`https://picsum.photos/seed/f${i}/64/64`} alt="Follower" className="w-16 h-16 rounded-full" />
-                <span className="text-white font-medium text-sm">Takipçi_{i}</span>
-                <button className="text-xs text-[#5b68f6] hover:text-white transition-colors">Profili Gör</button>
-              </div>
-            ))}
+          <div className="w-full max-w-2xl p-8 rounded-xl border border-white/5 bg-[#1a1d27] text-center">
+            <p className="text-gray-300">
+              Takipçi verisi henüz entegre edilmedi.
+            </p>
           </div>
         )}
       </div>
@@ -306,7 +299,13 @@ export default function Profile() {
             <form onSubmit={handleUpdateProfile} className="p-6 space-y-6">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative group cursor-pointer">
-                  <img src="https://picsum.photos/seed/avatar/128/128" alt="Avatar" className="w-24 h-24 rounded-2xl object-cover border-2 border-white/10 group-hover:opacity-50 transition-opacity" />
+                  {viewedUser.avatar ? (
+                    <img src={viewedUser.avatar} alt="Avatar" className="w-24 h-24 rounded-2xl object-cover border-2 border-white/10 group-hover:opacity-50 transition-opacity" />
+                  ) : (
+                    <div className="w-24 h-24 rounded-2xl border-2 border-white/10 bg-[#1a1d27] flex items-center justify-center">
+                      <UserPlus className="w-8 h-8 text-gray-400" />
+                    </div>
+                  )}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Camera className="w-8 h-8 text-white" />
                   </div>
