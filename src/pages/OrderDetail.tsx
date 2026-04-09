@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { chatService } from '../services/chatService';
+import { tradeOrchestrator } from '../services/tradeOrchestrator';
 import toast from 'react-hot-toast';
 
 export default function OrderDetail() {
@@ -68,13 +69,11 @@ export default function OrderDetail() {
         updatedAt: serverTimestamp(),
       });
       if (status === 'completed') {
-        await addDoc(collection(db, 'notifications'), {
+        await tradeOrchestrator.notificationProvider.notifyInApp({
           userId: order.sellerId,
           title: 'Sipariş Tamamlandı',
           message: `#${order.id.slice(0, 8)} siparişi alıcı tarafından tamamlandı.`,
           type: 'success',
-          isRead: false,
-          createdAt: serverTimestamp(),
         });
       }
       setOrder((prev: any) => ({ ...prev, status }));

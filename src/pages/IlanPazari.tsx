@@ -81,7 +81,9 @@ export default function IlanPazari() {
                     onClick={() => handleFilterChange('category', cat)}
                     className={`flex items-center gap-3 w-full p-2 rounded-lg transition-colors text-sm ${localFilters.category === cat ? 'bg-[#5b68f6]/20 text-white border border-[#5b68f6]/30' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
                   >
-                    <img src={`https://picsum.photos/seed/${cat}/24/24`} className="w-6 h-6 rounded-full" alt="" />
+                    <div className="w-6 h-6 rounded-full bg-[#2b3142] flex items-center justify-center text-[10px] text-white font-bold">
+                      {cat.charAt(0).toUpperCase()}
+                    </div>
                     {cat}
                   </button>
                 ))}

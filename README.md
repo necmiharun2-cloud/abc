@@ -1,6 +1,6 @@
-# İtemsatış Clone
+# İtemsatış Marketplace
 
-Bu proje, İtemsatış platformunun bir klonudur. React, Vite, Tailwind CSS ve Firebase kullanılarak geliştirilmiştir.
+Bu proje, İtemsatış benzeri ticaret akışlarını gerçek veri ile yürüten bir marketplace uygulamasıdır. React, Vite, Tailwind CSS ve Firebase kullanılarak geliştirilmiştir.
 
 ## Özellikler
 - Kullanıcı Kaydı ve Girişi (Firebase Auth)
@@ -55,6 +55,10 @@ cp .env.example .env
   ```bash
   npm run check
   ```
+
+## Servis Adapter Katmanı
+- Ödeme, KYC ve bildirim süreçleri için provider adapter yapısı `src/services/providers` altında tanımlıdır.
+- Varsayılan uygulama `firebase-first` modundadır; gerçek sağlayıcı (iyzico/Stripe, SMS, e-posta) entegrasyonu provider implementasyonları ile genişletilir.
 
 ## Firebase Kuralları
 `firestore.rules` dosyası, veritabanı güvenliğini sağlamak için yapılandırılmıştır. Projeyi deploy etmeden önce bu kuralları Firebase konsolundan uyguladığınızdan emin olun.

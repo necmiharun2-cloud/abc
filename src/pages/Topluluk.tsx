@@ -2,7 +2,7 @@ import { MessageSquare, TrendingUp, Users, Plus, Heart, Share2, X } from 'lucide
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function Topluluk() {
@@ -63,9 +63,9 @@ export default function Topluluk() {
         postId,
         authorId: user.uid,
         authorName: profile?.username || user.displayName || 'Kullanıcı',
-        authorAvatar: profile?.avatar || user.photoURL || `https://picsum.photos/seed/${user.uid}/32/32`,
+        authorAvatar: profile?.avatar || user.photoURL || '',
         text: commentText,
-        createdAt: new Date().toISOString()
+        createdAt: serverTimestamp()
       });
       
       await updateDoc(doc(db, 'posts', postId), {
@@ -94,13 +94,13 @@ export default function Topluluk() {
       await addDoc(collection(db, 'posts'), {
         authorId: user.uid,
         authorName: profile?.username || user.displayName || 'Kullanıcı',
-        authorAvatar: profile?.avatar || user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`,
+        authorAvatar: profile?.avatar || user.photoURL || '',
         title: newPost.title,
         content: newPost.content,
         category: newPost.category,
         likes: 0,
         commentCount: 0,
-        createdAt: new Date().toISOString()
+        createdAt: serverTimestamp()
       });
 
       setIsModalOpen(false);
@@ -172,11 +172,17 @@ export default function Topluluk() {
             <div key={post.id} className="bg-[#232736] p-5 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <img src={post.authorAvatar} alt={post.authorName} className="w-10 h-10 rounded-full" />
+                  {post.authorAvatar ? (
+                    <img src={post.authorAvatar} alt={post.authorName} className="w-10 h-10 rounded-full" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-[#2b3142] flex items-center justify-center text-xs text-white font-bold">
+                      {(post.authorName || 'K').charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div>
                     <div className="text-sm font-bold text-white">{post.authorName}</div>
                     <div className="text-xs text-gray-400">
-                      {new Date(post.createdAt).toLocaleDateString()}
+                      {post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString() : '-'}
                     </div>
                   </div>
                 </div>
@@ -213,7 +219,13 @@ export default function Topluluk() {
               {activeCommentsPostId === post.id && (
                 <div className="mt-4 pt-4 border-t border-white/5 space-y-4 animate-in slide-in-from-top-2 duration-200">
                   <div className="flex gap-3">
-                    <img src={profile?.avatar || user?.photoURL || `https://picsum.photos/seed/${user?.uid}/32/32`} alt="Me" className="w-8 h-8 rounded-full" />
+                    {profile?.avatar || user?.photoURL ? (
+                      <img src={profile?.avatar || user?.photoURL || ''} alt="Me" className="w-8 h-8 rounded-full" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#2b3142] flex items-center justify-center text-[10px] text-white font-bold">
+                        {(profile?.username || user?.displayName || user?.email || 'K').charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div className="flex-1 flex gap-2">
                       <input 
                         type="text"
@@ -283,7 +295,9 @@ export default function Topluluk() {
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
               <div key={i} className="flex items-center gap-3">
-                <img src={`https://picsum.photos/seed/g${i}/40/40`} className="w-10 h-10 rounded-lg" alt="Group" />
+                <div className="w-10 h-10 rounded-lg bg-[#2b3142] flex items-center justify-center text-xs text-white font-bold">
+                  G{i}
+                </div>
                 <div>
                   <div className="text-sm font-bold text-white">Grup Adı {i}</div>
                   <div className="text-xs text-gray-400">{i * 1200} Üye</div>
