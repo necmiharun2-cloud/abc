@@ -2,7 +2,7 @@ import { User, Mail, Lock, UserPlus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth, db } from '../firebase';
+import { auth, db, missingFirebaseEnvKeys } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
@@ -17,6 +17,10 @@ export default function Register() {
     e.preventDefault();
     if (!username || !email || !password) {
       toast.error('Lütfen tüm alanları doldurun.');
+      return;
+    }
+    if (missingFirebaseEnvKeys.length > 0) {
+      toast.error('Firebase ayarları eksik. Sistem yöneticisiyle iletişime geçin.');
       return;
     }
 
@@ -34,13 +38,27 @@ export default function Register() {
         username,
         email,
         avatar: '',
+        bio: '',
         balance: 0,
         role: 'user',
+        accountStatus: 'active',
+        salesEnabled: true,
+        riskNote: '',
         createdAt: new Date().toISOString(),
         listingCount: 0,
         soldCount: 0,
         rating: 0,
-        reviewCount: 0
+        reviewCount: 0,
+        storeLevel: 'standard',
+        isVerifiedSeller: false,
+        kycStatus: 'none',
+        kycReferenceId: '',
+        notifications: {
+          orders: true,
+          messages: true,
+          system: true,
+          marketing: false,
+        },
       };
       await setDoc(doc(db, 'users', user.uid), newProfile);
 
@@ -54,8 +72,12 @@ export default function Register() {
         toast.error('Şifre en az 6 karakter olmalıdır.');
       } else if (error.code === 'auth/operation-not-allowed') {
         toast.error('E-posta/Şifre girişi Firebase konsolundan aktifleştirilmemiş!');
+      } else if (error.code === 'auth/invalid-api-key' || error.code === 'auth/api-key-not-valid') {
+        toast.error('Sistem yapılandırması eksik. Lütfen destekle iletişime geçin.');
+      } else if (error.code === 'permission-denied') {
+        toast.error('Kayıt tamamlandı fakat profil oluşturulamadı. Lütfen tekrar deneyin.');
       } else {
-        toast.error(`Hata: ${error.message}`);
+        toast.error('Kayıt sırasında beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.');
       }
     } finally {
       setLoading(false);
