@@ -258,8 +258,8 @@ export default function Withdraw() {
 
           <button 
             type="submit"
-            disabled={isSubmitting}
-            className={`w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-4 rounded-xl transition-colors shadow-[0_0_15px_rgba(59,130,246,0.3)] ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isSubmitting || !bankAccount || !amount || !isAgreed}
+            className={`w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-4 rounded-xl transition-colors shadow-[0_0_15px_rgba(59,130,246,0.3)] ${(isSubmitting || !bankAccount || !amount || !isAgreed) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {isSubmitting ? 'Talebiniz Gönderiliyor...' : 'Talebi Gönder'}
           </button>

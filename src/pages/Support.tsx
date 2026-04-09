@@ -17,7 +17,7 @@ export default function Support() {
   useEffect(() => {
     if (!user) return;
     const q = query(
-      collection(db, 'support_tickets'),
+      collection(db, 'supportTickets'),
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
@@ -49,7 +49,7 @@ export default function Support() {
     }
 
     try {
-      await addDoc(collection(db, 'support_tickets'), {
+      await addDoc(collection(db, 'supportTickets'), {
         userId: user.uid,
         subject: newTicket.subject,
         category: newTicket.category,
