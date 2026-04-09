@@ -49,6 +49,7 @@ import IlanEkle from './pages/IlanEkle';
 import IlanYukariTasima from './pages/IlanYukariTasima';
 import FavoriSistemi from './pages/FavoriSistemi';
 import AdminPanel from './pages/AdminPanel';
+import { missingFirebaseEnvKeys } from './firebase';
 
 export default function App() {
   return (
@@ -56,6 +57,13 @@ export default function App() {
       <CartProvider>
         <FavoritesProvider>
           <BrowserRouter>
+          {missingFirebaseEnvKeys.length > 0 && (
+            <div className="max-w-[1400px] mx-auto px-4 pt-3">
+              <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-xs rounded-lg px-3 py-2">
+                Firebase env eksik: {missingFirebaseEnvKeys.join(', ')}. Vercel Environment Variables alanına ekleyip redeploy et.
+              </div>
+            </div>
+          )}
           <Toaster position="top-center" toastOptions={{
             style: {
               background: '#232736',
