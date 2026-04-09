@@ -4,7 +4,7 @@ import ProfileWarningModal from '../components/ProfileWarningModal';
 import { Package, Star, Trophy, Users, UserPlus, Edit3, X, Camera, ShieldCheck, Award } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { db, storage } from '../firebase';
-import { doc, getDoc, collection, query, where, getDocs, updateDoc, limit } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, limit, addDoc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from 'react-hot-toast';
 
@@ -25,6 +25,8 @@ export default function Profile() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [followers, setFollowers] = useState<any[]>([]);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [followDocId, setFollowDocId] = useState<string | null>(null);
+  const [followBusy, setFollowBusy] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -99,8 +101,56 @@ export default function Profile() {
     fetchSocialData();
   }, [viewedUser]);
 
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
+  useEffect(() => {
+    const fetchFollowState = async () => {
+      if (!user || !viewedUser || viewedUser.id === user.uid) {
+        setFollowDocId(null);
+        return;
+      }
+      try {
+        const q = query(
+          collection(db, 'followers'),
+          where('followerId', '==', user.uid),
+          where('targetUserId', '==', viewedUser.id),
+          limit(1)
+        );
+        const snap = await getDocs(q);
+        setFollowDocId(snap.empty ? null : snap.docs[0].id);
+      } catch {
+        setFollowDocId(null);
+      }
+    };
+    fetchFollowState();
+  }, [user, viewedUser]);
+
+  const handleFollowToggle = async () => {
+    if (!user || !viewedUser || viewedUser.id === user.uid) return;
+    setFollowBusy(true);
+    try {
+      if (followDocId) {
+        await deleteDoc(doc(db, 'followers', followDocId));
+        setFollowDocId(null);
+        setFollowers((prev) => prev.filter((f) => f.id !== followDocId));
+        toast.success('Takipten çıkıldı.');
+      } else {
+        const ref = await addDoc(collection(db, 'followers'), {
+          followerId: user.uid,
+          followerName: user.displayName || user.email?.split('@')[0] || 'Kullanıcı',
+          targetUserId: viewedUser.id,
+          createdAt: new Date().toISOString(),
+        });
+        setFollowDocId(ref.id);
+        setFollowers((prev) => [
+          { id: ref.id, followerId: user.uid, followerName: user.displayName || 'Kullanıcı', targetUserId: viewedUser.id, createdAt: new Date().toISOString() },
+          ...prev,
+        ]);
+        toast.success('Kullanıcı takip edildi.');
+      }
+    } catch {
+      toast.error('Takip işlemi başarısız oldu.');
+    } finally {
+      setFollowBusy(false);
+    }
   };
 
   const handleAvatarUpload = async (file: File) => {
@@ -208,11 +258,12 @@ export default function Profile() {
               </button>
             ) : (
               <button 
-                onClick={() => handleComingSoon('Takip Et')}
+                onClick={handleFollowToggle}
+                disabled={followBusy}
                 className="mt-4 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
-                Takip Et
+                {followBusy ? 'İşleniyor...' : followDocId ? 'Takibi Bırak' : 'Takip Et'}
               </button>
             )}
           </div>

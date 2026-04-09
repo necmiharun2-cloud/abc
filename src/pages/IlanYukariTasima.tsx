@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, updateDoc, doc, runTransaction, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, runTransaction, serverTimestamp, orderBy, limit } from 'firebase/firestore';
 import { ArrowUpCircle, Zap, Clock, ShieldCheck, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function IlanYukariTasima() {
   const { user, profile } = useAuth();
   const [listings, setListings] = useState<any[]>([]);
+  const [promotionHistory, setPromotionHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [promoting, setPromoting] = useState<string | null>(null);
 
@@ -30,6 +31,26 @@ export default function IlanYukariTasima() {
     fetchListings();
   }, [user]);
 
+  useEffect(() => {
+    const fetchPromotionHistory = async () => {
+      if (!user) return;
+      try {
+        const q = query(
+          collection(db, 'transactions'),
+          where('userId', '==', user.uid),
+          where('type', '==', 'listing_promotion'),
+          orderBy('createdAt', 'desc'),
+          limit(10)
+        );
+        const snap = await getDocs(q);
+        setPromotionHistory(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch {
+        setPromotionHistory([]);
+      }
+    };
+    fetchPromotionHistory();
+  }, [user, listings.length]);
+
   const handlePromote = async (listingId: string) => {
     if (!user || !profile || profile.balance < 5) {
       toast.error('Yetersiz bakiye. İlan yükseltme ücreti 5 ₺\'dir.');
@@ -41,6 +62,7 @@ export default function IlanYukariTasima() {
       await runTransaction(db, async (transaction) => {
         const userRef = doc(db, 'users', user.uid);
         const listingRef = doc(db, 'products', listingId);
+        const promotionRef = doc(collection(db, 'transactions'));
         
         const userDoc = await transaction.get(userRef);
         if (!userDoc.exists()) throw new Error("Kullanıcı bulunamadı.");
@@ -57,6 +79,17 @@ export default function IlanYukariTasima() {
         transaction.update(listingRef, {
           createdAt: serverTimestamp(),
           isPromoted: true
+        });
+
+        transaction.set(promotionRef, {
+          userId: user.uid,
+          type: 'listing_promotion',
+          amount: 5,
+          fee: 0,
+          status: 'captured',
+          relatedId: listingId,
+          reason: 'İlan yukarı taşıma ücreti',
+          createdAt: serverTimestamp(),
         });
       });
 
@@ -139,7 +172,11 @@ export default function IlanYukariTasima() {
         <div className="divide-y divide-white/5">
           {listings.map((listing) => (
             <div key={listing.id} className="p-6 flex flex-col md:flex-row items-center gap-6 hover:bg-white/5 transition-colors">
-              <img src={listing.image} alt="" className="w-24 h-18 rounded-lg object-cover" />
+              {listing.image ? (
+                <img src={listing.image} alt="" className="w-24 h-18 rounded-lg object-cover" />
+              ) : (
+                <div className="w-24 h-18 rounded-lg bg-[#1a1d27] flex items-center justify-center text-[10px] text-gray-400">Görsel Yok</div>
+              )}
               <div className="flex-1 text-center md:text-left">
                 <h3 className="text-white font-bold mb-1">{listing.title}</h3>
                 <div className="flex items-center justify-center md:justify-start gap-3 text-xs text-gray-500">
@@ -166,6 +203,25 @@ export default function IlanYukariTasima() {
               <AlertCircle className="w-12 h-12 text-gray-600 mx-auto mb-4" />
               <p className="text-gray-400">Yukarı taşınacak aktif ilanınız bulunmuyor.</p>
             </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-[#232736] rounded-2xl border border-white/5 overflow-hidden">
+        <div className="p-6 border-b border-white/5">
+          <h2 className="text-lg font-bold text-white">Yükseltme Geçmişi</h2>
+        </div>
+        <div className="divide-y divide-white/5">
+          {promotionHistory.length === 0 ? (
+            <div className="p-6 text-sm text-gray-400">Henüz yükseltme işlemi bulunmuyor.</div>
+          ) : (
+            promotionHistory.map((row: any) => (
+              <div key={row.id} className="p-4 flex items-center justify-between text-sm">
+                <div className="text-gray-300">İlan ID: <span className="text-white">{row.relatedId}</span></div>
+                <div className="text-red-400 font-bold">- {(Number(row.amount) || 0).toFixed(2)} ₺</div>
+                <div className="text-gray-500">{row.createdAt?.toDate ? row.createdAt.toDate().toLocaleString('tr-TR') : '-'}</div>
+              </div>
+            ))
           )}
         </div>
       </div>
