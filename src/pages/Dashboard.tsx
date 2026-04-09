@@ -12,6 +12,7 @@ import { updatePassword, updateEmail } from 'firebase/auth';
 import { doc, updateDoc, collection, query, where, getDocs, orderBy, addDoc, deleteDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../components/ConfirmationModal';
+import { tradeOrchestrator } from '../services/tradeOrchestrator';
 
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
@@ -49,6 +50,8 @@ export default function Dashboard() {
   const [isAddingBank, setIsAddingBank] = useState(false);
   const [newBank, setNewBank] = useState({ bankName: '', iban: '', accountHolder: '' });
   const [isSeedModalOpen, setIsSeedModalOpen] = useState(false);
+  const [kycForm, setKycForm] = useState({ fullName: '', nationalId: '' });
+  const [kycBusy, setKycBusy] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -326,6 +329,59 @@ export default function Dashboard() {
     }
   };
 
+  const handleStartKyc = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    const fullName = kycForm.fullName.trim();
+    const nationalId = kycForm.nationalId.trim();
+    if (fullName.length < 3) {
+      toast.error('Ad soyad en az 3 karakter olmalıdır.');
+      return;
+    }
+    if (!/^\d{11}$/.test(nationalId)) {
+      toast.error('T.C. kimlik no 11 haneli olmalıdır.');
+      return;
+    }
+
+    setKycBusy(true);
+    try {
+      const result = await tradeOrchestrator.kycProvider.startVerification({
+        userId: user.uid,
+        fullName,
+        nationalId,
+      });
+      await updateDoc(doc(db, 'users', user.uid), {
+        kycStatus: result.status,
+        kycReferenceId: result.referenceId,
+      });
+      toast.success('KYC başvurusu alındı.');
+    } catch {
+      toast.error('KYC başvurusu başlatılamadı.');
+    } finally {
+      setKycBusy(false);
+    }
+  };
+
+  const handleRefreshKyc = async () => {
+    if (!user || !profile?.kycReferenceId) return;
+    setKycBusy(true);
+    try {
+      const result = await tradeOrchestrator.kycProvider.checkStatus(profile.kycReferenceId);
+      const isVerifiedSeller = result.status === 'verified';
+      const storeLevel = isVerifiedSeller ? 'corporate' : (profile.storeLevel || 'standard');
+      await updateDoc(doc(db, 'users', user.uid), {
+        kycStatus: result.status,
+        isVerifiedSeller,
+        storeLevel,
+      });
+      toast.success('KYC durumu güncellendi.');
+    } catch {
+      toast.error('KYC durumu alınamadı.');
+    } finally {
+      setKycBusy(false);
+    }
+  };
+
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!user) return <Navigate to="/login" />;
 
@@ -599,6 +655,54 @@ export default function Dashboard() {
                   E-Postayı Güncelle
                 </button>
               </form>
+
+              <div className="pt-6 border-t border-white/5 space-y-4">
+                <h3 className="text-white font-bold">Satıcı Doğrulama (KYC)</h3>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-gray-400">Durum:</span>
+                  <span className="px-2 py-1 rounded bg-white/10 text-gray-200 uppercase text-xs font-bold">
+                    {profile?.kycStatus || 'none'}
+                  </span>
+                  <span className="text-gray-400">Mağaza Seviyesi:</span>
+                  <span className="px-2 py-1 rounded bg-[#5b68f6]/20 text-[#9da7ff] uppercase text-xs font-bold">
+                    {profile?.storeLevel || 'standard'}
+                  </span>
+                </div>
+
+                {!profile?.kycReferenceId ? (
+                  <form onSubmit={handleStartKyc} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      value={kycForm.fullName}
+                      onChange={(e) => setKycForm((prev) => ({ ...prev, fullName: e.target.value }))}
+                      placeholder="Ad Soyad"
+                      className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]"
+                    />
+                    <input
+                      type="text"
+                      value={kycForm.nationalId}
+                      onChange={(e) => setKycForm((prev) => ({ ...prev, nationalId: e.target.value }))}
+                      placeholder="T.C. Kimlik No (11 hane)"
+                      className="w-full bg-[#1a1d27] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#5b68f6]"
+                    />
+                    <button
+                      type="submit"
+                      disabled={kycBusy}
+                      className="md:col-span-2 bg-[#5b68f6] hover:bg-[#4a55d6] disabled:opacity-60 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                    >
+                      {kycBusy ? 'İşleniyor...' : 'KYC Başvurusu Gönder'}
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    onClick={handleRefreshKyc}
+                    disabled={kycBusy}
+                    className="bg-white/5 hover:bg-white/10 disabled:opacity-60 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                  >
+                    {kycBusy ? 'Sorgulanıyor...' : 'KYC Durumunu Yenile'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

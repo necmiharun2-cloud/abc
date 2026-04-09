@@ -15,6 +15,10 @@ export interface UserProfile {
   soldCount: number;
   rating: number;
   reviewCount: number;
+  storeLevel?: 'standard' | 'pro' | 'corporate';
+  isVerifiedSeller?: boolean;
+  kycStatus?: 'none' | 'pending' | 'verified' | 'rejected';
+  kycReferenceId?: string;
   notifications?: {
     orders: boolean;
     messages: boolean;
@@ -66,7 +70,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               listingCount: 0,
               soldCount: 0,
               rating: 0,
-              reviewCount: 0
+              reviewCount: 0,
+              storeLevel: 'standard',
+              isVerifiedSeller: false,
+              kycStatus: 'none',
+              kycReferenceId: ''
             };
             setDoc(userDocRef, newProfile);
             setProfile(newProfile);

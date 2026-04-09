@@ -21,12 +21,12 @@ export default function Magazalar() {
           id: doc.id,
           ...doc.data(),
           name: doc.data().username || doc.data().displayName || 'Kullanıcı',
-          avatar: doc.data().avatar || `https://picsum.photos/seed/${doc.id}/64/64`,
-          banner: `https://picsum.photos/seed/banner${doc.id}/400/120`,
-          rating: (Math.random() * 1 + 4).toFixed(1), // Mock rating for now
+          avatar: doc.data().avatar || '',
+          banner: '',
+          rating: Number(doc.data().rating || 0).toFixed(1),
           sales: doc.data().soldCount || 0,
-          isVerified: true,
-          isPro: doc.data().soldCount > 10
+          isVerified: Boolean(doc.data().isVerifiedSeller),
+          storeLevel: doc.data().storeLevel || 'standard'
         }));
         setStores(fetchedStores);
       } catch (error) {
@@ -39,9 +39,20 @@ export default function Magazalar() {
     fetchStores();
   }, []);
 
-  const filteredStores = stores.filter(store => 
-    store.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStores = stores
+    .filter(store => store.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => {
+      if (activeTab === 'En Çok Satış Yapanlar') {
+        return Number(b.sales || 0) - Number(a.sales || 0);
+      }
+      if (activeTab === 'En Yeniler') {
+        const aTs = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const bTs = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return bTs - aTs;
+      }
+      const rank = (s: any) => (s.storeLevel === 'corporate' ? 3 : s.storeLevel === 'pro' ? 2 : 1);
+      return rank(b) - rank(a);
+    });
 
   return (
     <div className="space-y-8">
@@ -85,16 +96,21 @@ export default function Magazalar() {
           {filteredStores.map(store => (
             <div key={store.id} className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden hover:border-white/20 transition-colors group">
               {/* Banner */}
-              <div className="h-24 relative">
-                <img src={store.banner} alt="Banner" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#232736] to-transparent"></div>
+              <div className="h-24 relative bg-gradient-to-r from-[#2a3042] via-[#3b4260] to-[#2a3042]">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#232736] to-transparent" />
               </div>
               
               {/* Content */}
               <div className="px-5 pb-5 relative">
                 {/* Avatar */}
                 <div className="absolute -top-10 left-5">
-                  <img src={store.avatar} alt={store.name} className="w-16 h-16 rounded-xl border-4 border-[#232736] bg-[#2b3142]" />
+                  {store.avatar ? (
+                    <img src={store.avatar} alt={store.name} className="w-16 h-16 rounded-xl border-4 border-[#232736] bg-[#2b3142]" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl border-4 border-[#232736] bg-[#2b3142] flex items-center justify-center text-white font-bold">
+                      {store.name?.charAt(0)?.toUpperCase() || 'M'}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex justify-end mb-2 pt-2">
@@ -108,10 +124,13 @@ export default function Magazalar() {
                   <h3 className="text-lg font-bold text-white flex items-center gap-1.5 mb-1">
                     {store.name}
                     {store.isVerified && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
-                    {store.isPro && <Award className="w-4 h-4 text-[#5b68f6]" />}
+                    {(store.storeLevel === 'pro' || store.storeLevel === 'corporate') && <Award className="w-4 h-4 text-[#5b68f6]" />}
                   </h3>
                   <div className="text-xs text-gray-400 mb-4">
                     <span className="text-white font-medium">{store.sales}</span> Başarılı İşlem
+                  </div>
+                  <div className="text-[11px] text-gray-400 mb-4 uppercase">
+                    Seviye: <span className="text-white">{store.storeLevel}</span>
                   </div>
                   
                   <Link 

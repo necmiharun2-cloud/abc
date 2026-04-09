@@ -1,7 +1,7 @@
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import ProfileWarningModal from '../components/ProfileWarningModal';
-import { Package, Star, Trophy, Users, UserPlus, Edit3, X, Camera } from 'lucide-react';
+import { Package, Star, Trophy, Users, UserPlus, Edit3, X, Camera, ShieldCheck, Award } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { db, storage } from '../firebase';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, limit } from 'firebase/firestore';
@@ -192,9 +192,12 @@ export default function Profile() {
             <h1 className="text-2xl font-bold text-white mb-2">{viewedUser.username || viewedUser.displayName || viewedUser.email?.split('@')[0] || 'Kullanıcı'}</h1>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-[#1a1d27] border-2 border-yellow-500 flex items-center justify-center">
-                <span className="text-xs font-bold text-white">2</span>
+                <span className="text-xs font-bold text-white">{viewedUser.storeLevel === 'corporate' ? 'C' : viewedUser.storeLevel === 'pro' ? 'P' : 'S'}</span>
               </div>
+              {viewedUser.isVerifiedSeller && <ShieldCheck className="w-5 h-5 text-emerald-500" />}
+              {(viewedUser.storeLevel === 'pro' || viewedUser.storeLevel === 'corporate') && <Award className="w-5 h-5 text-[#5b68f6]" />}
             </div>
+            <div className="text-xs text-gray-400 mt-2 uppercase">Mağaza Seviyesi: {viewedUser.storeLevel || 'standard'}</div>
             {isOwnProfile ? (
               <button 
                 onClick={() => setIsEditModalOpen(true)}

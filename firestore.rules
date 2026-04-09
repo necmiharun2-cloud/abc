@@ -6,7 +6,7 @@ service cloud.firestore {
     // ===============================================================
     //
     // Collection: users
-    // Fields: uid, username, email, avatar, balance, role, createdAt, listingCount, soldCount, rating, reviewCount
+    // Fields: uid, username, email, avatar, balance, role, createdAt, listingCount, soldCount, rating, reviewCount, storeLevel, isVerifiedSeller, kycStatus, kycReferenceId
     //
     // Collection: products
     // Fields: id, title, description, price, category, image, sellerId, sellerName, createdAt, status
@@ -67,11 +67,15 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidUser(data) {
-      return hasOnlyAllowedFields(['uid', 'username', 'email', 'avatar', 'balance', 'role', 'createdAt', 'listingCount', 'soldCount', 'rating', 'reviewCount']) &&
+      return hasOnlyAllowedFields(['uid', 'username', 'email', 'avatar', 'balance', 'role', 'createdAt', 'listingCount', 'soldCount', 'rating', 'reviewCount', 'storeLevel', 'isVerifiedSeller', 'kycStatus', 'kycReferenceId']) &&
              data.uid is string && data.username is string && data.username.size() > 0 && data.username.size() < 50 &&
              isValidEmail(data.email) &&
              data.balance is number && data.balance >= 0 &&
              data.role in ['admin', 'user'] &&
+             data.storeLevel in ['standard', 'pro', 'corporate'] &&
+             data.isVerifiedSeller is bool &&
+             data.kycStatus in ['none', 'pending', 'verified', 'rejected'] &&
+             data.kycReferenceId is string &&
              isValidCreatedAt(data.createdAt);
     }
 
@@ -220,6 +224,20 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user' && request.resource.data.balance == 0;
       allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role && request.resource.data.balance == resource.data.balance) || isAdmin();
+    }
+
+    match /kycRequests/{requestId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasOnly(['userId', 'fullName', 'nationalId', 'status', 'createdAt']) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.fullName is string &&
+        request.resource.data.fullName.size() > 2 &&
+        request.resource.data.nationalId is string &&
+        request.resource.data.nationalId.size() == 11 &&
+        request.resource.data.status == 'pending' &&
+        isValidCreatedAt(request.resource.data.createdAt);
+      allow update: if isAdmin();
     }
 
     match /products/{productId} {
