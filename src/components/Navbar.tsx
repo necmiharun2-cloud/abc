@@ -1,8 +1,11 @@
 import { LayoutGrid, Store, ShoppingBag, Gift, Building2, Key, CreditCard, CreditCard as GiftCard, Users, Plus } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Navbar() {
   const location = useLocation();
+  const { profile } = useAuth();
+  const isStaff = profile?.role === 'admin' || profile?.role === 'moderator';
 
   const navItems = [
     { name: 'Kategoriler', icon: LayoutGrid, hasDropdown: true, path: '/' },
@@ -44,13 +47,23 @@ export default function Navbar() {
             })}
           </ul>
           
-          <Link 
-            to="/ilan-ekle"
-            className="flex items-center gap-2 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 shrink-0 ml-4 shadow-[0_0_15px_rgba(91,104,246,0.5)] hover:shadow-[0_0_25px_rgba(91,104,246,0.8)]"
-          >
-            <Plus className="h-4 w-4" />
-            İlan Ekle
-          </Link>
+          <div className="flex items-center gap-2 shrink-0 ml-4">
+            {isStaff && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-2 bg-[#1f2937] hover:bg-[#374151] text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border border-white/10"
+              >
+                Admin
+              </Link>
+            )}
+            <Link 
+              to="/ilan-ekle"
+              className="flex items-center gap-2 bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 shadow-[0_0_15px_rgba(91,104,246,0.5)] hover:shadow-[0_0_25px_rgba(91,104,246,0.8)]"
+            >
+              <Plus className="h-4 w-4" />
+              İlan Ekle
+            </Link>
+          </div>
         </div>
       </div>
     </nav>
