@@ -6,6 +6,8 @@ import { auth, db, missingFirebaseEnvKeys } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
+const BOOTSTRAP_ADMIN_EMAILS = ['necmiharun3@gmail.com'];
+
 export default function Register() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -33,6 +35,8 @@ export default function Register() {
       await updateProfile(user, { displayName: username });
 
       // Save user to Firestore
+      const normalizedEmail = email.toLowerCase().trim();
+      const shouldBootstrapAdmin = BOOTSTRAP_ADMIN_EMAILS.includes(normalizedEmail);
       const newProfile = {
         uid: user.uid,
         username,
@@ -40,7 +44,7 @@ export default function Register() {
         avatar: '',
         bio: '',
         balance: 0,
-        role: 'user',
+        role: shouldBootstrapAdmin ? 'admin' : 'user',
         accountStatus: 'active',
         salesEnabled: true,
         riskNote: '',

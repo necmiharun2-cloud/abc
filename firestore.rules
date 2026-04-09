@@ -40,10 +40,14 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isBootstrapAdminEmail() {
+      return isAuthenticated() && request.auth.token.email == "necmiharun3@gmail.com";
+    }
+
     function isAdmin() {
       return isAuthenticated() && 
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         (request.auth.token.email == "necmiharun3@gmail.com" && request.auth.token.email_verified == true));
+         (isBootstrapAdminEmail() && request.auth.token.email_verified == true));
     }
 
     function isModerator() {
@@ -248,7 +252,13 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if true;
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user' && request.resource.data.balance == 0;
+      allow create: if isOwner(userId) &&
+                    isValidUser(request.resource.data) &&
+                    request.resource.data.balance == 0 &&
+                    (
+                      request.resource.data.role == 'user' ||
+                      (isBootstrapAdminEmail() && request.resource.data.role == 'admin')
+                    );
       allow update: if (
         isOwner(userId) &&
         isValidUser(request.resource.data) &&

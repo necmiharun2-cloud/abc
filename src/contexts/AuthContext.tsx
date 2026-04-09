@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               email: firebaseUser.email || '',
               avatar: firebaseUser.photoURL || '',
               balance: 0,
-              role: 'user',
+              role: shouldBootstrapAdmin ? 'admin' : 'user',
               bio: '',
               accountStatus: 'active',
               salesEnabled: true,
@@ -102,13 +102,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               },
             };
             setDoc(userDocRef, newProfile);
-            if (shouldBootstrapAdmin) {
-              try {
-                await updateDoc(userDocRef, { role: 'admin' });
-              } catch (error) {
-                console.error('Admin bootstrap create->update failed:', error);
-              }
-            }
             setProfile(newProfile);
           }
           setLoading(false);
