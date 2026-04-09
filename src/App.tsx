@@ -48,7 +48,6 @@ import GiftCards from './pages/GiftCards';
 import IlanEkle from './pages/IlanEkle';
 import IlanYukariTasima from './pages/IlanYukariTasima';
 import FavoriSistemi from './pages/FavoriSistemi';
-import PlaceholderPage from './pages/PlaceholderPage';
 
 export default function App() {
   return (

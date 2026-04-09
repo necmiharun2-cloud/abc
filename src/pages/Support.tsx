@@ -14,12 +14,6 @@ export default function Support() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
 
-  const getLocalKey = (uid: string) => `supportTickets_${uid}`;
-  const readLocalTickets = (uid: string) => {
-    const raw = localStorage.getItem(getLocalKey(uid));
-    return raw ? JSON.parse(raw) : [];
-  };
-
   useEffect(() => {
     if (!user) return;
     const q = query(
@@ -35,9 +29,8 @@ export default function Support() {
       }));
       setTickets(fetchedTickets);
     }, () => {
-      const localTickets = readLocalTickets(user.uid);
-      setTickets(localTickets);
-      toast.success('Destek talepleri yerel kayıttan yüklendi.');
+      setTickets([]);
+      toast.error('Destek talepleri yüklenemedi.');
     });
 
     return unsubscribe;
@@ -69,6 +62,7 @@ export default function Support() {
         category: newTicket.category.trim(),
         message: newTicket.message.trim(),
         status: 'Beklemede',
+        channel: 'ticket',
         createdAt: serverTimestamp()
       });
 
@@ -76,30 +70,44 @@ export default function Support() {
       setNewTicket({ subject: '', category: 'Genel', message: '' });
       toast.success('Destek talebiniz başarıyla oluşturuldu!');
     } catch (error) {
-      const localTicket = {
-        id: `local_${Date.now()}`,
-        userId: user.uid,
-        subject: newTicket.subject.trim(),
-        category: newTicket.category.trim(),
-        message: newTicket.message.trim(),
-        status: 'Beklemede',
-        createdAt: { toDate: () => new Date() },
-        source: 'local',
-      };
-      const localTickets = readLocalTickets(user.uid);
-      localStorage.setItem(getLocalKey(user.uid), JSON.stringify([localTicket, ...localTickets]));
-      setTickets(prev => [localTicket, ...prev]);
-      setIsModalOpen(false);
-      setNewTicket({ subject: '', category: 'Genel', message: '' });
-      toast.success('Destek talebiniz başarıyla oluşturuldu!');
+      toast.error('Destek talebi oluşturulurken bir hata oluştu.');
     }
   };
 
-  const handleLiveSupport = () => {
-    toast.success('Canlı destek operatörüne bağlanılıyor...');
-    setTimeout(() => {
+  const handleLiveSupport = async () => {
+    if (!user) {
+      toast.error('Giriş yapmalısınız.');
+      return;
+    }
+    try {
+      await addDoc(collection(db, 'supportTickets'), {
+        userId: user.uid,
+        category: 'Canlı Destek',
+        subject: 'Canlı Destek Talebi',
+        message: 'Kullanıcı canlı destek talebi başlattı.',
+        status: 'queue',
+        channel: 'live',
+        createdAt: serverTimestamp(),
+      });
+      await addDoc(collection(db, 'chats'), {
+        participants: [user.uid, 'support-agent'],
+        participantNames: {
+          [user.uid]: user.displayName || user.email || 'Kullanıcı',
+          'support-agent': 'Destek Ekibi',
+        },
+        participantAvatars: {
+          [user.uid]: '',
+          'support-agent': '',
+        },
+        createdAt: serverTimestamp(),
+        lastMessage: 'Canlı destek talebi oluşturuldu.',
+        lastMessageAt: serverTimestamp(),
+      });
+      toast.success('Canlı destek talebiniz kuyruğa alındı.');
       navigate('/mesajlarim');
-    }, 1500);
+    } catch (error) {
+      toast.error('Canlı destek başlatılamadı.');
+    }
   };
 
   return (

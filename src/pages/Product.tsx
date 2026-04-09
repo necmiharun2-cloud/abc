@@ -1,7 +1,9 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../contexts/AuthContext';
+import { db, storage } from '../firebase';
+import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Breadcrumb from '../components/Product/Breadcrumb';
 import ProductGallery from '../components/Product/ProductGallery';
 import SellerCard from '../components/Product/SellerCard';
@@ -12,8 +14,10 @@ import toast from 'react-hot-toast';
 
 export default function Product() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [issueUploading, setIssueUploading] = useState(false);
   
   useEffect(() => {
     const fetchProduct = async () => {
@@ -38,6 +42,38 @@ export default function Product() {
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
   if (!product) return <div className="text-center py-20 text-white">Ürün bulunamadı.</div>;
+
+  const handleIssueReport = async (file?: File) => {
+    if (!user) {
+      toast.error('Sorun bildirimi için giriş yapmalısınız.');
+      return;
+    }
+    try {
+      let attachmentUrl = '';
+      if (file) {
+        setIssueUploading(true);
+        const fileRef = ref(storage, `support-attachments/${product.id}/${Date.now()}_${file.name}`);
+        await uploadBytes(fileRef, file);
+        attachmentUrl = await getDownloadURL(fileRef);
+      }
+      await addDoc(collection(db, 'supportTickets'), {
+        userId: user?.uid || '',
+        subject: `Ürün Sorun Bildirimi #${product.id}`,
+        category: 'Ürün Sorunu',
+        message: `${product.title} ürünü için sorun bildirimi oluşturuldu.`,
+        status: 'Beklemede',
+        channel: 'product-issue',
+        attachmentUrl,
+        productId: product.id,
+        createdAt: serverTimestamp(),
+      });
+      toast.success('Sorun kaydı başarıyla oluşturuldu.');
+    } catch {
+      toast.error('Sorun kaydı oluşturulamadı.');
+    } finally {
+      setIssueUploading(false);
+    }
+  };
 
   return (
     <div className="max-w-[1200px] mx-auto">
@@ -67,12 +103,21 @@ export default function Product() {
             >
               Buraya tıklayarak yardım merkezi sayfamıza ulaşabilirsiniz.
             </Link>
-            <Link 
-              to="/destek-sistemi"
-              className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 font-medium py-2.5 rounded text-sm transition-colors border border-red-500/20 block"
+            <label className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 font-medium py-2.5 rounded text-sm transition-colors border border-red-500/20 block cursor-pointer">
+              {issueUploading ? 'Yükleniyor...' : 'Akıllı Sorun Bildir (Ses/Ekran Kaydı)'}
+              <input
+                type="file"
+                accept="audio/*,video/*"
+                className="hidden"
+                onChange={(e) => handleIssueReport(e.target.files?.[0])}
+              />
+            </label>
+            <button
+              onClick={() => handleIssueReport()}
+              className="w-full mt-2 bg-white/5 hover:bg-white/10 text-white font-medium py-2.5 rounded text-sm transition-colors border border-white/10"
             >
-              Akıllı Sorun Bildir (Ses/Ekran Kaydı)
-            </Link>
+              Yazılı Sorun Bildir
+            </button>
           </div>
         </div>
       </div>

@@ -48,12 +48,6 @@ export default function Dashboard() {
   const [isAddingBank, setIsAddingBank] = useState(false);
   const [newBank, setNewBank] = useState({ bankName: '', iban: '', accountHolder: '' });
   const [isSeedModalOpen, setIsSeedModalOpen] = useState(false);
-  const getBanksStorageKey = (uid: string) => `banks_${uid}`;
-  const getBalanceStorageKey = (uid: string) => `localBalance_${uid}`;
-  const readLocalBanks = (uid: string) => {
-    const raw = localStorage.getItem(getBanksStorageKey(uid));
-    return raw ? JSON.parse(raw) : [];
-  };
 
   useEffect(() => {
     if (profile) {
@@ -65,11 +59,7 @@ export default function Dashboard() {
         setNotifications(profile.notifications);
       }
     }
-    if (user) {
-      const localBalanceRaw = localStorage.getItem(getBalanceStorageKey(user.uid));
-      const localBalance = localBalanceRaw ? Number(localBalanceRaw) : null;
-      setDisplayBalance(localBalance ?? Number(profile?.balance || 0));
-    }
+    setDisplayBalance(Number(profile?.balance || 0));
   }, [profile]);
 
   useEffect(() => {
@@ -81,7 +71,8 @@ export default function Dashboard() {
         const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
         setBanks(fetched);
       } catch (error) {
-        setBanks(readLocalBanks(user.uid));
+        setBanks([]);
+        toast.error('Banka hesapları yüklenemedi.');
       }
     };
     fetchBanks();
@@ -200,13 +191,7 @@ export default function Dashboard() {
       setIsAddingBank(false);
       toast.success('Banka hesabı eklendi.');
     } catch (error) {
-      const localBank = { id: `local_${Date.now()}`, ...newBank, iban: cleanIban, source: 'local' };
-      const localBanks = readLocalBanks(user.uid);
-      localStorage.setItem(getBanksStorageKey(user.uid), JSON.stringify([localBank, ...localBanks]));
-      setBanks(prev => [localBank, ...prev]);
-      setNewBank({ bankName: '', iban: '', accountHolder: '' });
-      setIsAddingBank(false);
-      toast.success('Banka hesabı eklendi.');
+      toast.error('Banka hesabı eklenemedi.');
     }
   };
 
@@ -233,14 +218,7 @@ export default function Dashboard() {
       setDisplayBalance(currentBalance + amountToAdd);
       toast.success('Bakiyenize 100 ₺ eklendi! (Test Modu)');
     } catch (error) {
-      const currentLocalBalanceRaw = localStorage.getItem(getBalanceStorageKey(user.uid));
-      const currentLocalBalance = currentLocalBalanceRaw
-        ? Number(currentLocalBalanceRaw)
-        : Number(profile?.balance || displayBalance || 0);
-      const updatedBalance = currentLocalBalance + amountToAdd;
-      localStorage.setItem(getBalanceStorageKey(user.uid), String(updatedBalance));
-      setDisplayBalance(updatedBalance);
-      toast.success('Bakiyenize 100 ₺ eklendi! (Yerel Test Modu)');
+      toast.error('Bakiye eklenemedi.');
     }
   };
 

@@ -16,14 +16,6 @@ export default function Withdraw() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bankAccounts, setBankAccounts] = useState<any[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
-  const getBalanceStorageKey = (uid: string) => `localBalance_${uid}`;
-  const getWithdrawalsStorageKey = (uid: string) => `localWithdrawals_${uid}`;
-  const getBanksStorageKey = (uid: string) => `banks_${uid}`;
-
-  const readLocal = (key: string) => {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : [];
-  };
 
   useEffect(() => {
     const fetchBankAccounts = async () => {
@@ -33,8 +25,8 @@ export default function Withdraw() {
           const snapshot = await getDocs(q);
           setBankAccounts(snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) })));
         } catch (error) {
-          const localBanks = readLocal(getBanksStorageKey(user.uid));
-          setBankAccounts(localBanks);
+          setBankAccounts([]);
+          toast.error('Banka hesapları yüklenemedi.');
         }
       }
     };
@@ -59,8 +51,8 @@ export default function Withdraw() {
           });
           setWithdrawals(fetchedWithdrawals);
         } catch (error) {
-          const localWithdrawals = readLocal(getWithdrawalsStorageKey(user.uid));
-          setWithdrawals(localWithdrawals);
+          setWithdrawals([]);
+          toast.error('Çekim geçmişi yüklenemedi.');
         }
       }
     };
@@ -128,6 +120,17 @@ export default function Withdraw() {
           status: 'Beklemede',
           createdAt: serverTimestamp()
         });
+
+        const transactionRef = doc(collection(db, 'transactions'));
+        transaction.set(transactionRef, {
+          userId: user.uid,
+          type: 'withdrawal_request',
+          amount: amountNum,
+          fee: 20,
+          status: 'pending',
+          relatedId: withdrawalRef.id,
+          createdAt: serverTimestamp(),
+        });
       });
       
       toast.success('Para çekme talebiniz başarıyla oluşturuldu!');
@@ -148,35 +151,7 @@ export default function Withdraw() {
 
     } catch (error: any) {
       console.error('Error creating withdrawal:', error);
-      const localBalanceRaw = localStorage.getItem(getBalanceStorageKey(user.uid));
-      const fallbackBalance = localBalanceRaw ? Number(localBalanceRaw) : Number(profile?.balance || 0);
-      if (fallbackBalance < totalNeeded) {
-        toast.error(error.message || 'Talep oluşturulurken bir hata oluştu.');
-      } else {
-        const selectedBank = bankAccounts.find(b => b.iban === bankAccount);
-        const updatedBalance = fallbackBalance - totalNeeded;
-        const localWithdrawal = {
-          id: `local_${Date.now()}`,
-          userId: user.uid,
-          amount: amountNum,
-          fee: 20,
-          method,
-          bankName: selectedBank?.bankName || '',
-          iban: selectedBank?.iban || '',
-          accountHolder: selectedBank?.accountHolder || '',
-          status: 'Beklemede',
-          createdAt: { toDate: () => new Date() },
-          source: 'local',
-        };
-        localStorage.setItem(getBalanceStorageKey(user.uid), String(updatedBalance));
-        const localWithdrawals = readLocal(getWithdrawalsStorageKey(user.uid));
-        localStorage.setItem(getWithdrawalsStorageKey(user.uid), JSON.stringify([localWithdrawal, ...localWithdrawals]));
-        setWithdrawals(prev => [localWithdrawal, ...prev]);
-        setAmount('');
-        setBankAccount('');
-        setIsAgreed(false);
-        toast.success('Para çekme talebiniz başarıyla oluşturuldu!');
-      }
+      toast.error(error.message || 'Talep oluşturulurken bir hata oluştu.');
     } finally {
       setIsSubmitting(false);
     }

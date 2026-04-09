@@ -1,7 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { db } from '../firebase';
+import { db, storage } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Upload, Info, CheckCircle2, AlertCircle, Plus } from 'lucide-react';
@@ -10,6 +11,7 @@ export default function IlanEkle() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -24,32 +26,13 @@ export default function IlanEkle() {
     'VALORANT', 'ROBLOX', 'STEAM', 'DISCORD', 'PUBG MOBILE', 'LEAGUE OF LEGENDS', 'CS2', 'GROWTOPIA', 'KNIGHT ONLINE', 'METIN2'
   ];
 
-  const localProductsKey = user ? `localProducts_${user.uid}` : '';
   const isFormValid =
     formData.title.trim().length > 0 &&
     formData.category.trim().length > 0 &&
     formData.description.trim().length > 0 &&
     Number(formData.price) > 0 &&
-    Number(formData.stock) > 0;
-
-  const saveLocalProduct = () => {
-    if (!user) return;
-    const existingRaw = localStorage.getItem(localProductsKey);
-    const existing = existingRaw ? JSON.parse(existingRaw) : [];
-    const newItem = {
-      id: `local_${Date.now()}`,
-      ...formData,
-      price: Number(formData.price),
-      stock: Number(formData.stock),
-      sellerId: user.uid,
-      sellerName: user.displayName || 'Anonim Satıcı',
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      image: `https://picsum.photos/seed/${Math.random()}/400/300`,
-      source: 'local',
-    };
-    localStorage.setItem(localProductsKey, JSON.stringify([newItem, ...existing]));
-  };
+    Number(formData.stock) > 0 &&
+    !!imageFile;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -65,6 +48,11 @@ export default function IlanEkle() {
 
     setLoading(true);
     try {
+      const filePath = `products/${user.uid}/${Date.now()}_${imageFile?.name || 'image'}`;
+      const imageRef = ref(storage, filePath);
+      await uploadBytes(imageRef, imageFile as File);
+      const imageUrl = await getDownloadURL(imageRef);
+
       await addDoc(collection(db, 'products'), {
         ...formData,
         price: parseFloat(formData.price),
@@ -73,16 +61,14 @@ export default function IlanEkle() {
         sellerName: user.displayName || 'Anonim Satıcı',
         status: 'active',
         createdAt: serverTimestamp(),
-        image: `https://picsum.photos/seed/${Math.random()}/400/300`
+        image: imageUrl
       });
 
       toast.success('İlan başarıyla eklendi');
       navigate('/ilanlarim');
     } catch (error) {
       console.error('Error adding document: ', error);
-      saveLocalProduct();
-      toast.success('İlan başarıyla eklendi');
-      navigate('/ilanlarim');
+      toast.error('İlan eklenirken bir hata oluştu.');
     } finally {
       setLoading(false);
     }
@@ -158,6 +144,17 @@ export default function IlanEkle() {
               placeholder="Ürününüz hakkında detaylı bilgi verin..."
               className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#5b68f6] transition-colors resize-none"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-300">Ürün Görseli *</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              className="w-full bg-[#1a1d27] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#5b68f6] transition-colors"
+            />
+            {!imageFile && <p className="text-xs text-amber-400">İlan yayınlamak için görsel yüklemelisiniz.</p>}
           </div>
 
           <div className="bg-[#1a1d27] rounded-xl p-6 border border-white/5">

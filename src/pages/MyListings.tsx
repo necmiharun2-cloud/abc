@@ -18,7 +18,6 @@ export default function MyListings() {
     const fetchListings = async () => {
       if (!user) return;
       setFetching(true);
-      const localKey = `localProducts_${user.uid}`;
       try {
         const q = query(
           collection(db, 'products'),
@@ -30,20 +29,8 @@ export default function MyListings() {
         setListings(fetchedListings);
       } catch (error) {
         console.error('Error fetching listings:', error);
-        const localRaw = localStorage.getItem(localKey);
-        const localListings = localRaw ? JSON.parse(localRaw) : [];
-        const normalized = localListings
-          .filter((item: any) => item.sellerId === user.uid && item.status === activeTab)
-          .map((item: any) => ({
-            id: item.id || `local_${Date.now()}`,
-            title: item.title || '',
-            image: item.image || 'https://picsum.photos/seed/fallback/400/300',
-            price: Number(item.price) || 0,
-            status: item.status || 'active',
-            ...item,
-          }));
-        setListings(normalized);
-        toast.success('İlanlar yerel kayıttan yüklendi.');
+        setListings([]);
+        toast.error('İlanlar yüklenirken bir hata oluştu.');
       } finally {
         setFetching(false);
       }
@@ -129,7 +116,11 @@ export default function MyListings() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {listings.map((listing) => (
             <div key={listing.id} className="bg-[#232736] rounded-xl border border-white/5 overflow-hidden flex flex-col">
-              <img src={listing.image} alt={listing.title} className="w-full h-48 object-cover" />
+              {listing.image ? (
+                <img src={listing.image} alt={listing.title} className="w-full h-48 object-cover" />
+              ) : (
+                <div className="w-full h-48 bg-[#1a1d27] text-gray-400 text-xs flex items-center justify-center">Görsel Yok</div>
+              )}
               <div className="p-4 flex-1 flex flex-col">
                 <h3 className="text-white font-bold mb-2 line-clamp-2">{listing.title}</h3>
                 <div className="text-emerald-400 font-bold text-lg mb-4">{(Number(listing.price) || 0).toFixed(2)} ₺</div>

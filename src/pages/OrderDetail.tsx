@@ -2,7 +2,7 @@ import { useParams, Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Package, Truck, CheckCircle2, AlertCircle, ArrowLeft, MessageSquare } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { chatService } from '../services/chatService';
 import toast from 'react-hot-toast';
@@ -13,6 +13,7 @@ export default function OrderDetail() {
   const navigate = useNavigate();
   const [order, setOrder] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -55,6 +56,55 @@ export default function OrderDetail() {
       navigate('/mesajlarim', { state: { activeChatId: chatId } });
     } catch (error) {
       toast.error('Sohbet başlatılamadı.');
+    }
+  };
+
+  const updateOrderStatus = async (status: string) => {
+    if (!order || !user) return;
+    setUpdating(true);
+    try {
+      await updateDoc(doc(db, 'orders', order.id), {
+        status,
+        updatedAt: serverTimestamp(),
+      });
+      if (status === 'completed') {
+        await addDoc(collection(db, 'notifications'), {
+          userId: order.sellerId,
+          title: 'Sipariş Tamamlandı',
+          message: `#${order.id.slice(0, 8)} siparişi alıcı tarafından tamamlandı.`,
+          type: 'success',
+          isRead: false,
+          createdAt: serverTimestamp(),
+        });
+      }
+      setOrder((prev: any) => ({ ...prev, status }));
+      toast.success('Sipariş durumu güncellendi.');
+    } catch {
+      toast.error('Durum güncellenemedi.');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const openDispute = async () => {
+    if (!order || !user) return;
+    try {
+      await addDoc(collection(db, 'disputes'), {
+        orderId: order.id,
+        buyerId: order.buyerId,
+        sellerId: order.sellerId,
+        reason: 'Kullanıcı siparişten anlaşmazlık bildirdi.',
+        status: 'open',
+        createdAt: serverTimestamp(),
+      });
+      await updateDoc(doc(db, 'orders', order.id), {
+        status: 'disputed',
+        updatedAt: serverTimestamp(),
+      });
+      setOrder((prev: any) => ({ ...prev, status: 'disputed' }));
+      toast.success('Uyuşmazlık kaydı oluşturuldu.');
+    } catch {
+      toast.error('Uyuşmazlık açılamadı.');
     }
   };
 
@@ -145,7 +195,7 @@ export default function OrderDetail() {
 
           <div className="flex gap-4">
             <button 
-              onClick={() => toast.success('Destek talebi oluşturuldu.')}
+              onClick={openDispute}
               className="flex-1 bg-[#2b3142] hover:bg-[#32394d] text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
             >
               <AlertCircle className="w-5 h-5" />
@@ -157,6 +207,29 @@ export default function OrderDetail() {
             >
               <MessageSquare className="w-5 h-5" />
               Satıcıya Mesaj Gönder
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <button
+              disabled={updating || order.status === 'processing'}
+              onClick={() => updateOrderStatus('processing')}
+              className="bg-[#1a1d27] hover:bg-[#2b3142] disabled:opacity-50 text-white py-2 rounded-lg text-sm"
+            >
+              İşleniyor
+            </button>
+            <button
+              disabled={updating || order.status === 'delivered'}
+              onClick={() => updateOrderStatus('delivered')}
+              className="bg-[#1a1d27] hover:bg-[#2b3142] disabled:opacity-50 text-white py-2 rounded-lg text-sm"
+            >
+              Teslim Edildi
+            </button>
+            <button
+              disabled={updating || order.status === 'completed'}
+              onClick={() => updateOrderStatus('completed')}
+              className="bg-[#1a1d27] hover:bg-[#2b3142] disabled:opacity-50 text-white py-2 rounded-lg text-sm"
+            >
+              Tamamlandı
             </button>
           </div>
         </div>

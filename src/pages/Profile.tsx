@@ -3,8 +3,9 @@ import { Navigate, useParams, Link } from 'react-router-dom';
 import ProfileWarningModal from '../components/ProfileWarningModal';
 import { Package, Star, Trophy, Users, UserPlus, Edit3, X, Camera } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db, storage } from '../firebase';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, limit } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from 'react-hot-toast';
 
 export default function Profile() {
@@ -14,12 +15,16 @@ export default function Profile() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [profileData, setProfileData] = useState({
     displayName: '',
-    bio: ''
+    bio: '',
+    avatar: ''
   });
   const [viewedUser, setViewedUser] = useState<any>(null);
   const [fetchingUser, setFetchingUser] = useState(true);
   const [listings, setListings] = useState<any[]>([]);
   const [fetchingListings, setFetchingListings] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [followers, setFollowers] = useState<any[]>([]);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -46,7 +51,8 @@ export default function Profile() {
         });
         setProfileData({
           displayName: user.displayName || '',
-          bio: ''
+          bio: '',
+          avatar: user.photoURL || ''
         });
       }
       setFetchingUser(false);
@@ -76,14 +82,63 @@ export default function Profile() {
     fetchListings();
   }, [viewedUser, activeTab]);
 
+  useEffect(() => {
+    const fetchSocialData = async () => {
+      if (!viewedUser) return;
+      try {
+        const reviewsQuery = query(collection(db, 'reviews'), where('targetUserId', '==', viewedUser.id), limit(20));
+        const followersQuery = query(collection(db, 'followers'), where('targetUserId', '==', viewedUser.id), limit(20));
+        const [reviewsSnap, followersSnap] = await Promise.all([getDocs(reviewsQuery), getDocs(followersQuery)]);
+        setReviews(reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setFollowers(followersSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch {
+        setReviews([]);
+        setFollowers([]);
+      }
+    };
+    fetchSocialData();
+  }, [viewedUser]);
+
   const handleComingSoon = (feature: string) => {
     toast.success(`${feature} özelliği yakında eklenecek!`);
   };
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      const avatarRef = ref(storage, `avatars/${user.uid}/${Date.now()}_${file.name}`);
+      await uploadBytes(avatarRef, file);
+      const avatarUrl = await getDownloadURL(avatarRef);
+      setProfileData((prev) => ({ ...prev, avatar: avatarUrl }));
+      toast.success('Profil görseli yüklendi.');
+    } catch {
+      toast.error('Görsel yüklenemedi.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Profil bilgileriniz başarıyla güncellendi!');
-    setIsEditModalOpen(false);
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        username: profileData.displayName.trim(),
+        bio: profileData.bio.trim(),
+        avatar: profileData.avatar || '',
+      });
+      setViewedUser((prev: any) => ({
+        ...prev,
+        username: profileData.displayName.trim(),
+        bio: profileData.bio.trim(),
+        avatar: profileData.avatar || prev?.avatar || '',
+      }));
+      toast.success('Profil bilgileriniz başarıyla güncellendi!');
+      setIsEditModalOpen(false);
+    } catch {
+      toast.error('Profil güncellenemedi.');
+    }
   };
 
   if (loading || fetchingUser) {
@@ -100,8 +155,8 @@ export default function Profile() {
 
   const isOwnProfile = !id || id === user?.uid;
   const ratingValue = Number(viewedUser.rating || 0);
-  const reviewCount = Number(viewedUser.reviewCount || 0);
-  const followerCount = Number(viewedUser.followerCount || 0);
+  const reviewCount = reviews.length || Number(viewedUser.reviewCount || 0);
+  const followerCount = followers.length || Number(viewedUser.followerCount || 0);
 
   return (
     <div className="max-w-[1400px] mx-auto">
@@ -255,10 +310,22 @@ export default function Profile() {
           </div>
         )}
         {activeTab === 'degerlendirmeler' && (
-          <div className="w-full max-w-2xl p-8 rounded-xl border border-white/5 bg-[#1a1d27] text-center">
-            <p className="text-gray-300">
-              Değerlendirme verisi henüz entegre edilmedi.
-            </p>
+          <div className="w-full max-w-2xl space-y-4">
+            {reviews.length === 0 ? (
+              <div className="p-8 rounded-xl border border-white/5 bg-[#1a1d27] text-center text-gray-300">
+                Değerlendirme bulunmuyor.
+              </div>
+            ) : (
+              reviews.map((review) => (
+                <div key={review.id} className="bg-[#1a1d27] p-6 rounded-xl border border-white/5 text-left">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-white font-bold text-sm">{review.authorName || 'Kullanıcı'}</div>
+                    <div className="text-yellow-500 text-sm font-bold">{Number(review.rating || 0).toFixed(1)} / 5</div>
+                  </div>
+                  <p className="text-gray-300 text-sm">{review.comment || 'Yorum yok.'}</p>
+                </div>
+              ))
+            )}
           </div>
         )}
         {activeTab === 'basarimlar' && (
@@ -277,10 +344,19 @@ export default function Profile() {
           </div>
         )}
         {activeTab === 'takipciler' && (
-          <div className="w-full max-w-2xl p-8 rounded-xl border border-white/5 bg-[#1a1d27] text-center">
-            <p className="text-gray-300">
-              Takipçi verisi henüz entegre edilmedi.
-            </p>
+          <div className="w-full max-w-2xl space-y-3">
+            {followers.length === 0 ? (
+              <div className="p-8 rounded-xl border border-white/5 bg-[#1a1d27] text-center text-gray-300">
+                Takipçi bulunmuyor.
+              </div>
+            ) : (
+              followers.map((follower) => (
+                <div key={follower.id} className="bg-[#1a1d27] p-4 rounded-xl border border-white/5 flex items-center justify-between">
+                  <span className="text-white text-sm font-medium">{follower.followerName || 'Kullanıcı'}</span>
+                  <span className="text-xs text-gray-400">{follower.createdAt?.toDate ? follower.createdAt.toDate().toLocaleDateString('tr-TR') : 'Yeni'}</span>
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>
@@ -309,8 +385,17 @@ export default function Profile() {
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Camera className="w-8 h-8 text-white" />
                   </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAvatarUpload(file);
+                    }}
+                  />
                 </div>
-                <span className="text-xs text-gray-400">Fotoğrafı değiştirmek için tıklayın</span>
+                <span className="text-xs text-gray-400">{uploadingAvatar ? 'Yükleniyor...' : 'Fotoğrafı değiştirmek için tıklayın'}</span>
               </div>
 
               <div>
