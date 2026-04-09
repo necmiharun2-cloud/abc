@@ -12,6 +12,7 @@ export default function SoldListings() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sales, setSales] = useState<any[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'processing' | 'delivered' | 'completed' | 'cancelled' | 'disputed'>('all');
 
   const fetchSales = async () => {
     if (!user) return;
@@ -38,22 +39,21 @@ export default function SoldListings() {
   }, [user]);
 
   const filteredSales = useMemo(() => {
-    return sales.filter(sale => 
-      sale.id.includes(searchTerm) || 
-      (sale.productName && sale.productName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (sale.buyerName && sale.buyerName.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }, [searchTerm, sales]);
+    return sales.filter(sale => {
+      const textMatch =
+        sale.id.includes(searchTerm) ||
+        (sale.productTitle && sale.productTitle.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (sale.buyerName && sale.buyerName.toLowerCase().includes(searchTerm.toLowerCase()));
+      const statusMatch = statusFilter === 'all' ? true : sale.status === statusFilter;
+      return textMatch && statusMatch;
+    });
+  }, [searchTerm, sales, statusFilter]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchSales();
     setIsRefreshing(false);
     toast.success('Satışlar güncellendi.');
-  };
-
-  const handleComingSoon = (feature: string) => {
-    toast.success(`${feature} özelliği yakında eklenecek!`);
   };
 
   if (loading) return <div className="text-center py-20 text-white">Yükleniyor...</div>;
@@ -100,11 +100,11 @@ export default function SoldListings() {
             Sayfayı Yenile
           </button>
           <button 
-            onClick={() => handleComingSoon('Gelişmiş Filtreleme')}
+            onClick={() => setStatusFilter((prev) => (prev === 'all' ? 'processing' : 'all'))}
             className="bg-[#5b68f6] hover:bg-[#4a55d6] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(91,104,246,0.3)]"
           >
             <Filter className="w-4 h-4" />
-            Gelişmiş Filtre
+            {statusFilter === 'all' ? 'Sadece İşleniyor' : 'Tüm Durumlar'}
           </button>
         </div>
       </div>
@@ -121,17 +121,21 @@ export default function SoldListings() {
                 to={`/siparis/${sale.id}`}
                 className="bg-[#232736] border border-white/5 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer group"
               >
-                <img src={sale.productImage || `https://picsum.photos/seed/${sale.id}/80/80`} alt={sale.productName} className="w-16 h-16 rounded-lg object-cover" />
+                {sale.productImage ? (
+                  <img src={sale.productImage} alt={sale.productTitle} className="w-16 h-16 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-16 h-16 rounded-lg bg-[#1a1d27] flex items-center justify-center text-[10px] text-gray-400">Görsel Yok</div>
+                )}
                 <div className="flex-1 w-full">
                   <div className="text-gray-400 text-sm mb-1">Sipariş No : {sale.id.slice(0, 8)}</div>
                   <div className={`flex items-center gap-2 text-sm font-medium mb-2 ${sale.status === 'completed' || sale.status === 'delivered' ? 'text-emerald-400' : 'text-yellow-400'}`}>
                     <div className={`w-2 h-2 rounded-full ${sale.status === 'completed' || sale.status === 'delivered' ? 'bg-emerald-400' : 'bg-yellow-400'}`}></div>
-                    {sale.status === 'completed' || sale.status === 'delivered' ? 'Sipariş teslim edildi' : (sale.status === 'cancelled' ? 'İptal Edildi' : 'İşleniyor')}
+                    {sale.status === 'completed' || sale.status === 'delivered' ? 'Sipariş teslim edildi' : (sale.status === 'cancelled' ? 'İptal Edildi' : sale.status === 'disputed' ? 'Uyuşmazlıkta' : 'İşleniyor')}
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-500 text-xs uppercase">Alıcı</span>
                     <span className="text-white bg-[#1a1d27] px-2 py-1 rounded flex items-center gap-2 border border-white/5">
-                      <img src={`https://picsum.photos/seed/${sale.buyerId}/16/16`} alt="Buyer" className="w-4 h-4 rounded" />
+                      <span className="w-4 h-4 rounded bg-[#2b3142] inline-block" />
                       {sale.buyerName || 'Alıcı'}
                     </span>
                   </div>
@@ -140,6 +144,7 @@ export default function SoldListings() {
                   <div className="text-right">
                     <div className="text-gray-400 text-sm mb-1">{sale.createdAt?.toDate ? sale.createdAt.toDate().toLocaleString('tr-TR') : 'Yeni'}</div>
                     <div className="text-yellow-500 font-bold text-lg">{(Number(sale.price) || 0).toFixed(2)} ₺</div>
+                    <div className="text-[11px] text-gray-500 mt-1">Ödeme: {sale.paymentStatus || 'pending'}</div>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-[#5b68f6] group-hover:text-white transition-colors">
                     <ChevronDown className="w-5 h-5" />

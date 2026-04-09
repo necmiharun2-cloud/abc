@@ -45,6 +45,7 @@ export default function Dashboard() {
   });
 
   const [banks, setBanks] = useState<any[]>([]);
+  const [financialRows, setFinancialRows] = useState<any[]>([]);
   const [isAddingBank, setIsAddingBank] = useState(false);
   const [newBank, setNewBank] = useState({ bankName: '', iban: '', accountHolder: '' });
   const [isSeedModalOpen, setIsSeedModalOpen] = useState(false);
@@ -76,6 +77,30 @@ export default function Dashboard() {
       }
     };
     fetchBanks();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchFinancialRows = async () => {
+      try {
+        const [txSnap, wdSnap] = await Promise.all([
+          getDocs(query(collection(db, 'transactions'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'))),
+          getDocs(query(collection(db, 'withdrawals'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'))),
+        ]);
+
+        const txRows = txSnap.docs.map((d) => ({ id: d.id, source: 'tx', ...(d.data() as object) }));
+        const wdRows = wdSnap.docs.map((d) => ({ id: d.id, source: 'withdrawal', ...(d.data() as object) }));
+        const merged = [...txRows, ...wdRows].sort((a: any, b: any) => {
+          const aTs = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const bTs = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return bTs - aTs;
+        });
+        setFinancialRows(merged);
+      } catch (error) {
+        setFinancialRows([]);
+      }
+    };
+    fetchFinancialRows();
   }, [user]);
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -236,8 +261,8 @@ export default function Dashboard() {
           description: 'İçinde ejder vandal ve yağmacı bıçak bulunan dolu hesap.',
           sellerId: user.uid,
           sellerName: profile?.username || user.displayName || 'Test Satıcı',
-          sellerAvatar: profile?.avatar || 'https://picsum.photos/seed/u1/40/40',
-          image: 'https://picsum.photos/seed/v1/400/300',
+          sellerAvatar: profile?.avatar || '',
+          image: '',
           status: 'active',
           isVitrin: true,
           type: 'sell',
@@ -250,8 +275,8 @@ export default function Dashboard() {
           description: 'Anında teslimat garantili robux.',
           sellerId: user.uid,
           sellerName: profile?.username || user.displayName || 'Test Satıcı',
-          sellerAvatar: profile?.avatar || 'https://picsum.photos/seed/u1/40/40',
-          image: 'https://picsum.photos/seed/r1/400/300',
+          sellerAvatar: profile?.avatar || '',
+          image: '',
           status: 'active',
           isVitrin: true,
           type: 'sell',
@@ -265,8 +290,8 @@ export default function Dashboard() {
           description: 'Global geçerli steam cüzdan kodu.',
           sellerId: user.uid,
           sellerName: profile?.username || user.displayName || 'Test Satıcı',
-          sellerAvatar: profile?.avatar || 'https://picsum.photos/seed/u1/40/40',
-          image: 'https://picsum.photos/seed/s1/400/300',
+          sellerAvatar: profile?.avatar || '',
+          image: '',
           status: 'active',
           isVitrin: false,
           type: 'sell',
@@ -279,8 +304,8 @@ export default function Dashboard() {
           description: 'Kendi hesabınıza tanımlanan nitro boost.',
           sellerId: user.uid,
           sellerName: profile?.username || user.displayName || 'Test Satıcı',
-          sellerAvatar: profile?.avatar || 'https://picsum.photos/seed/u1/40/40',
-          image: 'https://picsum.photos/seed/d1/400/300',
+          sellerAvatar: profile?.avatar || '',
+          image: '',
           status: 'active',
           isVitrin: true,
           type: 'sell',
@@ -738,16 +763,44 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  <tr className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-white">Bakiye Yükleme (Test)</div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-400">Bugün</td>
-                    <td className="px-6 py-4 text-sm text-emerald-500 font-bold">+100.00 ₺</td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded uppercase">Tamamlandı</span>
-                    </td>
-                  </tr>
+                  {financialRows.length > 0 ? financialRows.map((row: any) => {
+                    const amount = Number(row.amount || 0);
+                    const isPositive = row.type === 'topup' || row.type === 'payment_capture';
+                    const label = row.source === 'withdrawal'
+                      ? 'Para Çekme'
+                      : row.type === 'payment_capture'
+                        ? 'Satış Geliri'
+                        : row.type === 'payment_refund'
+                          ? 'İade'
+                          : row.type === 'withdrawal_request'
+                            ? 'Çekim Talebi'
+                            : row.type || 'İşlem';
+                    const status = row.status || 'pending';
+                    return (
+                      <tr key={`${row.source}-${row.id}`} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-white">{label}</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-400">
+                          {row.createdAt?.toDate ? row.createdAt.toDate().toLocaleString('tr-TR') : '-'}
+                        </td>
+                        <td className={`px-6 py-4 text-sm font-bold ${isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                          {isPositive ? '+' : '-'}{amount.toFixed(2)} ₺
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-2 py-1 bg-white/10 text-gray-300 text-[10px] font-bold rounded uppercase">
+                            {status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  }) : (
+                    <tr>
+                      <td className="px-6 py-6 text-sm text-gray-400 text-center" colSpan={4}>
+                        Henüz finansal hareket bulunmuyor.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
