@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 export interface UserProfile {
@@ -38,6 +38,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({ user: null, profile: null, loading: true });
+const BOOTSTRAP_ADMIN_EMAILS = ['necmiharun3@gmail.com'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -56,11 +57,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const normalizedEmail = (firebaseUser.email || '').toLowerCase().trim();
+        const shouldBootstrapAdmin = BOOTSTRAP_ADMIN_EMAILS.includes(normalizedEmail);
         
         // Listen to profile changes
-        unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
+        unsubscribeProfile = onSnapshot(userDocRef, async (docSnap) => {
           if (docSnap.exists()) {
-            setProfile(docSnap.data() as UserProfile);
+            const existingProfile = docSnap.data() as UserProfile;
+            if (shouldBootstrapAdmin && existingProfile.role !== 'admin') {
+              try {
+                await updateDoc(userDocRef, { role: 'admin' });
+              } catch (error) {
+                console.error('Admin bootstrap update failed:', error);
+              }
+            }
+            setProfile(existingProfile);
           } else {
             // Create profile if it doesn't exist
             const newProfile: UserProfile = {
@@ -82,9 +93,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               storeLevel: 'standard',
               isVerifiedSeller: false,
               kycStatus: 'none',
-              kycReferenceId: ''
+              kycReferenceId: '',
+              notifications: {
+                orders: true,
+                messages: true,
+                system: true,
+                marketing: false,
+              },
             };
             setDoc(userDocRef, newProfile);
+            if (shouldBootstrapAdmin) {
+              try {
+                await updateDoc(userDocRef, { role: 'admin' });
+              } catch (error) {
+                console.error('Admin bootstrap create->update failed:', error);
+              }
+            }
             setProfile(newProfile);
           }
           setLoading(false);
