@@ -31,6 +31,31 @@ Bu proje, İtemsatış platformunun bir klonudur. React, Vite, Tailwind CSS ve F
    npm run dev
    ```
 
+## Ortam Değişkenleri
+Bu proje Firebase ile çalışır. Örnek şablon için `.env.example` dosyasını kullanın:
+
+```bash
+cp .env.example .env
+```
+
+## Test ve Kalite Kontrolleri
+- Type check:
+  ```bash
+  npm run typecheck
+  ```
+- Lint:
+  ```bash
+  npm run lint
+  ```
+- Test:
+  ```bash
+  npm run test
+  ```
+- Tüm kontroller:
+  ```bash
+  npm run check
+  ```
+
 ## Firebase Kuralları
 `firestore.rules` dosyası, veritabanı güvenliğini sağlamak için yapılandırılmıştır. Projeyi deploy etmeden önce bu kuralları Firebase konsolundan uyguladığınızdan emin olun.
 
