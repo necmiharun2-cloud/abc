@@ -40,10 +40,7 @@ export default function TopBar() {
             <FileText className="w-3.5 h-3.5" />
             Blog
           </Link>
-          <Link to="/iletisim" className="flex items-center gap-1.5 text-white/70 hover:text-white text-[11px] font-medium transition-colors">
-            <Phone className="w-3.5 h-3.5" />
-            İletişim
-          </Link>
+          {/* /iletisim route'u App.tsx'de yok, kaldırıldı */}
           <Link to="/sss" className="flex items-center gap-1.5 text-white/70 hover:text-white text-[11px] font-medium transition-colors">
             <HelpCircle className="w-3.5 h-3.5" />
             S.S.S.

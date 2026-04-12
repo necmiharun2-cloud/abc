@@ -14,7 +14,7 @@ export default function Footer() {
               <li><Link to="/hakkimizda" className="text-white/60 hover:text-white transition-colors text-xs">Hakkımızda</Link></li>
               <li><Link to="/register" className="text-white/60 hover:text-white transition-colors text-xs">Kayıt Ol</Link></li>
               <li><Link to="/login" className="text-white/60 hover:text-white transition-colors text-xs">Giriş Yap</Link></li>
-              <li><Link to="/forgot-password" className="text-white/60 hover:text-white transition-colors text-xs">Şifremi Unuttum</Link></li>
+              <li><Link to="/sifremi-unuttum" className="text-white/60 hover:text-white transition-colors text-xs">Şifremi Unuttum</Link></li>
               <li><Link to="/ilan-ekle" className="text-white/60 hover:text-white transition-colors text-xs">İlan Ekle</Link></li>
               <li><Link to="/alim-ilanlari" className="text-white/60 hover:text-white transition-colors text-xs">Alım İlanları</Link></li>
               <li><Link to="/cd-key" className="text-white/60 hover:text-white transition-colors text-xs">CD Key</Link></li>

@@ -4,6 +4,7 @@
  */
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import AppErrorBoundary from './components/AppErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -61,63 +62,64 @@ import { LanguageProvider } from './contexts/LanguageContext';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <FavoritesProvider>
-          <LanguageProvider>
-          <BrowserRouter>
-          {missingFirebaseEnvKeys.length > 0 && (
-            <div className="max-w-[1400px] mx-auto px-4 pt-3">
-              <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-xs rounded-lg px-3 py-2">
-                Firebase env eksik: {missingFirebaseEnvKeys.join(', ')}. Vercel Environment Variables alanına ekleyip redeploy et.
-              </div>
-            </div>
-          )}
-          <Toaster position="top-center" toastOptions={{
-            style: {
-              background: '#1a1b23',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '12px',
-              padding: '12px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-            },
-            success: {
-              style: {
-                background: 'linear-gradient(135deg, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.05) 100%)',
-                border: '1px solid rgba(34,197,94,0.5)',
-              },
-              iconTheme: {
-                primary: '#22c55e',
-                secondary: '#1a1b23'
-              }
-            },
-            error: {
-              style: {
-                background: 'linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.05) 100%)',
-                border: '1px solid rgba(239,68,68,0.5)',
-              },
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#1a1b23'
-              }
-            },
-            loading: {
-              style: {
-                background: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.05) 100%)',
-                border: '1px solid rgba(59,130,246,0.5)',
-              },
-              iconTheme: {
-                primary: '#3b82f6',
-                secondary: '#1a1b23'
-              }
-            }
-          }} />
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
+    <AppErrorBoundary>
+      <AuthProvider>
+        <CartProvider>
+          <FavoritesProvider>
+            <LanguageProvider>
+              <BrowserRouter>
+                {missingFirebaseEnvKeys.length > 0 && (
+                  <div className="max-w-[1400px] mx-auto px-4 pt-3">
+                    <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-xs rounded-lg px-3 py-2">
+                      Firebase env eksik: {missingFirebaseEnvKeys.join(', ')}. Vercel Environment Variables alanına ekleyip redeploy et.
+                    </div>
+                  </div>
+                )}
+                <Toaster position="top-center" toastOptions={{
+                  style: {
+                    background: '#1a1b23',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                  },
+                  success: {
+                    style: {
+                      background: 'linear-gradient(135deg, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.05) 100%)',
+                      border: '1px solid rgba(34,197,94,0.5)',
+                    },
+                    iconTheme: {
+                      primary: '#22c55e',
+                      secondary: '#1a1b23'
+                    }
+                  },
+                  error: {
+                    style: {
+                      background: 'linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.05) 100%)',
+                      border: '1px solid rgba(239,68,68,0.5)',
+                    },
+                    iconTheme: {
+                      primary: '#ef4444',
+                      secondary: '#1a1b23'
+                    }
+                  },
+                  loading: {
+                    style: {
+                      background: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.05) 100%)',
+                      border: '1px solid rgba(59,130,246,0.5)',
+                    },
+                    iconTheme: {
+                      primary: '#3b82f6',
+                      secondary: '#1a1b23'
+                    }
+                  }
+                }} />
+                <Routes>
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<Home />} />
               <Route path="roblox" element={<Roblox />} />
               <Route path="product/:id" element={<Product />} />
               <Route path="ilan-pazari" element={<IlanPazari />} />

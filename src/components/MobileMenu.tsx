@@ -10,27 +10,27 @@ const MobileMenu = () => {
 
   const mainLinks = [
     { icon: Home, label: "Ana Sayfa", to: "/" },
-    { icon: LayoutGrid, label: "Kategoriler", to: "/category" },
-    { icon: ShoppingBag, label: "İlan Pazarı", to: "/category" },
-    { icon: ShoppingCart, label: "Alım İlanları", to: "/category" },
-    { icon: Store, label: "Mağazalar", to: "/stores" },
-    { icon: Key, label: "CD-Key", to: "/category/cd-key" },
-    { icon: CreditCard, label: "Top Up", to: "/category/top-up" },
-    { icon: Gift, label: "Hediye Kartları", to: "/category/hediye-kartlari" },
-    { icon: Dice5, label: "Çekilişler", to: "/giveaways" },
-    { icon: Flame, label: "İndirimler", to: "/category" },
-    { icon: Users, label: "Topluluk", to: "#" },
+    { icon: LayoutGrid, label: "Kategoriler", to: "/tum-kategoriler" },
+    { icon: ShoppingBag, label: "İlan Pazarı", to: "/ilan-pazari" },
+    { icon: ShoppingCart, label: "Alım İlanları", to: "/alim-ilanlari" },
+    { icon: Store, label: "Mağazalar", to: "/magazalar" },
+    { icon: Key, label: "CD-Key", to: "/cd-key" },
+    { icon: CreditCard, label: "Top Up", to: "/top-up" },
+    { icon: Gift, label: "Hediye Kartları", to: "/hediye-kartlari" },
+    { icon: Dice5, label: "Çekilişler", to: "/cekilisler" },
+    { icon: Flame, label: "İndirimler", to: "/firsatlar" },
+    { icon: Users, label: "Topluluk", to: "/topluluk" },
   ];
 
   const accountLinks = [
     { icon: LogIn, label: "Giriş Yap", to: "/login" },
     { icon: UserPlus, label: "Kayıt Ol", to: "/register" },
-    { icon: LayoutDashboard, label: "Kullanıcı Paneli", to: "/dashboard" },
-    { icon: Package, label: "Siparişlerim", to: "/orders" },
-    { icon: Wallet, label: "Bakiye Yükle", to: "/deposit" },
-    { icon: MessageCircle, label: "Mesajlar", to: "/messages" },
-    { icon: Settings, label: "Ayarlar", to: "/settings" },
-    { icon: HelpCircle, label: "Destek", to: "/support" },
+    { icon: LayoutDashboard, label: "Kullanıcı Paneli", to: "/kontrol-merkezi" },
+    { icon: Package, label: "Siparişlerim", to: "/siparislerim" },
+    { icon: Wallet, label: "Bakiye Yükle", to: "/bakiye-yukle" },
+    { icon: MessageCircle, label: "Mesajlar", to: "/mesajlarim" },
+    { icon: Settings, label: "Ayarlar", to: "/profile" },
+    { icon: HelpCircle, label: "Destek", to: "/destek-sistemi" },
     { icon: Star, label: "Admin Panel", to: "/admin" },
   ];
 

@@ -4,13 +4,13 @@ import { Link } from "react-router-dom";
 import MegaMenu from "./MegaMenu";
 
 const navItems = [
-  { icon: ShoppingBag, label: "İlan Pazarı", href: "/category" },
-  { icon: ShoppingCart, label: "Alım İlanları", href: "/category" },
-  { icon: Store, label: "Mağazalar", href: "/stores" },
-  { icon: Key, label: "CD-Key", href: "/category/cd-key" },
-  { icon: CreditCard, label: "Top Up", href: "/category/top-up" },
-  { icon: Gift, label: "Hediye Kartları", href: "/category/hediye-kartlari" },
-  { icon: Users, label: "Topluluk", href: "#" },
+  { icon: ShoppingBag, label: "İlan Pazarı", href: "/ilan-pazari" },
+  { icon: ShoppingCart, label: "Alım İlanları", href: "/alim-ilanlari" },
+  { icon: Store, label: "Mağazalar", href: "/magazalar" },
+  { icon: Key, label: "CD-Key", href: "/cd-key" },
+  { icon: CreditCard, label: "Top Up", href: "/top-up" },
+  { icon: Gift, label: "Hediye Kartları", href: "/hediye-kartlari" },
+  { icon: Users, label: "Topluluk", href: "/topluluk" },
 ];
 
 const NavMenu = () => {
